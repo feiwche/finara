@@ -42,6 +42,11 @@ public class CustomerContextTools(FinaraDbContext dbContext)
 
     public async Task<string> GetCustomerTransactions(Guid customerId, int days = 90)
     {
+        // LLM (ya da dış bir MCP istemcisi) aşırı büyük/negatif bir değer gönderirse
+        // DateTime.UtcNow.AddDays(-days) geçerli tarih aralığının dışına taşıp
+        // ArgumentOutOfRangeException fırlatıyordu (denetimde bulundu). 10 yıl
+        // makul bir üst sınır.
+        days = Math.Clamp(days, 1, 3650);
         var since = DateTime.UtcNow.AddDays(-days);
         var transactions = await dbContext.Transactions.AsNoTracking()
             .Where(t => t.CustomerId == customerId && t.OccurredAtUtc >= since)

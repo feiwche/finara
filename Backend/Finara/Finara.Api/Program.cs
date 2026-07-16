@@ -11,6 +11,7 @@ using Finara.Infrastructure.MockData;
 using Finara.Infrastructure.Persistence;
 using Finara.Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.AI;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -37,7 +38,20 @@ builder.Services.AddScoped<ISegmentationService, SegmentationService>();
 builder.Services.AddScoped<INextBestOfferService, NextBestOfferService>();
 
 // Bulut LLM API'si (ChatGPT/Claude) değil, kullanıcının kendi makinesinde
-// çalışan Ollama (llama3.1:8b) — Faz 5.
+// çalışan Ollama (llama3.1:8b) — Faz 5. Tek bir IChatClient Singleton olarak
+// kaydediliyor, AiChatService ve AiInsightService bunu paylaşıyor — öncesinde
+// AiInsightService her çağrıda kendi client'ını oluşturup hiç Dispose etmiyordu
+// (denetimde bulunan kaynak sızıntısı).
+builder.Services.AddSingleton<IChatClient>(sp =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    var baseUrl = config["Ollama:BaseUrl"] ?? "http://localhost:11434";
+    var model = config["Ollama:Model"] ?? "llama3.1:8b";
+    return new OllamaChatClient(new Uri(baseUrl), model)
+        .AsBuilder()
+        .UseFunctionInvocation()
+        .Build();
+});
 builder.Services.AddSingleton<IAiChatService, AiChatService>();
 builder.Services.AddScoped<IAiInsightService, AiInsightService>();
 

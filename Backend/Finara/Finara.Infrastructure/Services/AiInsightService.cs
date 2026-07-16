@@ -5,7 +5,6 @@ using Finara.Infrastructure.Ai;
 using Finara.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Configuration;
 
 namespace Finara.Infrastructure.Services;
 
@@ -14,10 +13,14 @@ namespace Finara.Infrastructure.Services;
 // native function-calling'i ile doğrudan. customerId burada closure'a alınıyor, LLM'in
 // GUID'i doğru yazmasına güvenmek yerine — daha güvenilir.
 //
+// IChatClient DI'dan Singleton olarak enjekte ediliyor (bkz. Program.cs), AiChatService
+// ile PAYLAŞILAN aynı bağlantı — öncesinde her çağrıda yeni bir OllamaChatClient
+// oluşturulup hiç Dispose edilmiyordu (kaynak sızıntısı, denetimde bulundu).
+//
 // AiInteractionLog kaydı bu etkileşimin izini zaten tutuyor; ayrıca genel AuditLog'a
 // yazmıyoruz (AuditActionType bu senaryo için henüz bir değer içermiyor — gerekirse
 // ileride eklenir).
-public class AiInsightService(FinaraDbContext dbContext, CustomerContextTools tools, IConfiguration configuration)
+public class AiInsightService(FinaraDbContext dbContext, CustomerContextTools tools, IChatClient chatClient)
     : IAiInsightService
 {
     private const string DefaultQuestion =
@@ -31,14 +34,6 @@ public class AiInsightService(FinaraDbContext dbContext, CustomerContextTools to
             return null;
 
         var effectiveQuestion = string.IsNullOrWhiteSpace(question) ? DefaultQuestion : question;
-
-        var baseUrl = configuration["Ollama:BaseUrl"] ?? "http://localhost:11434";
-        var model = configuration["Ollama:Model"] ?? "llama3.1:8b";
-
-        IChatClient chatClient = new OllamaChatClient(new Uri(baseUrl), model)
-            .AsBuilder()
-            .UseFunctionInvocation()
-            .Build();
 
         List<AITool> customerTools =
         [
