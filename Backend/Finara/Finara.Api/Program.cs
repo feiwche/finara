@@ -32,6 +32,9 @@ builder.Services.Configure<PayloadGuardOptions>(builder.Configuration.GetSection
 builder.Services.AddScoped<IBankDataProvider, MockBankDataProvider>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ICampaignService, CampaignService>();
+builder.Services.AddScoped<ISegmentationService, SegmentationService>();
+builder.Services.AddScoped<INextBestOfferService, NextBestOfferService>();
 
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var jwtKey = jwtSection["Key"]
@@ -179,5 +182,7 @@ if (app.Environment.IsDevelopment())
 app.MapGet("/", () => "Hello World!");
 app.MapAuthEndpoints();
 app.MapCustomerEndpoints();
+app.MapCampaignEndpoints();
+app.MapSegmentationEndpoints();
 
 app.Run();
