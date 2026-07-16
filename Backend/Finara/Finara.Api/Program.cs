@@ -17,6 +17,8 @@ builder.Services.AddDbContext<FinaraDbContext>(options =>
 
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 
+builder.Services.Configure<PayloadGuardOptions>(builder.Configuration.GetSection("PayloadGuard"));
+
 // Banka entegrasyonu henüz yok — tek implementasyon Bogus tabanlı mock üretici.
 // İleride gerçek banka API'sine bağlanan bir implementasyon eklendiğinde sadece bu satır değişecek.
 builder.Services.AddScoped<IBankDataProvider, MockBankDataProvider>();
@@ -45,6 +47,7 @@ var app = builder.Build();
 
 app.UseExceptionHandler();
 app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseMiddleware<PayloadGuardMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
