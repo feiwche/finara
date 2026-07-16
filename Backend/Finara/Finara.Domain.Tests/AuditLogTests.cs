@@ -1,0 +1,42 @@
+using AwesomeAssertions;
+using Finara.Domain.Enums;
+using Xunit;
+
+namespace Finara.Domain.Tests;
+
+public class AuditLogTests
+{
+    private static readonly Guid ValidCustomerId = Guid.NewGuid();
+
+    [Fact]
+    public void Create_GecerliBilgilerle_KayitOlusturur()
+    {
+        var log = Domain.Entities.AuditLog.Create(
+            ValidCustomerId, AuditActionType.CustomerCreated, "İlk kayıt");
+
+        log.CustomerId.Should().Be(ValidCustomerId);
+        log.ActionType.Should().Be(AuditActionType.CustomerCreated);
+        log.Details.Should().Be("İlk kayıt");
+        log.PerformedByUserId.Should().BeNull();
+        log.Id.Should().NotBe(Guid.Empty);
+    }
+
+    [Fact]
+    public void Create_BosMusteriId_ArgumentExceptionFirlatir()
+    {
+        var act = () => Domain.Entities.AuditLog.Create(Guid.Empty, AuditActionType.CustomerCreated);
+
+        act.Should().Throw<ArgumentException>().WithParameterName("customerId");
+    }
+
+    [Fact]
+    public void Create_PerformedByUserIdVerilebilir()
+    {
+        var userId = Guid.NewGuid();
+
+        var log = Domain.Entities.AuditLog.Create(
+            ValidCustomerId, AuditActionType.CampaignOfferAccepted, performedByUserId: userId);
+
+        log.PerformedByUserId.Should().Be(userId);
+    }
+}
