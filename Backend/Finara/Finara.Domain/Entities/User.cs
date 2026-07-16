@@ -15,8 +15,8 @@ public class User : BaseEntity
 
     public static User Create(string email, string passwordHash, UserRole role = UserRole.Admin)
     {
-        if (string.IsNullOrWhiteSpace(email))
-            throw new ArgumentException("E-posta boş olamaz.", nameof(email));
+        if (!IsValidEmail(email))
+            throw new ArgumentException("Geçersiz e-posta formatı.", nameof(email));
 
         if (string.IsNullOrWhiteSpace(passwordHash))
             throw new ArgumentException("Şifre hash'i boş olamaz.", nameof(passwordHash));
@@ -27,5 +27,19 @@ public class User : BaseEntity
             PasswordHash = passwordHash,
             Role = role
         };
+    }
+
+    private static bool IsValidEmail(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email)) return false;
+        try
+        {
+            var addr = new System.Net.Mail.MailAddress(email);
+            return addr.Address == email.Trim();
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

@@ -108,21 +108,32 @@ builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
-    // Genel uçlar: dakikada 100 istek — normal CRUD trafiği için yeterince gevşek.
-    options.AddFixedWindowLimiter(RateLimitPolicies.Global, opt =>
-    {
-        opt.PermitLimit = 100;
-        opt.Window = TimeSpan.FromMinutes(1);
-        opt.QueueLimit = 0;
-    });
+    // Kullanıcı/IP başına bölümlenmiş limitler — AddFixedWindowLimiter(policyName, ...)
+    // kısayolu BİLEREK kullanılmıyor, o tüm istemciler için tek bir ortak sayaç kullanır
+    // (bir istemcinin limiti doldurması diğer herkesi de kilitler). Bulundu ve düzeltildi:
+    // denetimde anonim bir istek, başka bir kullanıcının doldurduğu kotadan 429 almıştı.
 
-    // Toplu mock veri üretimi ağır bir işlem (çok sayıda insert) — dakikada 5 ile sınırlı.
-    options.AddFixedWindowLimiter(RateLimitPolicies.MockGeneration, opt =>
-    {
-        opt.PermitLimit = 5;
-        opt.Window = TimeSpan.FromMinutes(1);
-        opt.QueueLimit = 0;
-    });
+    // Genel uçlar: istemci başına dakikada 100 istek.
+    options.AddPolicy(RateLimitPolicies.Global, httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: RateLimitPolicies.GetPartitionKey(httpContext),
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 100,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+
+    // Toplu mock veri üretimi ağır bir işlem (çok sayıda insert) — istemci başına dakikada 5.
+    options.AddPolicy(RateLimitPolicies.MockGeneration, httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: RateLimitPolicies.GetPartitionKey(httpContext),
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
 
     options.OnRejected = async (context, cancellationToken) =>
     {
@@ -147,10 +158,13 @@ var app = builder.Build();
 app.UseExceptionHandler();
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseMiddleware<PayloadGuardMiddleware>();
-app.UseRateLimiter();
 app.UseCors("AllowAngularDev");
 app.UseAuthentication();
 app.UseAuthorization();
+// UseAuthentication/UseAuthorization'dan SONRA çalışmalı — RateLimitPolicies.GetPartitionKey
+// kullanıcı kimliğine göre bölümleme yapabilsin diye HttpContext.User'ın doldurulmuş
+// olması gerekiyor. Öncesinde olsaydı her istek "authenticated değil" görünüp IP'ye düşerdi.
+app.UseRateLimiter();
 
 if (app.Environment.IsDevelopment())
 {

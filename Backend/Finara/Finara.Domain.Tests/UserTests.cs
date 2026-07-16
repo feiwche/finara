@@ -27,6 +27,17 @@ public class UserTests
     }
 
     [Theory]
+    [InlineData("gecersiz-email-formati")]
+    [InlineData("gecersiz@")]
+    [InlineData("@example.com")]
+    public void Create_GecersizEmailFormati_ArgumentExceptionFirlatir(string email)
+    {
+        var act = () => Domain.Entities.User.Create(email, "hashed-value");
+
+        act.Should().Throw<ArgumentException>().WithParameterName("email");
+    }
+
+    [Theory]
     [InlineData("")]
     [InlineData("   ")]
     public void Create_BosSifreHash_ArgumentExceptionFirlatir(string hash)
