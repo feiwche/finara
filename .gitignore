@@ -1,0 +1,28 @@
+# ---- .NET / Backend ----
+[Bb]in/
+[Oo]bj/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ---- Angular / Frontend ----
+node_modules/
+dist/
+.angular/
+*.log
+npm-debug.log*
+
+# ---- IDE ----
+.idea/
+*.swp
+
+# ---- Env / Secrets ----
+.env
+.env.*
+!.env.example
+
+# ---- OS ----
+Thumbs.db
+.DS_Store
