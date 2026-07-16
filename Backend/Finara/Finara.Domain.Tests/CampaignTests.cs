@@ -17,6 +17,21 @@ public class CampaignTests
         campaign.Status.Should().Be(CampaignStatus.Draft);
         campaign.VariantId.Should().Be("default");
         campaign.Offers.Should().BeEmpty();
+        campaign.TargetsInvestmentAccountHolders.Should().BeFalse();
+        campaign.TargetsInternationalTransferUsers.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Create_HedefBayraklariVerilebilir()
+    {
+        var campaign = Domain.Entities.Campaign.Create(
+            "Seyahat Sigortası", "Açıklama", DateTime.UtcNow,
+            targetCategory: TransactionCategory.Travel,
+            targetsInvestmentAccountHolders: true,
+            targetsInternationalTransferUsers: true);
+
+        campaign.TargetsInvestmentAccountHolders.Should().BeTrue();
+        campaign.TargetsInternationalTransferUsers.Should().BeTrue();
     }
 
     [Fact]

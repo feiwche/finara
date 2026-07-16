@@ -21,6 +21,12 @@ public class Campaign : BaseEntity
     public TransactionCategory? TargetCategory { get; private set; }
     public SpendingPropensity? TargetPropensity { get; private set; }
 
+    // Next-Best-Offer motorunun "özel ürün uygunluğu" bonusu için — örn. seyahat sigortası
+    // veya döviz avantajlı kart kampanyaları, yatırım hesabı/SWIFT kullanan müşterilere
+    // ekstra puanla önerilsin diye. Faz 4.
+    public bool TargetsInvestmentAccountHolders { get; private set; }
+    public bool TargetsInternationalTransferUsers { get; private set; }
+
     public DateTime StartDateUtc { get; private set; }
     public DateTime? EndDateUtc { get; private set; }
 
@@ -36,7 +42,9 @@ public class Campaign : BaseEntity
         string variantId = "default",
         TransactionCategory? targetCategory = null,
         SpendingPropensity? targetPropensity = null,
-        DateTime? endDateUtc = null)
+        DateTime? endDateUtc = null,
+        bool targetsInvestmentAccountHolders = false,
+        bool targetsInternationalTransferUsers = false)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Kampanya adı boş olamaz.", nameof(name));
@@ -53,6 +61,8 @@ public class Campaign : BaseEntity
             TargetPropensity = targetPropensity,
             StartDateUtc = startDateUtc,
             EndDateUtc = endDateUtc,
+            TargetsInvestmentAccountHolders = targetsInvestmentAccountHolders,
+            TargetsInternationalTransferUsers = targetsInternationalTransferUsers,
             Status = CampaignStatus.Draft
         };
     }

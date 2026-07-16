@@ -56,6 +56,12 @@ namespace Finara.Infrastructure.Persistence.Migrations
                     b.Property<int?>("TargetPropensity")
                         .HasColumnType("int");
 
+                    b.Property<bool>("TargetsInternationalTransferUsers")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("TargetsInvestmentAccountHolders")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("datetime2");
 
