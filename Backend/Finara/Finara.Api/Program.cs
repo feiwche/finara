@@ -1,8 +1,10 @@
+using Finara.Api.Endpoints;
 using Finara.Api.ExceptionHandling;
 using Finara.Api.Middleware;
 using Finara.Application.Interfaces;
 using Finara.Infrastructure.MockData;
 using Finara.Infrastructure.Persistence;
+using Finara.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +20,12 @@ builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 // Banka entegrasyonu henüz yok — tek implementasyon Bogus tabanlı mock üretici.
 // İleride gerçek banka API'sine bağlanan bir implementasyon eklendiğinde sadece bu satır değişecek.
 builder.Services.AddScoped<IBankDataProvider, MockBankDataProvider>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+
+// Enum'lar JSON'da okunabilir string olarak taşınsın ("Groceries"), ham int olarak değil —
+// hem API tüketicisi için hem Swagger dokümantasyonu için gerekli.
+builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
+    options.SerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -28,6 +36,9 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1",
         Description = "Harcama segmentasyonu ve kampanya önerisi için banka arka uç API'si (mock veri modu)."
     });
+    options.SupportNonNullableReferenceTypes();
+    options.UseInlineDefinitionsForEnums();
+    options.SchemaFilter<Finara.Api.Swagger.EnumSchemaFilter>();
 });
 
 var app = builder.Build();
@@ -46,5 +57,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapGet("/", () => "Hello World!");
+app.MapCustomerEndpoints();
 
 app.Run();
