@@ -36,6 +36,10 @@ builder.Services.AddScoped<ICampaignService, CampaignService>();
 builder.Services.AddScoped<ISegmentationService, SegmentationService>();
 builder.Services.AddScoped<INextBestOfferService, NextBestOfferService>();
 
+// Bulut LLM API'si (ChatGPT/Claude) değil, kullanıcının kendi makinesinde
+// çalışan Ollama (llama3.1:8b) — Faz 5.
+builder.Services.AddSingleton<IAiChatService, AiChatService>();
+
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var jwtKey = jwtSection["Key"]
     ?? throw new InvalidOperationException("Jwt:Key yapılandırılmamış. 'dotnet user-secrets set \"Jwt:Key\" \"<en az 32 karakter>\"' ile ekleyin.");
@@ -184,5 +188,6 @@ app.MapAuthEndpoints();
 app.MapCustomerEndpoints();
 app.MapCampaignEndpoints();
 app.MapSegmentationEndpoints();
+app.MapAiEndpoints();
 
 app.Run();
