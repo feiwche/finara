@@ -1,10 +1,14 @@
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using Finara.Api.Endpoints;
 using Finara.Api.ExceptionHandling;
 using Finara.Api.Middleware;
+using Finara.Api.RateLimiting;
 using Finara.Application.Interfaces;
 using Finara.Infrastructure.MockData;
 using Finara.Infrastructure.Persistence;
 using Finara.Infrastructure.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -43,11 +47,50 @@ builder.Services.AddSwaggerGen(options =>
     options.SchemaFilter<Finara.Api.Swagger.EnumSchemaFilter>();
 });
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // Genel uçlar: dakikada 100 istek — normal CRUD trafiği için yeterince gevşek.
+    options.AddFixedWindowLimiter(RateLimitPolicies.Global, opt =>
+    {
+        opt.PermitLimit = 100;
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.QueueLimit = 0;
+    });
+
+    // Toplu mock veri üretimi ağır bir işlem (çok sayıda insert) — dakikada 5 ile sınırlı.
+    options.AddFixedWindowLimiter(RateLimitPolicies.MockGeneration, opt =>
+    {
+        opt.PermitLimit = 5;
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.QueueLimit = 0;
+    });
+
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        var correlationId = context.HttpContext.Items.TryGetValue(CorrelationIdMiddleware.HeaderName, out var id) ? id : null;
+        var problemDetails = new ProblemDetails
+        {
+            Status = StatusCodes.Status429TooManyRequests,
+            Title = "Çok fazla istek",
+            Detail = "İstek limiti aşıldı, lütfen bir süre sonra tekrar deneyin.",
+            Instance = context.HttpContext.Request.Path
+        };
+        if (correlationId is not null)
+            problemDetails.Extensions["correlationId"] = correlationId;
+
+        context.HttpContext.Response.ContentType = "application/problem+json";
+        await context.HttpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
+    };
+});
+
 var app = builder.Build();
 
 app.UseExceptionHandler();
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseMiddleware<PayloadGuardMiddleware>();
+app.UseRateLimiter();
 
 if (app.Environment.IsDevelopment())
 {
