@@ -1,6 +1,7 @@
 <Solution>
   <Project Path="Finara.Api/Finara.Api.csproj" />
   <Project Path="Finara.Application/Finara.Application.csproj" />
+  <Project Path="Finara.Domain.Tests/Finara.Domain.Tests.csproj" />
   <Project Path="Finara.Domain/Finara.Domain.csproj" />
   <Project Path="Finara.Infrastructure/Finara.Infrastructure.csproj" />
 </Solution>
