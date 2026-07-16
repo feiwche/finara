@@ -16,18 +16,22 @@ public static class AuthEndpoints
         {
             await service.RegisterAsync(request, ct);
             return Results.Created();
-        });
+        })
+        .Produces(StatusCodes.Status201Created);
 
         auth.MapPost("/login", async (LoginRequest request, IAuthService service, CancellationToken ct) =>
-            Results.Ok(await service.LoginAsync(request, ct)));
+            Results.Ok(await service.LoginAsync(request, ct)))
+            .Produces<AuthResult>();
 
         auth.MapPost("/refresh", async (RefreshRequest request, IAuthService service, CancellationToken ct) =>
-            Results.Ok(await service.RefreshAsync(request, ct)));
+            Results.Ok(await service.RefreshAsync(request, ct)))
+            .Produces<AuthResult>();
 
         auth.MapPost("/revoke", async (RevokeRequest request, IAuthService service, CancellationToken ct) =>
         {
             await service.RevokeAsync(request, ct);
             return Results.NoContent();
-        });
+        })
+        .Produces(StatusCodes.Status204NoContent);
     }
 }

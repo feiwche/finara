@@ -55,6 +55,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+// Faz 3.5: Angular dev server (ng serve, varsayılan 4200) buradan erişebilsin diye.
+// Faz 6/7'de gerçek origin'ler appsettings üzerinden yapılandırılabilir hale getirilecek.
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngularDev", policy =>
+        policy.WithOrigins("http://localhost:4200")
+              .AllowAnyHeader()
+              .AllowAnyMethod());
+});
+
 // Enum'lar JSON'da okunabilir string olarak taşınsın ("Groceries"), ham int olarak değil —
 // hem API tüketicisi için hem Swagger dokümantasyonu için gerekli.
 builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
@@ -70,7 +80,10 @@ builder.Services.AddSwaggerGen(options =>
         Description = "Harcama segmentasyonu ve kampanya önerisi için banka arka uç API'si (mock veri modu)."
     });
     options.SupportNonNullableReferenceTypes();
-    options.UseInlineDefinitionsForEnums();
+    // UseInlineDefinitionsForEnums BİLEREK kullanılmıyor: her kullanım yerinde ayrı bir
+    // enum tanımı üretir (örn. CustomerSummaryPropensity, RecordTransactionRequestCategory),
+    // bu da NSwag'ın aynı enum'u paylaşılan tek bir TypeScript tipi yerine tekrar tekrar
+    // üretmesine yol açar. Paylaşılan $ref şeması için bu satır kapalı tutuluyor.
     options.SchemaFilter<Finara.Api.Swagger.EnumSchemaFilter>();
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -135,6 +148,7 @@ app.UseExceptionHandler();
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseMiddleware<PayloadGuardMiddleware>();
 app.UseRateLimiter();
+app.UseCors("AllowAngularDev");
 app.UseAuthentication();
 app.UseAuthorization();
 

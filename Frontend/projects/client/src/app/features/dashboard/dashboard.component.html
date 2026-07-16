@@ -1,0 +1,118 @@
+<div class="page">
+  <h1>Finara — Faz 3.5 Walking Skeleton</h1>
+
+  @if (!auth.isAuthenticated()) {
+    <p-card header="Giriş" styleClass="panel">
+      <div class="field">
+        <label for="email">E-posta</label>
+        <input id="email" type="text" pInputText [(ngModel)]="loginEmail" />
+      </div>
+      <div class="field">
+        <label for="password">Şifre</label>
+        <p-password id="password" [(ngModel)]="loginPassword" [feedback]="false" [toggleMask]="true" />
+      </div>
+      @if (loginError()) {
+        <p-message severity="error" [text]="loginError()!" />
+      }
+      <p-button label="Giriş yap" [loading]="loginBusy()" (onClick)="login()" />
+    </p-card>
+  } @else {
+    <div class="toolbar">
+      <span>Giriş yapıldı</span>
+      <p-button label="Çıkış yap" severity="secondary" (onClick)="logout()" />
+    </div>
+
+    @if (actionError()) {
+      <p-message severity="error" [text]="actionError()!" />
+    }
+    @if (actionMessage()) {
+      <p-message severity="success" [text]="actionMessage()!" />
+    }
+
+    <div class="grid">
+      <p-card header="Yeni Müşteri" styleClass="panel">
+        <div class="field">
+          <label>Ad</label>
+          <input type="text" pInputText [(ngModel)]="newCustomer.firstName" />
+        </div>
+        <div class="field">
+          <label>Soyad</label>
+          <input type="text" pInputText [(ngModel)]="newCustomer.lastName" />
+        </div>
+        <div class="field">
+          <label>E-posta</label>
+          <input type="text" pInputText [(ngModel)]="newCustomer.email" />
+        </div>
+        <div class="field">
+          <label>Doğum Tarihi</label>
+          <p-datepicker [(ngModel)]="newCustomer.dateOfBirth" dateFormat="yy-mm-dd" />
+        </div>
+        <p-button label="Müşteri Oluştur" (onClick)="createCustomer()" />
+      </p-card>
+
+      <p-card header="Müşteriler" styleClass="panel">
+        <p-table [value]="customers()" [rows]="10" selectionMode="single" (onRowSelect)="selectCustomer($any($event.data))">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Ad Soyad</th>
+              <th>Yaş</th>
+              <th>Eğilim</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-customer>
+            <tr [pSelectableRow]="customer">
+              <td>{{ customer.firstName }} {{ customer.lastName }}</td>
+              <td>{{ customer.age }}</td>
+              <td>{{ customer.propensity }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-card>
+    </div>
+
+    @if (selectedCustomer(); as customer) {
+      <div class="grid">
+        <p-card [header]="'Harcama Ekle — ' + customer.firstName + ' ' + customer.lastName" styleClass="panel">
+          <div class="field">
+            <label>Tutar (TRY)</label>
+            <p-inputnumber [(ngModel)]="newTransaction.amount" mode="decimal" [minFractionDigits]="2" />
+          </div>
+          <div class="field">
+            <label>Kategori</label>
+            <p-select [options]="categories" [(ngModel)]="newTransaction.category" />
+          </div>
+          <div class="field">
+            <label>İşyeri</label>
+            <input type="text" pInputText [(ngModel)]="newTransaction.merchantName" />
+          </div>
+          <div class="field">
+            <label>Tarih</label>
+            <p-datepicker [(ngModel)]="newTransaction.occurredAtUtc" dateFormat="yy-mm-dd" />
+          </div>
+          <p-button label="Harcama Kaydet" (onClick)="recordTransaction()" />
+        </p-card>
+
+        <p-card [header]="'Harcamalar — ' + customer.firstName" styleClass="panel">
+          <p-table [value]="transactions()" [rows]="10">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Tarih</th>
+                <th>Kategori</th>
+                <th>İşyeri</th>
+                <th>Tutar</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-tx>
+              <tr>
+                <td>{{ tx.occurredAtUtc | date: 'yyyy-MM-dd' }}</td>
+                <td>{{ tx.category }}</td>
+                <td>{{ tx.merchantName }}</td>
+                <td>{{ tx.amount }} {{ tx.currency }}</td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </p-card>
+      </div>
+    }
+  }
+</div>

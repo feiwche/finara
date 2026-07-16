@@ -13,6 +13,7 @@ dist/
 .angular/
 *.log
 npm-debug.log*
+Frontend/swagger.json
 
 # ---- IDE ----
 .idea/
