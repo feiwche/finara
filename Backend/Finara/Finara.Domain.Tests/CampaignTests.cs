@@ -62,6 +62,19 @@ public class CampaignTests
     }
 
     [Fact]
+    public void Activate_BitisTarihiGecmisteKalanKampanyada_InvalidOperationFirlatir()
+    {
+        var campaign = Domain.Entities.Campaign.Create(
+            "Eski Kampanya", "Açıklama",
+            startDateUtc: DateTime.UtcNow.AddYears(-1),
+            endDateUtc: DateTime.UtcNow.AddDays(-1));
+
+        var act = () => campaign.Activate();
+
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
     public void Activate_TamamlanmisKampanyada_InvalidOperationFirlatir()
     {
         var campaign = CreateDraftCampaign();

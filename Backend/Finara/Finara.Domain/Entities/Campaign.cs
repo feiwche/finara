@@ -72,6 +72,9 @@ public class Campaign : BaseEntity
         if (Status != CampaignStatus.Draft && Status != CampaignStatus.Paused)
             throw new InvalidOperationException($"'{Status}' durumundaki bir kampanya aktive edilemez.");
 
+        if (EndDateUtc.HasValue && EndDateUtc.Value <= DateTime.UtcNow)
+            throw new InvalidOperationException("Bitiş tarihi geçmişte kalan bir kampanya aktive edilemez.");
+
         Status = CampaignStatus.Active;
         MarkUpdated();
     }

@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Finara.Infrastructure.Services;
 
-public class NextBestOfferService(FinaraDbContext dbContext) : INextBestOfferService
+public class NextBestOfferService(FinaraDbContext dbContext, IAuditLogRepository auditLogRepository) : INextBestOfferService
 {
     public async Task<GenerateOffersResult?> GenerateOffersAsync(Guid customerId, int maxOffers, CancellationToken cancellationToken = default)
     {
@@ -21,8 +21,12 @@ public class NextBestOfferService(FinaraDbContext dbContext) : INextBestOfferSer
         if (segment is null)
             throw new InvalidOperationException("Müşterinin aktif bir segmenti yok — önce POST /api/segmentation/recalculate çalıştırılmalı.");
 
+        var referenceUtc = DateTime.UtcNow;
         var activeCampaigns = await dbContext.Campaigns
-            .Where(c => c.Status == CampaignStatus.Active)
+            // Süresi dolmuş (EndDateUtc geçmişte) bir kampanya Status=Active kalmış olsa bile
+            // önerilmemeli — Faz 4 denetiminde bulundu: aktive edilmiş ama bitiş tarihi geçmiş
+            // bir kampanya müşteriye öneriliyordu.
+            .Where(c => c.Status == CampaignStatus.Active && (c.EndDateUtc == null || c.EndDateUtc > referenceUtc))
             .ToListAsync(cancellationToken);
 
         // Aynı kampanya için zaten bekleyen bir teklif varsa tekrar üretme —
@@ -41,7 +45,12 @@ public class NextBestOfferService(FinaraDbContext dbContext) : INextBestOfferSer
             .ToList();
 
         foreach (var (campaign, score) in scoredCampaigns)
+        {
             dbContext.CampaignOffers.Add(CampaignOffer.Create(campaign.Id, customerId, score));
+            await auditLogRepository.InsertAsync(
+                AuditLog.Create(customerId, AuditActionType.CampaignOfferPresented, $"{campaign.Name} (güven skoru: {score})"),
+                cancellationToken);
+        }
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
