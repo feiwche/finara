@@ -195,6 +195,10 @@ app.MapCustomerEndpoints();
 app.MapCampaignEndpoints();
 app.MapSegmentationEndpoints();
 app.MapAiEndpoints();
-app.MapMcp("/mcp");
+// Denetimde bulundu: diğer her endpoint korunuyorken bu ikisi unutulmuştu — MCP
+// üzerinden auth'suz olarak herhangi bir müşterinin verisi çekilebiliyordu.
+app.MapMcp("/mcp")
+    .RequireAuthorization()
+    .RequireRateLimiting(RateLimitPolicies.Global);
 
 app.Run();
