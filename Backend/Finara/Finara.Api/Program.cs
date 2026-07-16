@@ -14,7 +14,28 @@ builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 // İleride gerçek banka API'sine bağlanan bir implementasyon eklendiğinde sadece bu satır değişecek.
 builder.Services.AddScoped<IBankDataProvider, MockBankDataProvider>();
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "Finara API",
+        Version = "v1",
+        Description = "Harcama segmentasyonu ve kampanya önerisi için banka arka uç API'si (mock veri modu)."
+    });
+});
+
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Finara API v1");
+        options.RoutePrefix = "swagger";
+    });
+}
 
 app.MapGet("/", () => "Hello World!");
 
