@@ -8,7 +8,9 @@ public static class CustomerEndpoints
 {
     public static void MapCustomerEndpoints(this WebApplication app)
     {
-        var customers = app.MapGroup("/api/customers").WithTags("Customers").RequireRateLimiting(RateLimitPolicies.Global);
+        var customers = app.MapGroup("/api/customers").WithTags("Customers")
+            .RequireRateLimiting(RateLimitPolicies.Global)
+            .RequireAuthorization();
 
         customers.MapPost("/", async (CreateCustomerRequest request, ICustomerService service, CancellationToken ct) =>
         {
@@ -38,6 +40,7 @@ public static class CustomerEndpoints
         app.MapPost("/api/mock/generate", async (GenerateMockDataRequest request, ICustomerService service, CancellationToken ct) =>
             Results.Ok(await service.GenerateMockDataAsync(request, ct)))
             .WithTags("Mock Data")
-            .RequireRateLimiting(RateLimitPolicies.MockGeneration);
+            .RequireRateLimiting(RateLimitPolicies.MockGeneration)
+            .RequireAuthorization();
     }
 }

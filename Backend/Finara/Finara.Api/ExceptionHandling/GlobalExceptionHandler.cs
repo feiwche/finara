@@ -23,6 +23,9 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
             ArgumentException or InvalidOperationException =>
                 (StatusCodes.Status400BadRequest, "Geçersiz istek", exception.Message),
 
+            UnauthorizedAccessException =>
+                (StatusCodes.Status401Unauthorized, "Kimlik doğrulama başarısız", exception.Message),
+
             // Minimal API'nin istek gövdesini (JSON) okuyamadığı durumlarda fırlattığı hata —
             // bozuk/eksik body, bilinmeyen enum değeri vb. İstemci hatasıdır, sunucu hatası değil.
             Microsoft.AspNetCore.Http.BadHttpRequestException =>
