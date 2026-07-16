@@ -77,6 +77,9 @@ public class Campaign : BaseEntity
 
     public void Complete()
     {
+        if (Status != CampaignStatus.Active)
+            throw new InvalidOperationException("Sadece aktif kampanyalar tamamlanabilir.");
+
         Status = CampaignStatus.Completed;
         MarkUpdated();
     }

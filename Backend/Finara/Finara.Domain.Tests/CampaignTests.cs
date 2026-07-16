@@ -92,6 +92,27 @@ public class CampaignTests
     }
 
     [Fact]
+    public void Complete_AktifKampanyayiTamamlar()
+    {
+        var campaign = CreateDraftCampaign();
+        campaign.Activate();
+
+        campaign.Complete();
+
+        campaign.Status.Should().Be(CampaignStatus.Completed);
+    }
+
+    [Fact]
+    public void Complete_TaslakKampanyada_InvalidOperationFirlatir()
+    {
+        var campaign = CreateDraftCampaign();
+
+        var act = () => campaign.Complete();
+
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
     public void Archive_HerDurumdanArsivlenebilir()
     {
         var campaign = CreateDraftCampaign();
