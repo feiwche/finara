@@ -39,6 +39,12 @@ builder.Services.AddScoped<INextBestOfferService, NextBestOfferService>();
 // Bulut LLM API'si (ChatGPT/Claude) değil, kullanıcının kendi makinesinde
 // çalışan Ollama (llama3.1:8b) — Faz 5.
 builder.Services.AddSingleton<IAiChatService, AiChatService>();
+builder.Services.AddScoped<IAiInsightService, AiInsightService>();
+
+builder.Services.AddScoped<Finara.Infrastructure.Ai.CustomerContextTools>();
+builder.Services.AddMcpServer()
+    .WithHttpTransport()
+    .WithToolsFromAssembly();
 
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var jwtKey = jwtSection["Key"]
@@ -189,5 +195,6 @@ app.MapCustomerEndpoints();
 app.MapCampaignEndpoints();
 app.MapSegmentationEndpoints();
 app.MapAiEndpoints();
+app.MapMcp("/mcp");
 
 app.Run();

@@ -1,0 +1,69 @@
+using Finara.Application.Contracts;
+using Finara.Application.Interfaces;
+using Finara.Domain.Entities;
+using Finara.Infrastructure.Ai;
+using Finara.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Configuration;
+
+namespace Finara.Infrastructure.Services;
+
+// MCP tool'larıyla (CustomerMcpTools) aynı alttaki CustomerContextTools metodlarını
+// kullanır — ama dış bir MCP round-trip'i üzerinden değil, Microsoft.Extensions.AI'nin
+// native function-calling'i ile doğrudan. customerId burada closure'a alınıyor, LLM'in
+// GUID'i doğru yazmasına güvenmek yerine — daha güvenilir.
+//
+// AiInteractionLog kaydı bu etkileşimin izini zaten tutuyor; ayrıca genel AuditLog'a
+// yazmıyoruz (AuditActionType bu senaryo için henüz bir değer içermiyor — gerekirse
+// ileride eklenir).
+public class AiInsightService(FinaraDbContext dbContext, CustomerContextTools tools, IConfiguration configuration)
+    : IAiInsightService
+{
+    private const string DefaultQuestion =
+        "Bu müşteri hakkında kısa bir özet çıkar: harcama profili nedir, hangi kampanyayı neden önerirsin? " +
+        "Gerekli bilgileri araçları kullanarak topla, sonra Türkçe ve kısa (en fazla 4-5 cümle) bir yanıt ver.";
+
+    public async Task<AiInsightResult?> GenerateInsightAsync(Guid customerId, string? question, CancellationToken cancellationToken = default)
+    {
+        var customerExists = await dbContext.Customers.AnyAsync(c => c.Id == customerId, cancellationToken);
+        if (!customerExists)
+            return null;
+
+        var effectiveQuestion = string.IsNullOrWhiteSpace(question) ? DefaultQuestion : question;
+
+        var baseUrl = configuration["Ollama:BaseUrl"] ?? "http://localhost:11434";
+        var model = configuration["Ollama:Model"] ?? "llama3.1:8b";
+
+        IChatClient chatClient = new OllamaChatClient(new Uri(baseUrl), model)
+            .AsBuilder()
+            .UseFunctionInvocation()
+            .Build();
+
+        List<AITool> customerTools =
+        [
+            AIFunctionFactory.Create(() => tools.GetCustomerProfile(customerId),
+                name: "get_customer_profile",
+                description: "Bu müşterinin profilini (yaş, yatırım/SWIFT bayrakları) ve aktif segmentini (RFM skoru, harcama eğilimi, baskın kategori) getirir."),
+            AIFunctionFactory.Create((int days) => tools.GetCustomerTransactions(customerId, days),
+                name: "get_customer_transactions",
+                description: "Bu müşterinin son harcama işlemlerini listeler. days: kaç gün geriye bakılacağı, varsayılan 90."),
+            AIFunctionFactory.Create(() => tools.GetCustomerOffers(customerId),
+                name: "get_customer_offers",
+                description: "Bu müşteriye daha önce sunulmuş kampanya tekliflerini ve güven skorlarını listeler."),
+            AIFunctionFactory.Create(() => tools.GetActiveCampaigns(),
+                name: "get_active_campaigns",
+                description: "Şu anda aktif olan tüm kampanyaları listeler."),
+        ];
+
+        var chatOptions = new ChatOptions { Tools = customerTools };
+        var response = await chatClient.GetResponseAsync(effectiveQuestion, chatOptions, cancellationToken);
+        var answer = response.Text;
+
+        var interactionLog = AiInteractionLog.Create(customerId, effectiveQuestion, answer);
+        dbContext.AiInteractionLogs.Add(interactionLog);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return new AiInsightResult(customerId, effectiveQuestion, answer, interactionLog.CreatedAtUtc);
+    }
+}

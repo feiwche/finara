@@ -17,6 +17,7 @@ public class FinaraDbContext : DbContext
     public DbSet<CampaignOffer> CampaignOffers => Set<CampaignOffer>();
     public DbSet<User> Users => Set<User>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<AiInteractionLog> AiInteractionLogs => Set<AiInteractionLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
