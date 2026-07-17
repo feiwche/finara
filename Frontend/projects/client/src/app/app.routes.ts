@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/auth.guard';
+import { authGuard } from '@finara/shared-ui';
 import { AppShellComponent } from './layout/app-shell.component';
 
 export const routes: Routes = [

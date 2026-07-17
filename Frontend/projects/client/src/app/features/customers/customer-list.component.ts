@@ -15,11 +15,15 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { MessageService } from 'primeng/api';
 
-import { Client, CreateCustomerRequest, CustomerSummary } from '../../api/finara-client';
-import { describeApiError } from '../../core/api-error.util';
-import { toUtcDateOnlyIso } from '../../core/date.util';
-import { propensitySeverity } from '../../core/severity.util';
-import { spendingPropensityLabel } from '../../core/enum-labels.util';
+import {
+  Client,
+  CreateCustomerRequest,
+  CustomerSummary,
+  describeApiError,
+  propensitySeverity,
+  spendingPropensityLabel,
+  toUtcDateOnlyIso
+} from '@finara/shared-ui';
 
 @Component({
   selector: 'app-customer-list',

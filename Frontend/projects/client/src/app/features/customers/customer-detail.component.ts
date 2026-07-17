@@ -30,13 +30,17 @@ import {
   OfferSummary,
   RecordTransactionRequest,
   SegmentSummary,
+  TRANSACTION_CATEGORY_OPTIONS,
   TransactionCategory,
-  TransactionSummary
-} from '../../api/finara-client';
-import { apiErrorStatus, describeApiError } from '../../core/api-error.util';
-import { toUtcDateOnlyIso } from '../../core/date.util';
-import { offerResponseSeverity } from '../../core/severity.util';
-import { TRANSACTION_CATEGORY_OPTIONS, offerResponseLabel, spendingPropensityLabel, transactionCategoryLabel } from '../../core/enum-labels.util';
+  TransactionSummary,
+  apiErrorStatus,
+  describeApiError,
+  offerResponseLabel,
+  offerResponseSeverity,
+  spendingPropensityLabel,
+  toUtcDateOnlyIso,
+  transactionCategoryLabel
+} from '@finara/shared-ui';
 
 const CATEGORY_ICONS: Record<string, string> = {
   Groceries: 'pi-shopping-cart',

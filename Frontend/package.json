@@ -10,7 +10,7 @@
     "test": "ng test",
     "serve:ssr:client": "node dist/client/server/server.mjs",
     "serve:ssr:backoffice": "node dist/backoffice/server/server.mjs",
-    "generate:api-client": "curl -s http://localhost:5068/swagger/v1/swagger.json -o swagger.json && nswag openapi2tsclient /input:swagger.json /output:projects/client/src/app/api/finara-client.ts /template:Angular /rxJsVersion:7.0 /injectionTokenType:InjectionToken /generateClientClasses:true /generateOptionalParameters:true /markOptionalProperties:true /nullValue:Undefined"
+    "generate:api-client": "curl -s http://localhost:5068/swagger/v1/swagger.json -o swagger.json && nswag openapi2tsclient /input:swagger.json /output:projects/shared-ui/src/lib/api/finara-client.ts /template:Angular /rxJsVersion:7.0 /injectionTokenType:InjectionToken /generateClientClasses:true /generateOptionalParameters:true /markOptionalProperties:true /nullValue:Undefined"
   },
   "private": true,
   "dependencies": {
@@ -45,6 +45,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "ng-packagr": "^18.2.0",
     "nswag": "^14.7.1",
     "typescript": "~5.5.2"
   }

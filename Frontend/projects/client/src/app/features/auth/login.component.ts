@@ -8,8 +8,7 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 
-import { AuthService } from '../../core/auth.service';
-import { describeApiError } from '../../core/api-error.util';
+import { AuthService, describeApiError } from '@finara/shared-ui';
 
 @Component({
   selector: 'app-login',

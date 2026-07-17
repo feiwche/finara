@@ -7,8 +7,7 @@ import { ButtonModule } from 'primeng/button';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { MessageService } from 'primeng/api';
 
-import { Client, GenerateMockDataRequest } from '../../api/finara-client';
-import { describeApiError } from '../../core/api-error.util';
+import { Client, GenerateMockDataRequest, describeApiError } from '@finara/shared-ui';
 
 @Component({
   selector: 'app-tools',

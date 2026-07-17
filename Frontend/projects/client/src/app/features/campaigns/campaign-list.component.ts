@@ -15,17 +15,21 @@ import { TagModule } from 'primeng/tag';
 import { MessageModule } from 'primeng/message';
 import { MessageService } from 'primeng/api';
 
-import { CampaignSummary, Client, CreateCampaignRequest, SpendingPropensity, TransactionCategory } from '../../api/finara-client';
-import { describeApiError } from '../../core/api-error.util';
-import { toUtcDateOnlyIso } from '../../core/date.util';
-import { campaignStatusSeverity } from '../../core/severity.util';
 import {
+  CampaignSummary,
+  Client,
+  CreateCampaignRequest,
   SPENDING_PROPENSITY_OPTIONS,
+  SpendingPropensity,
   TRANSACTION_CATEGORY_OPTIONS,
+  TransactionCategory,
   campaignStatusLabel,
+  campaignStatusSeverity,
+  describeApiError,
   spendingPropensityLabel,
+  toUtcDateOnlyIso,
   transactionCategoryLabel
-} from '../../core/enum-labels.util';
+} from '@finara/shared-ui';
 
 @Component({
   selector: 'app-campaign-list',

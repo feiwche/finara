@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MenubarModule } from 'primeng/menubar';
 import { ButtonModule } from 'primeng/button';
-import { AuthService } from '../core/auth.service';
+import { AuthService } from '@finara/shared-ui';
 
 @Component({
   selector: 'app-shell',
