@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -20,7 +21,6 @@ import { TextareaModule } from 'primeng/textarea';
 import {
   AiInsightRequest,
   AiInsightResult,
-  ApiException,
   Client,
   CustomerSummary,
   OfferSummary,
@@ -29,7 +29,7 @@ import {
   TransactionCategory,
   TransactionSummary
 } from '../../api/finara-client';
-import { describeApiError } from '../../core/api-error.util';
+import { apiErrorStatus, describeApiError } from '../../core/api-error.util';
 import { toUtcDateOnlyIso } from '../../core/date.util';
 
 @Component({
@@ -57,6 +57,7 @@ import { toUtcDateOnlyIso } from '../../core/date.util';
 export class CustomerDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly client = inject(Client);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected customerId = '';
   protected customer = signal<CustomerSummary | null>(null);
@@ -81,9 +82,15 @@ export class CustomerDetailComponent implements OnInit {
   protected aiBusy = signal(false);
   protected aiError = signal<string | null>(null);
 
-  async ngOnInit(): Promise<void> {
-    this.customerId = this.route.snapshot.paramMap.get('id') ?? '';
-    await Promise.all([this.loadCustomer(), this.loadSegment(), this.loadTransactions(), this.loadOffers()]);
+  ngOnInit(): void {
+    // route.snapshot yerine paramMap'e abone oluyoruz: /customers/:id aynı route
+    // tanımına eşleştiği için Angular Router, A'dan B'ye geçişte bu component'i
+    // YENİDEN OLUŞTURMUYOR — sadece param değişiyor. snapshot kullansaydık ngOnInit
+    // bir daha çalışmaz, sayfa eski müşterinin verisini göstermeye devam ederdi.
+    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+      this.customerId = params.get('id') ?? '';
+      void Promise.all([this.loadCustomer(), this.loadSegment(), this.loadTransactions(), this.loadOffers()]);
+    });
   }
 
   private async loadCustomer(): Promise<void> {
@@ -102,7 +109,7 @@ export class CustomerDetailComponent implements OnInit {
     } catch (err) {
       this.segment.set(null);
       this.segmentMessage.set(
-        err instanceof ApiException && err.status === 404
+        apiErrorStatus(err) === 404
           ? 'Bu müşteri için henüz segment hesaplanmamış — Araçlar sayfasından segmentasyonu çalıştırın.'
           : describeApiError(err)
       );

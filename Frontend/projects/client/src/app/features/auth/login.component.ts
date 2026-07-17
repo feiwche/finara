@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -17,7 +17,7 @@ import { describeApiError } from '../../core/api-error.util';
   imports: [FormsModule, InputTextModule, PasswordModule, ButtonModule, CardModule, MessageModule],
   templateUrl: './login.component.html'
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
@@ -25,6 +25,15 @@ export class LoginComponent {
   protected password = '';
   protected busy = signal(false);
   protected error = signal<string | null>(null);
+
+  ngOnInit(): void {
+    // restoreSession() APP_INITIALIZER'da bu bileşen render edilmeden önce tamamlanmış
+    // olur — oturum zaten geçerliyse (ör. kullanıcı elle /login'e geldiyse) tekrar
+    // giriş formuyla karşılaşmasın.
+    if (this.auth.isAuthenticated()) {
+      this.router.navigate(['/customers']);
+    }
+  }
 
   async login(): Promise<void> {
     this.error.set(null);

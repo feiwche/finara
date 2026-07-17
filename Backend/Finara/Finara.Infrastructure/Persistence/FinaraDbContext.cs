@@ -24,4 +24,12 @@ public class FinaraDbContext : DbContext
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(FinaraDbContext).Assembly);
         base.OnModelCreating(modelBuilder);
     }
+
+    // Tüm DateTime/DateTime? kolonlarına global olarak uygulanıyor — bkz. UtcDateTimeConverter
+    // XML yorumu (okurken Kind=Utc damgalama, SQL Server datetime2'nin bunu saklamaması sorunu).
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        configurationBuilder.Properties<DateTime>().HaveConversion<UtcDateTimeConverter>();
+        configurationBuilder.Properties<DateTime?>().HaveConversion<NullableUtcDateTimeConverter>();
+    }
 }
