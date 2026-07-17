@@ -9,4 +9,11 @@ public interface INextBestOfferService
     Task<GenerateOffersResult?> GenerateOffersAsync(Guid customerId, int maxOffers, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<OfferSummary>?> GetOffersAsync(Guid customerId, CancellationToken cancellationToken = default);
+
+    // customerId/offerId eşleşen bir teklif bulunamazsa null döner (API katmanı 404'e çevirir);
+    // teklif zaten yanıtlanmışsa CampaignOffer.Accept()/Decline() InvalidOperationException fırlatır
+    // (GlobalExceptionHandler otomatik 400'e çevirir).
+    Task<OfferSummary?> AcceptOfferAsync(Guid customerId, Guid offerId, CancellationToken cancellationToken = default);
+
+    Task<OfferSummary?> DeclineOfferAsync(Guid customerId, Guid offerId, CancellationToken cancellationToken = default);
 }

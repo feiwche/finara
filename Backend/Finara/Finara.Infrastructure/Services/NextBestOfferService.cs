@@ -74,4 +74,29 @@ public class NextBestOfferService(FinaraDbContext dbContext, IAuditLogRepository
             .Select(o => new OfferSummary(o.Id, o.CampaignId, o.Campaign?.Name ?? string.Empty, o.CustomerId, o.ConfidenceScore, o.Response.ToString(), o.PresentedAtUtc))
             .ToList();
     }
+
+    public Task<OfferSummary?> AcceptOfferAsync(Guid customerId, Guid offerId, CancellationToken cancellationToken = default) =>
+        RespondToOfferAsync(customerId, offerId, offer => offer.Accept(), AuditActionType.CampaignOfferAccepted, cancellationToken);
+
+    public Task<OfferSummary?> DeclineOfferAsync(Guid customerId, Guid offerId, CancellationToken cancellationToken = default) =>
+        RespondToOfferAsync(customerId, offerId, offer => offer.Decline(), AuditActionType.CampaignOfferDeclined, cancellationToken);
+
+    private async Task<OfferSummary?> RespondToOfferAsync(Guid customerId, Guid offerId, Action<CampaignOffer> respond, AuditActionType actionType, CancellationToken cancellationToken)
+    {
+        var offer = await dbContext.CampaignOffers
+            .Include(o => o.Campaign)
+            .FirstOrDefaultAsync(o => o.Id == offerId && o.CustomerId == customerId, cancellationToken);
+        if (offer is null)
+            return null;
+
+        respond(offer);
+
+        await auditLogRepository.InsertAsync(
+            AuditLog.Create(customerId, actionType, offer.Campaign?.Name ?? string.Empty),
+            cancellationToken);
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return new OfferSummary(offer.Id, offer.CampaignId, offer.Campaign?.Name ?? string.Empty, offer.CustomerId, offer.ConfidenceScore, offer.Response.ToString(), offer.PresentedAtUtc);
+    }
 }
