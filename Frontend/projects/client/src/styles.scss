@@ -1,14 +1,53 @@
 /* You can add global styles to this file, and also import other style files */
 
+// Bilinçli açık tema kilidi — önceden body'ye hiç arka plan set edilmemişti, bu da
+// tarayıcı/OS koyu modu tercih ettiğinde siyah arka plan üzerinde beyaz PrimeNG
+// kartlarının kazara oluşmasına yol açıyordu (tasarlanmamış bir görünüm). PrimeNG'nin
+// kendi darkModeSelector:false ayarı zaten açık temayı hedefliyordu, eksik olan buydu.
+:root {
+  color-scheme: light;
+}
+
 html, body {
   height: 100%;
   margin: 0;
+  background: #f4f6f9;
+  color: #1f2937;
 }
 
 .app-shell-title {
   font-weight: 700;
   font-size: 1.2rem;
   padding: 0 1rem;
+}
+
+.app-shell-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  a {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.5rem 0.9rem;
+    border-radius: 6px;
+    color: var(--p-text-muted-color, #6b7280);
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: background-color 0.15s, color 0.15s;
+
+    &:hover {
+      background: var(--p-surface-100, #f3f4f6);
+      color: var(--p-text-color, #1f2937);
+    }
+
+    &.active {
+      background: var(--p-primary-50, #eef2ff);
+      color: var(--p-primary-color, #4f46e5);
+      font-weight: 600;
+    }
+  }
 }
 
 .app-shell-user {
@@ -78,6 +117,25 @@ html, body {
 
 .clickable-row {
   cursor: pointer;
+  transition: background-color 0.1s;
+
+  &:hover {
+    background: var(--p-surface-100, #f3f4f6);
+  }
+}
+
+.field-invalid {
+  border-color: var(--p-red-400, #f87171) !important;
+}
+
+.field-error {
+  color: var(--p-red-500, #ef4444);
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+
+.detail-breadcrumb {
+  margin-bottom: 4px;
 }
 
 .field-checkbox {
@@ -90,6 +148,49 @@ html, body {
 .ai-hint {
   color: var(--p-text-muted-color, #6b7280);
   font-size: 0.85rem;
+}
+
+.ai-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.ai-spinner {
+  width: 24px;
+  height: 24px;
+}
+
+.rfm-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.rfm-label {
+  font-size: 0.85rem;
+  color: var(--p-text-muted-color, #6b7280);
+}
+
+// PrimeNG'in p-datatable hücre stillerini ezmek için (aynı özgüllükte, kaynak sırası
+// sorunu) daha spesifik bir seçici gerekti.
+.p-datatable .amount-col,
+th.amount-col,
+td.amount-col {
+  text-align: right !important;
+}
+
+.confidence-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .confidence-bar {
+    flex: 1;
+    height: 8px;
+  }
 }
 
 .ai-answer {

@@ -3,16 +3,32 @@
   <p-button label="Yeni Müşteri" icon="pi pi-plus" (onClick)="openCreateDialog()" />
 </div>
 
-@if (error()) {
-  <p-message severity="error" [text]="error()!" />
-}
-
-<p-table [value]="customers()" [loading]="loading()" [rows]="20" [paginator]="customers().length > 20" styleClass="p-datatable-sm">
+<p-table
+  #dt
+  [value]="customers()"
+  [loading]="loading()"
+  [rows]="20"
+  [paginator]="customers().length > 20"
+  [globalFilterFields]="['firstName', 'lastName', 'email']"
+  styleClass="p-datatable-sm"
+>
+  <ng-template pTemplate="caption">
+    <p-iconfield iconPosition="left">
+      <p-inputicon><i class="pi pi-search"></i></p-inputicon>
+      <input
+        pInputText
+        type="text"
+        placeholder="Ad, soyad veya e-posta ara…"
+        [(ngModel)]="searchTerm"
+        (input)="dt.filterGlobal(searchTerm, 'contains')"
+      />
+    </p-iconfield>
+  </ng-template>
   <ng-template pTemplate="header">
     <tr>
-      <th>Ad Soyad</th>
+      <th pSortableColumn="firstName">Ad Soyad <p-sortIcon field="firstName" /></th>
       <th>E-posta</th>
-      <th>Yaş</th>
+      <th pSortableColumn="age">Yaş <p-sortIcon field="age" /></th>
       <th>Eğilim</th>
     </tr>
   </ng-template>
@@ -21,7 +37,7 @@
       <td>{{ customer.firstName }} {{ customer.lastName }}</td>
       <td>{{ customer.email }}</td>
       <td>{{ customer.age }}</td>
-      <td>{{ customer.propensity }}</td>
+      <td><p-tag [value]="customer.propensity" [severity]="propensitySeverity(customer.propensity)" /></td>
     </tr>
   </ng-template>
   <ng-template pTemplate="emptymessage">
@@ -33,20 +49,37 @@
 
 <p-dialog header="Yeni Müşteri" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '420px' }">
   <div class="field">
-    <label>Ad</label>
-    <input type="text" pInputText [(ngModel)]="newCustomer.firstName" />
+    <label>Ad *</label>
+    <input type="text" pInputText [(ngModel)]="newCustomer.firstName" [class.field-invalid]="createSubmitted && !newCustomer.firstName" />
+    @if (createSubmitted && !newCustomer.firstName) {
+      <small class="field-error">Ad zorunlu.</small>
+    }
   </div>
   <div class="field">
-    <label>Soyad</label>
-    <input type="text" pInputText [(ngModel)]="newCustomer.lastName" />
+    <label>Soyad *</label>
+    <input type="text" pInputText [(ngModel)]="newCustomer.lastName" [class.field-invalid]="createSubmitted && !newCustomer.lastName" />
+    @if (createSubmitted && !newCustomer.lastName) {
+      <small class="field-error">Soyad zorunlu.</small>
+    }
   </div>
   <div class="field">
-    <label>E-posta</label>
-    <input type="text" pInputText [(ngModel)]="newCustomer.email" />
+    <label>E-posta *</label>
+    <input type="text" pInputText [(ngModel)]="newCustomer.email" [class.field-invalid]="createSubmitted && !newCustomer.email" />
+    @if (createSubmitted && !newCustomer.email) {
+      <small class="field-error">E-posta zorunlu.</small>
+    }
   </div>
   <div class="field">
-    <label>Doğum Tarihi</label>
-    <p-datepicker [(ngModel)]="newCustomer.dateOfBirth" dateFormat="yy-mm-dd" [showIcon]="true" />
+    <label>Doğum Tarihi *</label>
+    <p-datepicker
+      [(ngModel)]="newCustomer.dateOfBirth"
+      dateFormat="yy-mm-dd"
+      [showIcon]="true"
+      [inputStyleClass]="createSubmitted && !newCustomer.dateOfBirth ? 'field-invalid' : ''"
+    />
+    @if (createSubmitted && !newCustomer.dateOfBirth) {
+      <small class="field-error">Doğum tarihi zorunlu.</small>
+    }
   </div>
   <div class="field-checkbox">
     <p-checkbox [(ngModel)]="newCustomer.hasInvestmentAccount" [binary]="true" inputId="hasInvestment" />

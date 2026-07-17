@@ -1,8 +1,9 @@
-import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { DatePipe } from '@angular/common';
+import { CurrencyPipe, DatePipe, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
+import { Title } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
 
 import { TabViewModule } from 'primeng/tabview';
@@ -16,7 +17,10 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { ProgressBarModule } from 'primeng/progressbar';
 import { TextareaModule } from 'primeng/textarea';
+import { BreadcrumbModule } from 'primeng/breadcrumb';
+import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 
 import {
   AiInsightRequest,
@@ -31,14 +35,30 @@ import {
 } from '../../api/finara-client';
 import { apiErrorStatus, describeApiError } from '../../core/api-error.util';
 import { toUtcDateOnlyIso } from '../../core/date.util';
+import { offerResponseSeverity } from '../../core/severity.util';
+
+const CATEGORY_ICONS: Record<string, string> = {
+  Groceries: 'pi-shopping-cart',
+  Fuel: 'pi-bolt',
+  Travel: 'pi-send',
+  Entertainment: 'pi-star',
+  Healthcare: 'pi-heart',
+  ECommerce: 'pi-shopping-bag',
+  Motorcycle: 'pi-car',
+  Investment: 'pi-chart-line',
+  ForeignExchange: 'pi-dollar',
+  Utilities: 'pi-home',
+  Other: 'pi-tag'
+};
 
 @Component({
   selector: 'app-customer-detail',
   standalone: true,
   imports: [
+    CurrencyPipe,
     DatePipe,
+    NgClass,
     FormsModule,
-    RouterLink,
     TabViewModule,
     TableModule,
     ButtonModule,
@@ -50,7 +70,9 @@ import { toUtcDateOnlyIso } from '../../core/date.util';
     SelectModule,
     DatePickerModule,
     ProgressSpinnerModule,
-    TextareaModule
+    ProgressBarModule,
+    TextareaModule,
+    BreadcrumbModule
   ],
   templateUrl: './customer-detail.component.html'
 })
@@ -58,10 +80,24 @@ export class CustomerDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly client = inject(Client);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly titleService = inject(Title);
+  private readonly messageService = inject(MessageService);
+  private readonly confirmationService = inject(ConfirmationService);
+
+  protected readonly offerResponseSeverity = offerResponseSeverity;
+
+  protected categoryIcon(category: string): string {
+    return CATEGORY_ICONS[category] ?? 'pi-tag';
+  }
+
+  protected readonly breadcrumbHome: MenuItem = { icon: 'pi pi-home', routerLink: '/customers' };
+  protected readonly breadcrumbItems = computed<MenuItem[]>(() => {
+    const c = this.customer();
+    return [{ label: 'Müşteriler', routerLink: '/customers' }, { label: c ? `${c.firstName} ${c.lastName}` : 'Müşteri' }];
+  });
 
   protected customerId = '';
   protected customer = signal<CustomerSummary | null>(null);
-  protected loadError = signal<string | null>(null);
 
   protected segment = signal<SegmentSummary | null>(null);
   protected segmentMessage = signal<string | null>(null);
@@ -70,11 +106,10 @@ export class CustomerDetailComponent implements OnInit {
   protected categories = Object.values(TransactionCategory);
   protected newTransaction = { amount: 0, category: TransactionCategory.Groceries, merchantName: '', occurredAtUtc: null as Date | null };
   protected txBusy = signal(false);
-  protected txError = signal<string | null>(null);
+  protected txSubmitted = false;
 
   protected offers = signal<OfferSummary[]>([]);
   protected offersBusy = signal(false);
-  protected offersError = signal<string | null>(null);
   protected respondingOfferId = signal<string | null>(null);
 
   protected aiQuestion = '';
@@ -96,9 +131,11 @@ export class CustomerDetailComponent implements OnInit {
   private async loadCustomer(): Promise<void> {
     try {
       const all = await firstValueFrom(this.client.customersAll());
-      this.customer.set(all.find(c => c.id === this.customerId) ?? null);
+      const found = all.find(c => c.id === this.customerId) ?? null;
+      this.customer.set(found);
+      if (found) this.titleService.setTitle(`Finara — ${found.firstName} ${found.lastName}`);
     } catch (err) {
-      this.loadError.set(describeApiError(err));
+      this.messageService.add({ severity: 'error', summary: 'Müşteri yüklenemedi', detail: describeApiError(err) });
     }
   }
 
@@ -120,14 +157,13 @@ export class CustomerDetailComponent implements OnInit {
     try {
       this.transactions.set(await firstValueFrom(this.client.transactionsAll(this.customerId)));
     } catch (err) {
-      this.loadError.set(describeApiError(err));
+      this.messageService.add({ severity: 'error', summary: 'İşlemler yüklenemedi', detail: describeApiError(err) });
     }
   }
 
   async recordTransaction(): Promise<void> {
-    this.txError.set(null);
+    this.txSubmitted = true;
     if (!this.newTransaction.merchantName || !this.newTransaction.occurredAtUtc || this.newTransaction.amount <= 0) {
-      this.txError.set('Tüm alanlar zorunlu, tutar sıfırdan büyük olmalı.');
       return;
     }
 
@@ -145,9 +181,11 @@ export class CustomerDetailComponent implements OnInit {
         )
       );
       this.newTransaction = { amount: 0, category: TransactionCategory.Groceries, merchantName: '', occurredAtUtc: null };
+      this.txSubmitted = false;
+      this.messageService.add({ severity: 'success', summary: 'İşlem kaydedildi' });
       await this.loadTransactions();
     } catch (err) {
-      this.txError.set(describeApiError(err));
+      this.messageService.add({ severity: 'error', summary: 'İşlem kaydedilemedi', detail: describeApiError(err) });
     } finally {
       this.txBusy.set(false);
     }
@@ -157,33 +195,54 @@ export class CustomerDetailComponent implements OnInit {
     try {
       this.offers.set(await firstValueFrom(this.client.offers(this.customerId)));
     } catch (err) {
-      this.offersError.set(describeApiError(err));
+      this.messageService.add({ severity: 'error', summary: 'Teklifler yüklenemedi', detail: describeApiError(err) });
     }
   }
 
   async generateOffers(): Promise<void> {
-    this.offersError.set(null);
     this.offersBusy.set(true);
     try {
-      await firstValueFrom(this.client.generate2(this.customerId, 5));
+      const result = await firstValueFrom(this.client.generate2(this.customerId, 5));
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Teklif üretimi tamamlandı',
+        detail: result.offersCreated ? `${result.offersCreated} yeni teklif oluşturuldu.` : 'Uygun yeni teklif bulunamadı.'
+      });
       await this.loadOffers();
     } catch (err) {
-      this.offersError.set(describeApiError(err));
+      this.messageService.add({ severity: 'error', summary: 'Teklif üretilemedi', detail: describeApiError(err) });
     } finally {
       this.offersBusy.set(false);
     }
   }
 
-  async respondToOffer(offer: OfferSummary, accept: boolean): Promise<void> {
-    this.offersError.set(null);
+  respondToOffer(offer: OfferSummary, accept: boolean): void {
+    if (accept) {
+      void this.executeOfferResponse(offer, true);
+      return;
+    }
+    // Reddetme geri döndürülemez bir aksiyon — yanlışlıkla tıklamaya karşı onay isteniyor.
+    this.confirmationService.confirm({
+      header: 'Teklifi reddet',
+      message: `"${offer.campaignName}" teklifini reddetmek istediğinize emin misiniz?`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Reddet',
+      rejectLabel: 'Vazgeç',
+      acceptButtonProps: { severity: 'danger' },
+      accept: () => void this.executeOfferResponse(offer, false)
+    });
+  }
+
+  private async executeOfferResponse(offer: OfferSummary, accept: boolean): Promise<void> {
     this.respondingOfferId.set(offer.id ?? null);
     try {
       const updated = accept
         ? await firstValueFrom(this.client.accept(this.customerId, offer.id!))
         : await firstValueFrom(this.client.decline(this.customerId, offer.id!));
       this.offers.update(list => list.map(o => (o.id === updated.id ? updated : o)));
+      this.messageService.add({ severity: 'success', summary: accept ? 'Teklif kabul edildi' : 'Teklif reddedildi', detail: offer.campaignName });
     } catch (err) {
-      this.offersError.set(describeApiError(err));
+      this.messageService.add({ severity: 'error', summary: 'İşlem başarısız', detail: describeApiError(err) });
     } finally {
       this.respondingOfferId.set(null);
     }

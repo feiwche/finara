@@ -1,6 +1,11 @@
-<p-menubar [model]="navItems">
+<p-menubar>
   <ng-template #start>
     <span class="app-shell-title">Finara</span>
+    <nav class="app-shell-nav">
+      <a routerLink="/customers" routerLinkActive="active"><i class="pi pi-users"></i> Müşteriler</a>
+      <a routerLink="/campaigns" routerLinkActive="active"><i class="pi pi-megaphone"></i> Kampanyalar</a>
+      <a routerLink="/tools" routerLinkActive="active"><i class="pi pi-wrench"></i> Araçlar</a>
+    </nav>
   </ng-template>
   <ng-template #end>
     <div class="app-shell-user">

@@ -10,28 +10,51 @@ import { InputTextModule } from 'primeng/inputtext';
 import { DatePickerModule } from 'primeng/datepicker';
 import { CheckboxModule } from 'primeng/checkbox';
 import { MessageModule } from 'primeng/message';
+import { TagModule } from 'primeng/tag';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { MessageService } from 'primeng/api';
 
 import { Client, CreateCustomerRequest, CustomerSummary } from '../../api/finara-client';
 import { describeApiError } from '../../core/api-error.util';
 import { toUtcDateOnlyIso } from '../../core/date.util';
+import { propensitySeverity } from '../../core/severity.util';
 
 @Component({
   selector: 'app-customer-list',
   standalone: true,
-  imports: [FormsModule, TableModule, ButtonModule, DialogModule, InputTextModule, DatePickerModule, CheckboxModule, MessageModule],
+  imports: [
+    FormsModule,
+    TableModule,
+    ButtonModule,
+    DialogModule,
+    InputTextModule,
+    DatePickerModule,
+    CheckboxModule,
+    MessageModule,
+    TagModule,
+    IconFieldModule,
+    InputIconModule
+  ],
   templateUrl: './customer-list.component.html'
 })
 export class CustomerListComponent implements OnInit {
   private readonly client = inject(Client);
   private readonly router = inject(Router);
+  private readonly messageService = inject(MessageService);
+
+  protected readonly propensitySeverity = propensitySeverity;
 
   protected customers = signal<CustomerSummary[]>([]);
   protected loading = signal(false);
-  protected error = signal<string | null>(null);
+  protected searchTerm = '';
 
   protected dialogVisible = signal(false);
   protected createBusy = signal(false);
   protected createError = signal<string | null>(null);
+  // Dialog açılır açılmaz kırmızı alan hatalarıyla karşılaşılmasın diye, alan bazlı
+  // validasyon mesajları sadece bir kez "Oluştur"a basıldıktan sonra gösteriliyor.
+  protected createSubmitted = false;
   protected newCustomer = {
     firstName: '',
     lastName: '',
@@ -47,11 +70,10 @@ export class CustomerListComponent implements OnInit {
 
   async loadCustomers(): Promise<void> {
     this.loading.set(true);
-    this.error.set(null);
     try {
       this.customers.set(await firstValueFrom(this.client.customersAll()));
     } catch (err) {
-      this.error.set(describeApiError(err));
+      this.messageService.add({ severity: 'error', summary: 'Müşteriler yüklenemedi', detail: describeApiError(err) });
     } finally {
       this.loading.set(false);
     }
@@ -67,13 +89,14 @@ export class CustomerListComponent implements OnInit {
       hasInternationalTransfers: false
     };
     this.createError.set(null);
+    this.createSubmitted = false;
     this.dialogVisible.set(true);
   }
 
   async createCustomer(): Promise<void> {
     this.createError.set(null);
+    this.createSubmitted = true;
     if (!this.newCustomer.firstName || !this.newCustomer.lastName || !this.newCustomer.email || !this.newCustomer.dateOfBirth) {
-      this.createError.set('Tüm zorunlu alanları doldurun.');
       return;
     }
 
@@ -92,6 +115,7 @@ export class CustomerListComponent implements OnInit {
         )
       );
       this.dialogVisible.set(false);
+      this.messageService.add({ severity: 'success', summary: 'Müşteri oluşturuldu', detail: `${this.newCustomer.firstName} ${this.newCustomer.lastName}` });
       await this.loadCustomers();
     } catch (err) {
       this.createError.set(describeApiError(err));

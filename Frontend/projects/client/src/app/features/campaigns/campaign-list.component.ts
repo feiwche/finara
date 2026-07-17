@@ -13,10 +13,12 @@ import { SelectModule } from 'primeng/select';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TagModule } from 'primeng/tag';
 import { MessageModule } from 'primeng/message';
+import { MessageService } from 'primeng/api';
 
 import { CampaignSummary, Client, CreateCampaignRequest, SpendingPropensity, TransactionCategory } from '../../api/finara-client';
 import { describeApiError } from '../../core/api-error.util';
 import { toUtcDateOnlyIso } from '../../core/date.util';
+import { campaignStatusSeverity } from '../../core/severity.util';
 
 @Component({
   selector: 'app-campaign-list',
@@ -39,10 +41,10 @@ import { toUtcDateOnlyIso } from '../../core/date.util';
 })
 export class CampaignListComponent implements OnInit {
   private readonly client = inject(Client);
+  private readonly messageService = inject(MessageService);
 
   protected campaigns = signal<CampaignSummary[]>([]);
   protected loading = signal(false);
-  protected error = signal<string | null>(null);
   protected activatingId = signal<string | null>(null);
 
   protected categories = Object.values(TransactionCategory);
@@ -51,6 +53,7 @@ export class CampaignListComponent implements OnInit {
   protected dialogVisible = signal(false);
   protected createBusy = signal(false);
   protected createError = signal<string | null>(null);
+  protected createSubmitted = false;
   protected newCampaign = {
     name: '',
     description: '',
@@ -68,11 +71,10 @@ export class CampaignListComponent implements OnInit {
 
   async loadCampaigns(): Promise<void> {
     this.loading.set(true);
-    this.error.set(null);
     try {
       this.campaigns.set(await firstValueFrom(this.client.campaignsAll()));
     } catch (err) {
-      this.error.set(describeApiError(err));
+      this.messageService.add({ severity: 'error', summary: 'Kampanyalar yüklenemedi', detail: describeApiError(err) });
     } finally {
       this.loading.set(false);
     }
@@ -90,13 +92,14 @@ export class CampaignListComponent implements OnInit {
       targetsInternationalTransferUsers: false
     };
     this.createError.set(null);
+    this.createSubmitted = false;
     this.dialogVisible.set(true);
   }
 
   async createCampaign(): Promise<void> {
     this.createError.set(null);
+    this.createSubmitted = true;
     if (!this.newCampaign.name || !this.newCampaign.description || !this.newCampaign.startDateUtc) {
-      this.createError.set('Ad, açıklama ve başlangıç tarihi zorunlu.');
       return;
     }
 
@@ -117,6 +120,7 @@ export class CampaignListComponent implements OnInit {
         )
       );
       this.dialogVisible.set(false);
+      this.messageService.add({ severity: 'success', summary: 'Kampanya oluşturuldu', detail: this.newCampaign.name });
       await this.loadCampaigns();
     } catch (err) {
       this.createError.set(describeApiError(err));
@@ -126,30 +130,17 @@ export class CampaignListComponent implements OnInit {
   }
 
   async activateCampaign(campaign: CampaignSummary): Promise<void> {
-    this.error.set(null);
     this.activatingId.set(campaign.id ?? null);
     try {
       await firstValueFrom(this.client.activate(campaign.id!));
+      this.messageService.add({ severity: 'success', summary: 'Kampanya aktifleştirildi', detail: campaign.name });
       await this.loadCampaigns();
     } catch (err) {
-      this.error.set(describeApiError(err));
+      this.messageService.add({ severity: 'error', summary: 'Aktifleştirilemedi', detail: describeApiError(err) });
     } finally {
       this.activatingId.set(null);
     }
   }
 
-  statusSeverity(status: string): 'success' | 'info' | 'warn' | 'secondary' | 'danger' {
-    switch (status) {
-      case 'Active':
-        return 'success';
-      case 'Draft':
-        return 'info';
-      case 'Paused':
-        return 'warn';
-      case 'Completed':
-        return 'secondary';
-      default:
-        return 'danger';
-    }
-  }
+  protected readonly statusSeverity = campaignStatusSeverity;
 }

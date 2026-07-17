@@ -1,17 +1,12 @@
-<div class="toolbar">
-  <h1>
-    @if (customer(); as c) {
-      {{ c.firstName }} {{ c.lastName }}
-    } @else {
-      Müşteri
-    }
-  </h1>
-  <a routerLink="/customers">← Müşteri listesine dön</a>
-</div>
+<p-breadcrumb [model]="breadcrumbItems()" [home]="breadcrumbHome" styleClass="detail-breadcrumb" />
 
-@if (loadError()) {
-  <p-message severity="error" [text]="loadError()!" />
-}
+<h1>
+  @if (customer(); as c) {
+    {{ c.firstName }} {{ c.lastName }}
+  } @else {
+    Müşteri
+  }
+</h1>
 
 <p-tabView>
   <p-tabPanel header="Profil">
@@ -25,9 +20,18 @@
 
     @if (segment(); as s) {
       <p-card header="Segment (RFM)" styleClass="panel">
-        <div><strong>Recency:</strong> {{ s.recencyScore }} / 5</div>
-        <div><strong>Frequency:</strong> {{ s.frequencyScore }} / 5</div>
-        <div><strong>Monetary:</strong> {{ s.monetaryScore }} / 5</div>
+        <div class="rfm-row">
+          <span class="rfm-label">Recency ({{ s.recencyScore }}/5)</span>
+          <p-progressbar [value]="(s.recencyScore! / 5) * 100" [showValue]="false" />
+        </div>
+        <div class="rfm-row">
+          <span class="rfm-label">Frequency ({{ s.frequencyScore }}/5)</span>
+          <p-progressbar [value]="(s.frequencyScore! / 5) * 100" [showValue]="false" />
+        </div>
+        <div class="rfm-row">
+          <span class="rfm-label">Monetary ({{ s.monetaryScore }}/5)</span>
+          <p-progressbar [value]="(s.monetaryScore! / 5) * 100" [showValue]="false" />
+        </div>
         <div><strong>Toplam skor:</strong> {{ s.totalScore }} / 15</div>
         <div><strong>Baskın kategori:</strong> {{ s.dominantCategory ?? 'belirsiz' }}</div>
         <div><strong>Hesaplanma tarihi:</strong> {{ s.calculatedAtUtc | date: 'yyyy-MM-dd HH:mm' }}</div>
@@ -41,24 +45,45 @@
     <div class="grid">
       <p-card header="Yeni İşlem Ekle" styleClass="panel">
         <div class="field">
-          <label>Tutar (TRY)</label>
-          <p-inputnumber [(ngModel)]="newTransaction.amount" mode="decimal" [minFractionDigits]="2" />
+          <label>Tutar (TRY) *</label>
+          <p-inputnumber
+            [(ngModel)]="newTransaction.amount"
+            mode="decimal"
+            [minFractionDigits]="2"
+            [inputStyleClass]="txSubmitted && newTransaction.amount <= 0 ? 'field-invalid' : ''"
+          />
+          @if (txSubmitted && newTransaction.amount <= 0) {
+            <small class="field-error">Tutar sıfırdan büyük olmalı.</small>
+          }
         </div>
         <div class="field">
           <label>Kategori</label>
           <p-select [options]="categories" [(ngModel)]="newTransaction.category" />
         </div>
         <div class="field">
-          <label>İşyeri</label>
-          <input type="text" pInputText [(ngModel)]="newTransaction.merchantName" />
+          <label>İşyeri *</label>
+          <input
+            type="text"
+            pInputText
+            [(ngModel)]="newTransaction.merchantName"
+            [class.field-invalid]="txSubmitted && !newTransaction.merchantName"
+          />
+          @if (txSubmitted && !newTransaction.merchantName) {
+            <small class="field-error">İşyeri zorunlu.</small>
+          }
         </div>
         <div class="field">
-          <label>Tarih</label>
-          <p-datepicker [(ngModel)]="newTransaction.occurredAtUtc" dateFormat="yy-mm-dd" [showIcon]="true" />
+          <label>Tarih *</label>
+          <p-datepicker
+            [(ngModel)]="newTransaction.occurredAtUtc"
+            dateFormat="yy-mm-dd"
+            [showIcon]="true"
+            [inputStyleClass]="txSubmitted && !newTransaction.occurredAtUtc ? 'field-invalid' : ''"
+          />
+          @if (txSubmitted && !newTransaction.occurredAtUtc) {
+            <small class="field-error">Tarih zorunlu.</small>
+          }
         </div>
-        @if (txError()) {
-          <p-message severity="error" [text]="txError()!" />
-        }
         <p-button label="İşlem Kaydet" [loading]="txBusy()" (onClick)="recordTransaction()" />
       </p-card>
 
@@ -69,15 +94,15 @@
               <th>Tarih</th>
               <th>Kategori</th>
               <th>İşyeri</th>
-              <th>Tutar</th>
+              <th class="amount-col">Tutar</th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-tx>
             <tr>
               <td>{{ tx.occurredAtUtc | date: 'yyyy-MM-dd' }}</td>
-              <td>{{ tx.category }}</td>
+              <td><i class="pi" [ngClass]="categoryIcon(tx.category)"></i> {{ tx.category }}</td>
               <td>{{ tx.merchantName }}</td>
-              <td>{{ tx.amount }} {{ tx.currency }}</td>
+              <td class="amount-col">{{ tx.amount | currency: tx.currency : 'symbol-narrow' : '1.2-2' : 'tr' }}</td>
             </tr>
           </ng-template>
         </p-table>
@@ -91,15 +116,11 @@
       <p-button label="Teklif Üret" icon="pi pi-sparkles" [loading]="offersBusy()" (onClick)="generateOffers()" />
     </div>
 
-    @if (offersError()) {
-      <p-message severity="error" [text]="offersError()!" />
-    }
-
     <p-table [value]="offers()" [rows]="10" [paginator]="offers().length > 10" styleClass="p-datatable-sm">
       <ng-template pTemplate="header">
         <tr>
           <th>Kampanya</th>
-          <th>Güven Skoru</th>
+          <th style="width: 160px">Güven Skoru</th>
           <th>Durum</th>
           <th>Sunulma Tarihi</th>
           <th></th>
@@ -108,12 +129,14 @@
       <ng-template pTemplate="body" let-offer>
         <tr>
           <td>{{ offer.campaignName }}</td>
-          <td>{{ offer.confidenceScore }}</td>
           <td>
-            <p-tag
-              [value]="offer.response"
-              [severity]="offer.response === 'Accepted' ? 'success' : offer.response === 'Declined' ? 'danger' : offer.response === 'Expired' ? 'secondary' : 'info'"
-            />
+            <div class="confidence-cell">
+              <p-progressbar [value]="offer.confidenceScore" [showValue]="false" styleClass="confidence-bar" />
+              <span>{{ offer.confidenceScore }}</span>
+            </div>
+          </td>
+          <td>
+            <p-tag [value]="offer.response" [severity]="offerResponseSeverity(offer.response)" />
           </td>
           <td>{{ offer.presentedAtUtc | date: 'yyyy-MM-dd' }}</td>
           <td>
@@ -152,7 +175,10 @@
       </div>
       <p-button label="Analiz Et" icon="pi pi-sparkles" [loading]="aiBusy()" (onClick)="runAiInsight()" />
       @if (aiBusy()) {
-        <p class="ai-hint">Yerel model yanıt üretiyor, ~10 saniye sürebilir…</p>
+        <div class="ai-loading">
+          <p-progressSpinner styleClass="ai-spinner" strokeWidth="4" />
+          <p class="ai-hint">Yerel model yanıt üretiyor, ~10 saniye sürebilir…</p>
+        </div>
       }
       @if (aiError()) {
         <p-message severity="error" [text]="aiError()!" />

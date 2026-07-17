@@ -3,10 +3,6 @@
   <p-button label="Yeni Kampanya" icon="pi pi-plus" (onClick)="openCreateDialog()" />
 </div>
 
-@if (error()) {
-  <p-message severity="error" [text]="error()!" />
-}
-
 <p-table [value]="campaigns()" [loading]="loading()" [rows]="20" [paginator]="campaigns().length > 20" styleClass="p-datatable-sm">
   <ng-template pTemplate="header">
     <tr>
@@ -22,8 +18,8 @@
     <tr>
       <td>{{ campaign.name }}</td>
       <td><p-tag [value]="campaign.status" [severity]="statusSeverity(campaign.status ?? '')" /></td>
-      <td>{{ campaign.targetCategory ?? '—' }}</td>
-      <td>{{ campaign.targetPropensity ?? '—' }}</td>
+      <td>{{ campaign.targetCategory ?? 'Tüm kategoriler' }}</td>
+      <td>{{ campaign.targetPropensity ?? 'Tüm eğilimler' }}</td>
       <td>
         {{ campaign.startDateUtc | date: 'yyyy-MM-dd' }}
         @if (campaign.endDateUtc) {
@@ -51,16 +47,30 @@
 
 <p-dialog header="Yeni Kampanya" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '480px' }">
   <div class="field">
-    <label>Ad</label>
-    <input type="text" pInputText [(ngModel)]="newCampaign.name" />
+    <label>Ad *</label>
+    <input type="text" pInputText [(ngModel)]="newCampaign.name" [class.field-invalid]="createSubmitted && !newCampaign.name" />
+    @if (createSubmitted && !newCampaign.name) {
+      <small class="field-error">Kampanya adı zorunlu.</small>
+    }
   </div>
   <div class="field">
-    <label>Açıklama</label>
-    <textarea pTextarea rows="2" [(ngModel)]="newCampaign.description"></textarea>
+    <label>Açıklama *</label>
+    <textarea pTextarea rows="2" [(ngModel)]="newCampaign.description" [class.field-invalid]="createSubmitted && !newCampaign.description"></textarea>
+    @if (createSubmitted && !newCampaign.description) {
+      <small class="field-error">Açıklama zorunlu.</small>
+    }
   </div>
   <div class="field">
-    <label>Başlangıç Tarihi</label>
-    <p-datepicker [(ngModel)]="newCampaign.startDateUtc" dateFormat="yy-mm-dd" [showIcon]="true" />
+    <label>Başlangıç Tarihi *</label>
+    <p-datepicker
+      [(ngModel)]="newCampaign.startDateUtc"
+      dateFormat="yy-mm-dd"
+      [showIcon]="true"
+      [inputStyleClass]="createSubmitted && !newCampaign.startDateUtc ? 'field-invalid' : ''"
+    />
+    @if (createSubmitted && !newCampaign.startDateUtc) {
+      <small class="field-error">Başlangıç tarihi zorunlu.</small>
+    }
   </div>
   <div class="field">
     <label>Bitiş Tarihi (opsiyonel)</label>
