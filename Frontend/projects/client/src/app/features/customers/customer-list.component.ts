@@ -19,6 +19,7 @@ import { Client, CreateCustomerRequest, CustomerSummary } from '../../api/finara
 import { describeApiError } from '../../core/api-error.util';
 import { toUtcDateOnlyIso } from '../../core/date.util';
 import { propensitySeverity } from '../../core/severity.util';
+import { spendingPropensityLabel } from '../../core/enum-labels.util';
 
 @Component({
   selector: 'app-customer-list',
@@ -44,6 +45,7 @@ export class CustomerListComponent implements OnInit {
   private readonly messageService = inject(MessageService);
 
   protected readonly propensitySeverity = propensitySeverity;
+  protected readonly spendingPropensityLabel = spendingPropensityLabel;
 
   protected customers = signal<CustomerSummary[]>([]);
   protected loading = signal(false);

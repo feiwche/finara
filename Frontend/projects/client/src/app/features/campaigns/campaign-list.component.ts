@@ -19,6 +19,13 @@ import { CampaignSummary, Client, CreateCampaignRequest, SpendingPropensity, Tra
 import { describeApiError } from '../../core/api-error.util';
 import { toUtcDateOnlyIso } from '../../core/date.util';
 import { campaignStatusSeverity } from '../../core/severity.util';
+import {
+  SPENDING_PROPENSITY_OPTIONS,
+  TRANSACTION_CATEGORY_OPTIONS,
+  campaignStatusLabel,
+  spendingPropensityLabel,
+  transactionCategoryLabel
+} from '../../core/enum-labels.util';
 
 @Component({
   selector: 'app-campaign-list',
@@ -47,8 +54,8 @@ export class CampaignListComponent implements OnInit {
   protected loading = signal(false);
   protected activatingId = signal<string | null>(null);
 
-  protected categories = Object.values(TransactionCategory);
-  protected propensities = Object.values(SpendingPropensity);
+  protected categories = TRANSACTION_CATEGORY_OPTIONS;
+  protected propensities = SPENDING_PROPENSITY_OPTIONS;
 
   protected dialogVisible = signal(false);
   protected createBusy = signal(false);
@@ -143,4 +150,7 @@ export class CampaignListComponent implements OnInit {
   }
 
   protected readonly statusSeverity = campaignStatusSeverity;
+  protected readonly statusLabel = campaignStatusLabel;
+  protected readonly categoryLabel = transactionCategoryLabel;
+  protected readonly propensityLabel = spendingPropensityLabel;
 }

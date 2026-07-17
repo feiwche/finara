@@ -36,6 +36,7 @@ import {
 import { apiErrorStatus, describeApiError } from '../../core/api-error.util';
 import { toUtcDateOnlyIso } from '../../core/date.util';
 import { offerResponseSeverity } from '../../core/severity.util';
+import { TRANSACTION_CATEGORY_OPTIONS, offerResponseLabel, spendingPropensityLabel, transactionCategoryLabel } from '../../core/enum-labels.util';
 
 const CATEGORY_ICONS: Record<string, string> = {
   Groceries: 'pi-shopping-cart',
@@ -85,6 +86,9 @@ export class CustomerDetailComponent implements OnInit {
   private readonly confirmationService = inject(ConfirmationService);
 
   protected readonly offerResponseSeverity = offerResponseSeverity;
+  protected readonly offerResponseLabel = offerResponseLabel;
+  protected readonly transactionCategoryLabel = transactionCategoryLabel;
+  protected readonly spendingPropensityLabel = spendingPropensityLabel;
 
   protected categoryIcon(category: string): string {
     return CATEGORY_ICONS[category] ?? 'pi-tag';
@@ -103,7 +107,7 @@ export class CustomerDetailComponent implements OnInit {
   protected segmentMessage = signal<string | null>(null);
 
   protected transactions = signal<TransactionSummary[]>([]);
-  protected categories = Object.values(TransactionCategory);
+  protected categories = TRANSACTION_CATEGORY_OPTIONS;
   protected newTransaction = { amount: 0, category: TransactionCategory.Groceries, merchantName: '', occurredAtUtc: null as Date | null };
   protected txBusy = signal(false);
   protected txSubmitted = false;

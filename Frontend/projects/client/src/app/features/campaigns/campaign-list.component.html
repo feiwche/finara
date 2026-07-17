@@ -17,9 +17,9 @@
   <ng-template pTemplate="body" let-campaign>
     <tr>
       <td>{{ campaign.name }}</td>
-      <td><p-tag [value]="campaign.status" [severity]="statusSeverity(campaign.status ?? '')" /></td>
-      <td>{{ campaign.targetCategory ?? 'Tüm kategoriler' }}</td>
-      <td>{{ campaign.targetPropensity ?? 'Tüm eğilimler' }}</td>
+      <td><p-tag [value]="statusLabel(campaign.status ?? '')" [severity]="statusSeverity(campaign.status ?? '')" /></td>
+      <td>{{ campaign.targetCategory ? categoryLabel(campaign.targetCategory) : 'Tüm kategoriler' }}</td>
+      <td>{{ campaign.targetPropensity ? propensityLabel(campaign.targetPropensity) : 'Tüm eğilimler' }}</td>
       <td>
         {{ campaign.startDateUtc | date: 'yyyy-MM-dd' }}
         @if (campaign.endDateUtc) {
@@ -78,11 +78,25 @@
   </div>
   <div class="field">
     <label>Hedef Kategori (opsiyonel)</label>
-    <p-select [options]="categories" [(ngModel)]="newCampaign.targetCategory" [showClear]="true" placeholder="Fark etmez" />
+    <p-select
+      [options]="categories"
+      optionLabel="label"
+      optionValue="value"
+      [(ngModel)]="newCampaign.targetCategory"
+      [showClear]="true"
+      placeholder="Fark etmez"
+    />
   </div>
   <div class="field">
     <label>Hedef Eğilim (opsiyonel)</label>
-    <p-select [options]="propensities" [(ngModel)]="newCampaign.targetPropensity" [showClear]="true" placeholder="Fark etmez" />
+    <p-select
+      [options]="propensities"
+      optionLabel="label"
+      optionValue="value"
+      [(ngModel)]="newCampaign.targetPropensity"
+      [showClear]="true"
+      placeholder="Fark etmez"
+    />
   </div>
   <div class="field-checkbox">
     <p-checkbox [(ngModel)]="newCampaign.targetsInvestmentAccountHolders" [binary]="true" inputId="targetInvestment" />

@@ -14,7 +14,7 @@
       <p-card styleClass="panel">
         <div><strong>E-posta:</strong> {{ c.email }}</div>
         <div><strong>Yaş:</strong> {{ c.age }}</div>
-        <div><strong>Genel eğilim:</strong> {{ c.propensity }}</div>
+        <div><strong>Genel eğilim:</strong> {{ spendingPropensityLabel(c.propensity!) }}</div>
       </p-card>
     }
 
@@ -33,7 +33,7 @@
           <p-progressbar [value]="(s.monetaryScore! / 5) * 100" [showValue]="false" />
         </div>
         <div><strong>Toplam skor:</strong> {{ s.totalScore }} / 15</div>
-        <div><strong>Baskın kategori:</strong> {{ s.dominantCategory ?? 'belirsiz' }}</div>
+        <div><strong>Baskın kategori:</strong> {{ s.dominantCategory ? transactionCategoryLabel(s.dominantCategory) : 'Belirsiz' }}</div>
         <div><strong>Hesaplanma tarihi:</strong> {{ s.calculatedAtUtc | date: 'yyyy-MM-dd HH:mm' }}</div>
       </p-card>
     } @else if (segmentMessage()) {
@@ -58,7 +58,7 @@
         </div>
         <div class="field">
           <label>Kategori</label>
-          <p-select [options]="categories" [(ngModel)]="newTransaction.category" />
+          <p-select [options]="categories" optionLabel="label" optionValue="value" [(ngModel)]="newTransaction.category" />
         </div>
         <div class="field">
           <label>İşyeri *</label>
@@ -100,7 +100,7 @@
           <ng-template pTemplate="body" let-tx>
             <tr>
               <td>{{ tx.occurredAtUtc | date: 'yyyy-MM-dd' }}</td>
-              <td><i class="pi" [ngClass]="categoryIcon(tx.category)"></i> {{ tx.category }}</td>
+              <td><i class="pi" [ngClass]="categoryIcon(tx.category)"></i> {{ transactionCategoryLabel(tx.category) }}</td>
               <td>{{ tx.merchantName }}</td>
               <td class="amount-col">{{ tx.amount | currency: tx.currency : 'symbol-narrow' : '1.2-2' : 'tr' }}</td>
             </tr>
@@ -136,7 +136,7 @@
             </div>
           </td>
           <td>
-            <p-tag [value]="offer.response" [severity]="offerResponseSeverity(offer.response)" />
+            <p-tag [value]="offerResponseLabel(offer.response)" [severity]="offerResponseSeverity(offer.response)" />
           </td>
           <td>{{ offer.presentedAtUtc | date: 'yyyy-MM-dd' }}</td>
           <td>

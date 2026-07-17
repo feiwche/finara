@@ -37,7 +37,7 @@
       <td>{{ customer.firstName }} {{ customer.lastName }}</td>
       <td>{{ customer.email }}</td>
       <td>{{ customer.age }}</td>
-      <td><p-tag [value]="customer.propensity" [severity]="propensitySeverity(customer.propensity)" /></td>
+      <td><p-tag [value]="spendingPropensityLabel(customer.propensity)" [severity]="propensitySeverity(customer.propensity)" /></td>
     </tr>
   </ng-template>
   <ng-template pTemplate="emptymessage">
