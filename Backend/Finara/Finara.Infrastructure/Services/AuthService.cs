@@ -41,7 +41,8 @@ public class AuthService(FinaraDbContext dbContext, IConfiguration configuration
 
     public async Task<AuthResult> RefreshAsync(RefreshRequest request, CancellationToken cancellationToken = default)
     {
-        var existing = await dbContext.RefreshTokens.FirstOrDefaultAsync(t => t.Token == request.RefreshToken, cancellationToken);
+        var tokenHash = RefreshTokenHasher.Hash(request.RefreshToken);
+        var existing = await dbContext.RefreshTokens.FirstOrDefaultAsync(t => t.Token == tokenHash, cancellationToken);
         if (existing is null || !existing.IsActive)
             throw new UnauthorizedAccessException("Geçersiz veya süresi dolmuş refresh token.");
 
@@ -57,7 +58,8 @@ public class AuthService(FinaraDbContext dbContext, IConfiguration configuration
 
     public async Task RevokeAsync(RevokeRequest request, CancellationToken cancellationToken = default)
     {
-        var existing = await dbContext.RefreshTokens.FirstOrDefaultAsync(t => t.Token == request.RefreshToken, cancellationToken);
+        var tokenHash = RefreshTokenHasher.Hash(request.RefreshToken);
+        var existing = await dbContext.RefreshTokens.FirstOrDefaultAsync(t => t.Token == tokenHash, cancellationToken);
         if (existing is null || !existing.IsActive)
             return; // zaten geçersiz/iptal edilmiş — sessizce no-op (idempotent logout)
 
@@ -102,9 +104,11 @@ public class AuthService(FinaraDbContext dbContext, IConfiguration configuration
 
         var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
 
+        // İstemciye ham (rastgele) değer döner, DB'ye sadece hash'i yazılır — çalınan bir
+        // DB dump'ından oturumların ele geçirilememesi için (bkz. RefreshTokenHasher).
         var refreshTokenValue = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
         var refreshTokenExpires = DateTime.UtcNow.AddDays(refreshTokenDays);
-        var refreshToken = RefreshToken.Create(user.Id, refreshTokenValue, refreshTokenExpires);
+        var refreshToken = RefreshToken.Create(user.Id, RefreshTokenHasher.Hash(refreshTokenValue), refreshTokenExpires);
 
         dbContext.RefreshTokens.Add(refreshToken);
         await dbContext.SaveChangesAsync(cancellationToken);
