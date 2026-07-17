@@ -1,0 +1,89 @@
+<div class="toolbar">
+  <h1>Kampanyalar</h1>
+  <p-button label="Yeni Kampanya" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+</div>
+
+@if (error()) {
+  <p-message severity="error" [text]="error()!" />
+}
+
+<p-table [value]="campaigns()" [loading]="loading()" [rows]="20" [paginator]="campaigns().length > 20" styleClass="p-datatable-sm">
+  <ng-template pTemplate="header">
+    <tr>
+      <th>Ad</th>
+      <th>Durum</th>
+      <th>Hedef Kategori</th>
+      <th>Hedef Eğilim</th>
+      <th>Tarih Aralığı</th>
+      <th></th>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="body" let-campaign>
+    <tr>
+      <td>{{ campaign.name }}</td>
+      <td><p-tag [value]="campaign.status" [severity]="statusSeverity(campaign.status ?? '')" /></td>
+      <td>{{ campaign.targetCategory ?? '—' }}</td>
+      <td>{{ campaign.targetPropensity ?? '—' }}</td>
+      <td>
+        {{ campaign.startDateUtc | date: 'yyyy-MM-dd' }}
+        @if (campaign.endDateUtc) {
+          → {{ campaign.endDateUtc | date: 'yyyy-MM-dd' }}
+        }
+      </td>
+      <td>
+        @if (campaign.status === 'Draft' || campaign.status === 'Paused') {
+          <p-button
+            label="Aktifleştir"
+            size="small"
+            [loading]="activatingId() === campaign.id"
+            (onClick)="activateCampaign(campaign)"
+          />
+        }
+      </td>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="emptymessage">
+    <tr>
+      <td colspan="6">Henüz kampanya yok. "Yeni Kampanya" ile ekleyin.</td>
+    </tr>
+  </ng-template>
+</p-table>
+
+<p-dialog header="Yeni Kampanya" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '480px' }">
+  <div class="field">
+    <label>Ad</label>
+    <input type="text" pInputText [(ngModel)]="newCampaign.name" />
+  </div>
+  <div class="field">
+    <label>Açıklama</label>
+    <textarea pTextarea rows="2" [(ngModel)]="newCampaign.description"></textarea>
+  </div>
+  <div class="field">
+    <label>Başlangıç Tarihi</label>
+    <p-datepicker [(ngModel)]="newCampaign.startDateUtc" dateFormat="yy-mm-dd" [showIcon]="true" />
+  </div>
+  <div class="field">
+    <label>Bitiş Tarihi (opsiyonel)</label>
+    <p-datepicker [(ngModel)]="newCampaign.endDateUtc" dateFormat="yy-mm-dd" [showIcon]="true" />
+  </div>
+  <div class="field">
+    <label>Hedef Kategori (opsiyonel)</label>
+    <p-select [options]="categories" [(ngModel)]="newCampaign.targetCategory" [showClear]="true" placeholder="Fark etmez" />
+  </div>
+  <div class="field">
+    <label>Hedef Eğilim (opsiyonel)</label>
+    <p-select [options]="propensities" [(ngModel)]="newCampaign.targetPropensity" [showClear]="true" placeholder="Fark etmez" />
+  </div>
+  <div class="field-checkbox">
+    <p-checkbox [(ngModel)]="newCampaign.targetsInvestmentAccountHolders" [binary]="true" inputId="targetInvestment" />
+    <label for="targetInvestment">Yatırım hesabı sahiplerini hedefler</label>
+  </div>
+  <div class="field-checkbox">
+    <p-checkbox [(ngModel)]="newCampaign.targetsInternationalTransferUsers" [binary]="true" inputId="targetSwift" />
+    <label for="targetSwift">SWIFT kullanıcılarını hedefler</label>
+  </div>
+  @if (createError()) {
+    <p-message severity="error" [text]="createError()!" />
+  }
+  <p-button label="Oluştur" [loading]="createBusy()" (onClick)="createCampaign()" />
+</p-dialog>

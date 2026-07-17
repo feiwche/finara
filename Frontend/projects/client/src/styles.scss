@@ -1,1 +1,104 @@
 /* You can add global styles to this file, and also import other style files */
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+.app-shell-title {
+  font-weight: 700;
+  font-size: 1.2rem;
+  padding: 0 1rem;
+}
+
+.app-shell-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-right: 0.5rem;
+}
+
+.app-shell-content {
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Faz 3.5 walking skeleton'dan taşınan ortak form/liste yardımcı sınıfları — artık
+   tüm feature ekranlarında paylaşılıyor, her component kendi kopyasını tutmuyor. */
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+
+  @media (max-width: 800px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+
+  label {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+}
+
+.panel .p-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 360px;
+}
+
+.clickable-row {
+  cursor: pointer;
+}
+
+.field-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.ai-hint {
+  color: var(--p-text-muted-color, #6b7280);
+  font-size: 0.85rem;
+}
+
+.ai-answer {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--p-content-border-color, #e5e7eb);
+}
+
+.ai-question {
+  margin-bottom: 8px;
+  color: var(--p-text-muted-color, #6b7280);
+}

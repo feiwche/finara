@@ -1,0 +1,168 @@
+<div class="toolbar">
+  <h1>
+    @if (customer(); as c) {
+      {{ c.firstName }} {{ c.lastName }}
+    } @else {
+      Müşteri
+    }
+  </h1>
+  <a routerLink="/customers">← Müşteri listesine dön</a>
+</div>
+
+@if (loadError()) {
+  <p-message severity="error" [text]="loadError()!" />
+}
+
+<p-tabView>
+  <p-tabPanel header="Profil">
+    @if (customer(); as c) {
+      <p-card styleClass="panel">
+        <div><strong>E-posta:</strong> {{ c.email }}</div>
+        <div><strong>Yaş:</strong> {{ c.age }}</div>
+        <div><strong>Genel eğilim:</strong> {{ c.propensity }}</div>
+      </p-card>
+    }
+
+    @if (segment(); as s) {
+      <p-card header="Segment (RFM)" styleClass="panel">
+        <div><strong>Recency:</strong> {{ s.recencyScore }} / 5</div>
+        <div><strong>Frequency:</strong> {{ s.frequencyScore }} / 5</div>
+        <div><strong>Monetary:</strong> {{ s.monetaryScore }} / 5</div>
+        <div><strong>Toplam skor:</strong> {{ s.totalScore }} / 15</div>
+        <div><strong>Baskın kategori:</strong> {{ s.dominantCategory ?? 'belirsiz' }}</div>
+        <div><strong>Hesaplanma tarihi:</strong> {{ s.calculatedAtUtc | date: 'yyyy-MM-dd HH:mm' }}</div>
+      </p-card>
+    } @else if (segmentMessage()) {
+      <p-message severity="info" [text]="segmentMessage()!" />
+    }
+  </p-tabPanel>
+
+  <p-tabPanel header="İşlemler">
+    <div class="grid">
+      <p-card header="Yeni İşlem Ekle" styleClass="panel">
+        <div class="field">
+          <label>Tutar (TRY)</label>
+          <p-inputnumber [(ngModel)]="newTransaction.amount" mode="decimal" [minFractionDigits]="2" />
+        </div>
+        <div class="field">
+          <label>Kategori</label>
+          <p-select [options]="categories" [(ngModel)]="newTransaction.category" />
+        </div>
+        <div class="field">
+          <label>İşyeri</label>
+          <input type="text" pInputText [(ngModel)]="newTransaction.merchantName" />
+        </div>
+        <div class="field">
+          <label>Tarih</label>
+          <p-datepicker [(ngModel)]="newTransaction.occurredAtUtc" dateFormat="yy-mm-dd" [showIcon]="true" />
+        </div>
+        @if (txError()) {
+          <p-message severity="error" [text]="txError()!" />
+        }
+        <p-button label="İşlem Kaydet" [loading]="txBusy()" (onClick)="recordTransaction()" />
+      </p-card>
+
+      <p-card header="Son İşlemler" styleClass="panel">
+        <p-table [value]="transactions()" [rows]="10" [paginator]="transactions().length > 10" styleClass="p-datatable-sm">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Tarih</th>
+              <th>Kategori</th>
+              <th>İşyeri</th>
+              <th>Tutar</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-tx>
+            <tr>
+              <td>{{ tx.occurredAtUtc | date: 'yyyy-MM-dd' }}</td>
+              <td>{{ tx.category }}</td>
+              <td>{{ tx.merchantName }}</td>
+              <td>{{ tx.amount }} {{ tx.currency }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-card>
+    </div>
+  </p-tabPanel>
+
+  <p-tabPanel header="Teklifler">
+    <div class="toolbar">
+      <span>Bu müşteriye sunulan kampanya teklifleri</span>
+      <p-button label="Teklif Üret" icon="pi pi-sparkles" [loading]="offersBusy()" (onClick)="generateOffers()" />
+    </div>
+
+    @if (offersError()) {
+      <p-message severity="error" [text]="offersError()!" />
+    }
+
+    <p-table [value]="offers()" [rows]="10" [paginator]="offers().length > 10" styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Kampanya</th>
+          <th>Güven Skoru</th>
+          <th>Durum</th>
+          <th>Sunulma Tarihi</th>
+          <th></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-offer>
+        <tr>
+          <td>{{ offer.campaignName }}</td>
+          <td>{{ offer.confidenceScore }}</td>
+          <td>
+            <p-tag
+              [value]="offer.response"
+              [severity]="offer.response === 'Accepted' ? 'success' : offer.response === 'Declined' ? 'danger' : offer.response === 'Expired' ? 'secondary' : 'info'"
+            />
+          </td>
+          <td>{{ offer.presentedAtUtc | date: 'yyyy-MM-dd' }}</td>
+          <td>
+            @if (offer.response === 'Pending') {
+              <p-button
+                label="Kabul Et"
+                size="small"
+                severity="success"
+                [loading]="respondingOfferId() === offer.id"
+                (onClick)="respondToOffer(offer, true)"
+              />
+              <p-button
+                label="Reddet"
+                size="small"
+                severity="danger"
+                [loading]="respondingOfferId() === offer.id"
+                (onClick)="respondToOffer(offer, false)"
+              />
+            }
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5">Henüz teklif yok. "Teklif Üret" ile üretin (önce segment hesaplanmış ve aktif bir kampanya olmalı).</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-tabPanel>
+
+  <p-tabPanel header="AI Analiz">
+    <p-card styleClass="panel">
+      <div class="field">
+        <label>Soru (boş bırakılırsa genel özet istenir)</label>
+        <textarea pTextarea rows="2" [(ngModel)]="aiQuestion"></textarea>
+      </div>
+      <p-button label="Analiz Et" icon="pi pi-sparkles" [loading]="aiBusy()" (onClick)="runAiInsight()" />
+      @if (aiBusy()) {
+        <p class="ai-hint">Yerel model yanıt üretiyor, ~10 saniye sürebilir…</p>
+      }
+      @if (aiError()) {
+        <p-message severity="error" [text]="aiError()!" />
+      }
+      @if (aiAnswer(); as a) {
+        <div class="ai-answer">
+          <div class="ai-question"><strong>Soru:</strong> {{ a.question }}</div>
+          <p>{{ a.answer }}</p>
+        </div>
+      }
+    </p-card>
+  </p-tabPanel>
+</p-tabView>

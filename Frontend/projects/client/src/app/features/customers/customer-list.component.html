@@ -1,0 +1,63 @@
+<div class="toolbar">
+  <h1>Müşteriler</h1>
+  <p-button label="Yeni Müşteri" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+</div>
+
+@if (error()) {
+  <p-message severity="error" [text]="error()!" />
+}
+
+<p-table [value]="customers()" [loading]="loading()" [rows]="20" [paginator]="customers().length > 20" styleClass="p-datatable-sm">
+  <ng-template pTemplate="header">
+    <tr>
+      <th>Ad Soyad</th>
+      <th>E-posta</th>
+      <th>Yaş</th>
+      <th>Eğilim</th>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="body" let-customer>
+    <tr class="clickable-row" (click)="openDetail(customer)">
+      <td>{{ customer.firstName }} {{ customer.lastName }}</td>
+      <td>{{ customer.email }}</td>
+      <td>{{ customer.age }}</td>
+      <td>{{ customer.propensity }}</td>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="emptymessage">
+    <tr>
+      <td colspan="4">Henüz müşteri yok. "Yeni Müşteri" ile ekleyin ya da Araçlar sayfasından mock veri üretin.</td>
+    </tr>
+  </ng-template>
+</p-table>
+
+<p-dialog header="Yeni Müşteri" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '420px' }">
+  <div class="field">
+    <label>Ad</label>
+    <input type="text" pInputText [(ngModel)]="newCustomer.firstName" />
+  </div>
+  <div class="field">
+    <label>Soyad</label>
+    <input type="text" pInputText [(ngModel)]="newCustomer.lastName" />
+  </div>
+  <div class="field">
+    <label>E-posta</label>
+    <input type="text" pInputText [(ngModel)]="newCustomer.email" />
+  </div>
+  <div class="field">
+    <label>Doğum Tarihi</label>
+    <p-datepicker [(ngModel)]="newCustomer.dateOfBirth" dateFormat="yy-mm-dd" [showIcon]="true" />
+  </div>
+  <div class="field-checkbox">
+    <p-checkbox [(ngModel)]="newCustomer.hasInvestmentAccount" [binary]="true" inputId="hasInvestment" />
+    <label for="hasInvestment">Yatırım hesabı var</label>
+  </div>
+  <div class="field-checkbox">
+    <p-checkbox [(ngModel)]="newCustomer.hasInternationalTransfers" [binary]="true" inputId="hasSwift" />
+    <label for="hasSwift">Yurtdışı transfer (SWIFT) kullanıyor</label>
+  </div>
+  @if (createError()) {
+    <p-message severity="error" [text]="createError()!" />
+  }
+  <p-button label="Oluştur" [loading]="createBusy()" (onClick)="createCustomer()" />
+</p-dialog>

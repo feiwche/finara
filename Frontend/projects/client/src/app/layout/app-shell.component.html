@@ -1,0 +1,15 @@
+<p-menubar [model]="navItems">
+  <ng-template #start>
+    <span class="app-shell-title">Finara</span>
+  </ng-template>
+  <ng-template #end>
+    <div class="app-shell-user">
+      <span>{{ authService.email() }}</span>
+      <p-button icon="pi pi-sign-out" severity="secondary" text label="Çıkış" (onClick)="logout()" />
+    </div>
+  </ng-template>
+</p-menubar>
+
+<main class="app-shell-content">
+  <router-outlet />
+</main>

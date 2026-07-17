@@ -1,0 +1,16 @@
+<div class="login-page">
+  <p-card header="Finara — Giriş" styleClass="panel login-card">
+    <div class="field">
+      <label for="email">E-posta</label>
+      <input id="email" type="text" pInputText [(ngModel)]="email" (keyup.enter)="login()" />
+    </div>
+    <div class="field">
+      <label for="password">Şifre</label>
+      <p-password id="password" [(ngModel)]="password" [feedback]="false" [toggleMask]="true" (keyup.enter)="login()" />
+    </div>
+    @if (error()) {
+      <p-message severity="error" [text]="error()!" />
+    }
+    <p-button label="Giriş yap" [loading]="busy()" (onClick)="login()" />
+  </p-card>
+</div>

@@ -1,0 +1,33 @@
+<h1>Araçlar</h1>
+
+<div class="grid">
+  <p-card header="Mock Veri Üret" styleClass="panel">
+    <p>Bogus tabanlı sahte müşteri ve harcama verisi üretir (dakikada en fazla 5 kez çağrılabilir).</p>
+    <div class="field">
+      <label>Müşteri Sayısı</label>
+      <p-inputnumber [(ngModel)]="mockCustomerCount" [min]="1" [max]="500" />
+    </div>
+    <div class="field">
+      <label>Müşteri Başına İşlem Sayısı</label>
+      <p-inputnumber [(ngModel)]="mockTransactionsPerCustomer" [min]="1" [max]="200" />
+    </div>
+    @if (mockError()) {
+      <p-message severity="error" [text]="mockError()!" />
+    }
+    @if (mockResult(); as r) {
+      <p-message severity="success" [text]="r.customersCreated + ' müşteri, ' + r.transactionsCreated + ' işlem oluşturuldu.'" />
+    }
+    <p-button label="Üret" icon="pi pi-database" [loading]="mockBusy()" (onClick)="generateMockData()" />
+  </p-card>
+
+  <p-card header="Segmentasyonu Yeniden Hesapla" styleClass="panel">
+    <p>Son 90 günlük harcama penceresine göre tüm müşteriler için RFM segmentini yeniden hesaplar.</p>
+    @if (segmentationError()) {
+      <p-message severity="error" [text]="segmentationError()!" />
+    }
+    @if (segmentationResult(); as r) {
+      <p-message severity="success" [text]="r.customersProcessed + ' müşteri işlendi, ' + r.customersSkipped + ' atlandı.'" />
+    }
+    <p-button label="Yeniden Hesapla" icon="pi pi-refresh" [loading]="segmentationBusy()" (onClick)="recalculateSegmentation()" />
+  </p-card>
+</div>
