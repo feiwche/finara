@@ -1,4 +1,5 @@
 using Finara.Domain.Common;
+using Finara.Domain.Enums;
 
 namespace Finara.Domain.Entities;
 
@@ -11,6 +12,10 @@ public class Bank : BaseEntity
     public string Name { get; private set; } = string.Empty;
     public string Code { get; private set; } = string.Empty;
     public bool IsActive { get; private set; } = true;
+
+    // Faz 8.2 — IBankDataProviderFactory'nin hangi IBankDataProvider implementasyonunu
+    // çözeceğini belirler. Bugün her banka Mock ile oluşturuluyor (gerçek entegrasyon yok).
+    public BankDataProviderType DataProviderType { get; private set; } = BankDataProviderType.Mock;
 
     private Bank() { }
 
@@ -26,7 +31,8 @@ public class Bank : BaseEntity
         {
             Name = name.Trim(),
             Code = code.Trim().ToUpperInvariant(),
-            IsActive = true
+            IsActive = true,
+            DataProviderType = BankDataProviderType.Mock
         };
     }
 

@@ -9,7 +9,7 @@ namespace Finara.Infrastructure.Services;
 
 public class CustomerService(
     FinaraDbContext dbContext,
-    IBankDataProvider bankDataProvider,
+    IBankDataProviderFactory bankDataProviderFactory,
     IAuditLogRepository auditLogRepository,
     ICurrentUserContext currentUser)
     : ICustomerService
@@ -92,6 +92,7 @@ public class CustomerService(
             throw new ArgumentException("customerCount pozitif, transactionsPerCustomer negatif olmayan bir sayı olmalı.");
 
         var bankId = currentUser.ResolveBankIdForWrite();
+        var bankDataProvider = await bankDataProviderFactory.GetProviderAsync(bankId, cancellationToken);
         var customersCreated = 0;
         var transactionsCreated = 0;
 

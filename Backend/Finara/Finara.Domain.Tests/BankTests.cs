@@ -13,6 +13,7 @@ public class BankTests
         bank.Name.Should().Be("Test Bankası");
         bank.Code.Should().Be("TEST");
         bank.IsActive.Should().BeTrue();
+        bank.DataProviderType.Should().Be(Domain.Enums.BankDataProviderType.Mock);
     }
 
     [Theory]

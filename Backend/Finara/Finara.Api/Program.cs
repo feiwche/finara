@@ -35,9 +35,12 @@ builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
 
 builder.Services.Configure<PayloadGuardOptions>(builder.Configuration.GetSection("PayloadGuard"));
 
-// Banka entegrasyonu henüz yok — tek implementasyon Bogus tabanlı mock üretici.
-// İleride gerçek banka API'sine bağlanan bir implementasyon eklendiğinde sadece bu satır değişecek.
-builder.Services.AddScoped<IBankDataProvider, MockBankDataProvider>();
+// Faz 8.2 — banka entegrasyonu henüz yok, tek implementasyon Bogus tabanlı mock üretici,
+// BankDataProviderType.Mock anahtarıyla keyed service olarak kayıtlı. İleride gerçek banka
+// API'sine bağlanan bir implementasyon eklendiğinde yeni bir enum değeri + yeni bir
+// AddKeyedScoped satırı yeterli olacak, IBankDataProviderFactory'yi tüketen kod değişmeyecek.
+builder.Services.AddKeyedScoped<IBankDataProvider, MockBankDataProvider>(Finara.Domain.Enums.BankDataProviderType.Mock);
+builder.Services.AddScoped<IBankDataProviderFactory, BankDataProviderFactory>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAdminUserService, AdminUserService>();
