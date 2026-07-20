@@ -81,6 +81,18 @@
       <small class="field-error">Doğum tarihi zorunlu.</small>
     }
   </div>
+  <div class="field">
+    <label>Eğitim Durumu</label>
+    <p-select
+      [(ngModel)]="newCustomer.educationLevel"
+      [options]="educationLevelOptions"
+      optionLabel="label"
+      optionValue="value"
+      placeholder="Belirtilmedi"
+      [showClear]="true"
+      styleClass="w-full"
+    />
+  </div>
   <div class="field-checkbox">
     <p-checkbox [(ngModel)]="newCustomer.hasInvestmentAccount" [binary]="true" inputId="hasInvestment" />
     <label for="hasInvestment">Yatırım hesabı var</label>

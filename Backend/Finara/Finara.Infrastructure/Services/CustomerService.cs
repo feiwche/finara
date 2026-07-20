@@ -28,6 +28,8 @@ public class CustomerService(
         var customer = Customer.Create(bankId, request.FirstName, request.LastName, request.Email, request.DateOfBirth);
         if (request.HasInvestmentAccount || request.HasInternationalTransfers)
             customer.UpdateFinancialFlags(request.HasInvestmentAccount, request.HasInternationalTransfers);
+        if (request.EducationLevel is not null)
+            customer.UpdateEducationLevel(request.EducationLevel);
 
         dbContext.Customers.Add(customer);
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -101,6 +103,7 @@ public class CustomerService(
             var data = await bankDataProvider.GenerateCustomerAsync(cancellationToken);
             var customer = Customer.Create(bankId, data.FirstName, data.LastName, data.Email, data.DateOfBirth);
             customer.UpdateFinancialFlags(data.HasInvestmentAccount, data.HasInternationalTransfers);
+            customer.UpdateEducationLevel(data.EducationLevel);
             dbContext.Customers.Add(customer);
             customersCreated++;
 
@@ -121,7 +124,8 @@ public class CustomerService(
     }
 
     private static CustomerSummary ToSummary(Customer customer) =>
-        new(customer.Id, customer.FirstName, customer.LastName, customer.Email, customer.GetAge(), customer.CurrentPropensity);
+        new(customer.Id, customer.FirstName, customer.LastName, customer.Email, customer.GetAge(), customer.CurrentPropensity,
+            customer.HasInvestmentAccount, customer.HasInternationalTransfers, customer.EducationLevel);
 
     private static TransactionSummary ToSummary(Transaction transaction) =>
         new(transaction.Id, transaction.CustomerId, transaction.Amount, transaction.Category,

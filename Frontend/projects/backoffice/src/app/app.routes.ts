@@ -33,6 +33,11 @@ export const routes: Routes = [
         path: 'admin-accounts',
         title: 'Finara BackOffice — Yönetici Hesapları',
         loadComponent: () => import('./features/admin-accounts/admin-accounts.component').then(m => m.AdminAccountsComponent)
+      },
+      {
+        path: 'cohorts',
+        title: 'Finara BackOffice — Kohort Gezgini',
+        loadComponent: () => import('./features/cohorts/cohort-explorer.component').then(m => m.CohortExplorerComponent)
       }
     ]
   },

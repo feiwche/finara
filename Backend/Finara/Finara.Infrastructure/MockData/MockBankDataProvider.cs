@@ -27,6 +27,17 @@ public class MockBankDataProvider : IBankDataProvider
             [TransactionCategory.Other] = ["Genel Market", "Diğer"],
         };
 
+    // Türkiye nüfusunun eğitim durumu dağılımına kabaca yakın ağırlıklandırma —
+    // lise/lisans en yaygın, lisansüstü en seyrek.
+    private static readonly EducationLevel[] WeightedEducationLevelPool =
+    [
+        EducationLevel.Lise, EducationLevel.Lise, EducationLevel.Lise, EducationLevel.Lise,
+        EducationLevel.Lisans, EducationLevel.Lisans, EducationLevel.Lisans,
+        EducationLevel.Onlisans, EducationLevel.Onlisans,
+        EducationLevel.Ilkogretim, EducationLevel.Ilkogretim,
+        EducationLevel.Lisansustu,
+    ];
+
     // Sık kategoriler (market/akaryakıt/e-ticaret) ağırlıklı, nadir kategoriler (yatırım/motosiklet) seyrek.
     private static readonly TransactionCategory[] WeightedCategoryPool =
     [
@@ -59,7 +70,8 @@ public class MockBankDataProvider : IBankDataProvider
             Email: _faker.Internet.Email(firstName, lastName),
             DateOfBirth: DateTime.SpecifyKind(dateOfBirth, DateTimeKind.Utc),
             HasInvestmentAccount: _faker.Random.Bool(0.2f),
-            HasInternationalTransfers: _faker.Random.Bool(0.15f));
+            HasInternationalTransfers: _faker.Random.Bool(0.15f),
+            EducationLevel: _faker.PickRandom(WeightedEducationLevelPool));
 
         return Task.FromResult(data);
     }

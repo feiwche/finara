@@ -13,6 +13,7 @@ import { MessageModule } from 'primeng/message';
 import { TagModule } from 'primeng/tag';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
+import { SelectModule } from 'primeng/select';
 import { MessageService } from 'primeng/api';
 
 import {
@@ -20,6 +21,8 @@ import {
   CreateCustomerRequest,
   CustomerSummary,
   describeApiError,
+  EDUCATION_LEVEL_OPTIONS,
+  EducationLevel,
   propensitySeverity,
   spendingPropensityLabel,
   toUtcDateOnlyIso
@@ -39,7 +42,8 @@ import {
     MessageModule,
     TagModule,
     IconFieldModule,
-    InputIconModule
+    InputIconModule,
+    SelectModule
   ],
   templateUrl: './customer-list.component.html'
 })
@@ -50,6 +54,7 @@ export class CustomerListComponent implements OnInit {
 
   protected readonly propensitySeverity = propensitySeverity;
   protected readonly spendingPropensityLabel = spendingPropensityLabel;
+  protected readonly educationLevelOptions = EDUCATION_LEVEL_OPTIONS;
 
   protected customers = signal<CustomerSummary[]>([]);
   protected loading = signal(false);
@@ -67,7 +72,8 @@ export class CustomerListComponent implements OnInit {
     email: '',
     dateOfBirth: null as Date | null,
     hasInvestmentAccount: false,
-    hasInternationalTransfers: false
+    hasInternationalTransfers: false,
+    educationLevel: null as EducationLevel | null
   };
 
   async ngOnInit(): Promise<void> {
@@ -92,7 +98,8 @@ export class CustomerListComponent implements OnInit {
       email: '',
       dateOfBirth: null,
       hasInvestmentAccount: false,
-      hasInternationalTransfers: false
+      hasInternationalTransfers: false,
+      educationLevel: null
     };
     this.createError.set(null);
     this.createSubmitted = false;
@@ -116,7 +123,8 @@ export class CustomerListComponent implements OnInit {
             email: this.newCustomer.email,
             dateOfBirth: new Date(toUtcDateOnlyIso(this.newCustomer.dateOfBirth)),
             hasInvestmentAccount: this.newCustomer.hasInvestmentAccount,
-            hasInternationalTransfers: this.newCustomer.hasInternationalTransfers
+            hasInternationalTransfers: this.newCustomer.hasInternationalTransfers,
+            educationLevel: this.newCustomer.educationLevel ?? undefined
           })
         )
       );

@@ -11,7 +11,8 @@ public record CustomerData(
     string Email,
     DateTime DateOfBirth,
     bool HasInvestmentAccount,
-    bool HasInternationalTransfers);
+    bool HasInternationalTransfers,
+    EducationLevel EducationLevel);
 
 public record TransactionData(
     decimal Amount,

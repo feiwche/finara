@@ -113,6 +113,17 @@ html, body {
   margin-top: 2px;
 }
 
+.cohort-explorer-hint {
+  color: var(--p-text-muted-color, #6b7280);
+  font-size: 0.9rem;
+  margin: 0 0 8px;
+}
+
+.cohort-other-row {
+  background: var(--p-surface-100, #f4f4f5);
+  font-style: italic;
+}
+
 .login-page {
   min-height: 100vh;
   display: flex;

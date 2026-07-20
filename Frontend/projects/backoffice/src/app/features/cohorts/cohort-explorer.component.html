@@ -1,0 +1,48 @@
+<div class="toolbar">
+  <h1>Kohort Gezgini</h1>
+</div>
+
+<p class="cohort-explorer-hint">
+  Aktif segmenti olan (son 90 gün içinde işlemi bulunan) müşteriler yaş aralığı, eğitim durumu ve harcama eğilimine
+  göre gruplanır. Bir grup 5 müşteriden azsa tek bir "Diğer" satırında birleştirilir.
+</p>
+
+<p-table [value]="cohorts()" [loading]="loading()" styleClass="p-datatable-sm">
+  <ng-template pTemplate="header">
+    <tr>
+      <th>Kohort</th>
+      <th>Yaş Aralığı</th>
+      <th>Eğitim Durumu</th>
+      <th>Eğilim</th>
+      <th>Baskın Kategori</th>
+      <th>Müşteri Sayısı</th>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="body" let-cohort>
+    <tr [class.cohort-other-row]="cohort.isOther">
+      <td>
+        @if (cohort.isOther) {
+          <p-tag value="Diğer" severity="secondary" />
+        } @else {
+          <p-tag value="Kohort" severity="info" />
+        }
+      </td>
+      <td>{{ cohort.ageBracket ? ageBracketLabel(cohort.ageBracket) : '—' }}</td>
+      <td>{{ cohort.educationLevel ? educationLevelLabel(cohort.educationLevel) : '—' }}</td>
+      <td>
+        @if (cohort.propensity) {
+          <p-tag [value]="spendingPropensityLabel(cohort.propensity)" [severity]="propensitySeverity(cohort.propensity)" />
+        } @else {
+          —
+        }
+      </td>
+      <td>{{ cohort.dominantCategory ? transactionCategoryLabel(cohort.dominantCategory) : '—' }}</td>
+      <td>{{ cohort.customerCount }}</td>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="emptymessage">
+    <tr>
+      <td colspan="6">Henüz kohort yok — segmentasyonun en az bir kez çalıştırılmış olması gerekir (Araçlar/Segmentasyon).</td>
+    </tr>
+  </ng-template>
+</p-table>

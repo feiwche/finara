@@ -8,7 +8,8 @@ public record CreateCustomerRequest(
     string Email,
     DateTime DateOfBirth,
     bool HasInvestmentAccount = false,
-    bool HasInternationalTransfers = false);
+    bool HasInternationalTransfers = false,
+    EducationLevel? EducationLevel = null);
 
 public record RecordTransactionRequest(
     decimal Amount,
@@ -26,7 +27,10 @@ public record CustomerSummary(
     string LastName,
     string Email,
     int Age,
-    SpendingPropensity Propensity);
+    SpendingPropensity Propensity,
+    bool HasInvestmentAccount,
+    bool HasInternationalTransfers,
+    EducationLevel? EducationLevel);
 
 public record TransactionSummary(
     Guid Id,

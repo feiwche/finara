@@ -47,6 +47,7 @@ builder.Services.AddScoped<IAdminUserService, AdminUserService>();
 builder.Services.AddScoped<IBankService, BankService>();
 builder.Services.AddScoped<ICampaignService, CampaignService>();
 builder.Services.AddScoped<ISegmentationService, SegmentationService>();
+builder.Services.AddScoped<ICohortService, CohortService>();
 builder.Services.AddScoped<INextBestOfferService, NextBestOfferService>();
 
 // Bulut LLM API'si (ChatGPT/Claude) değil, kullanıcının kendi makinesinde
@@ -222,6 +223,7 @@ app.MapCampaignEndpoints();
 app.MapAuditLogEndpoints();
 app.MapAdminUserEndpoints();
 app.MapBankEndpoints();
+app.MapCohortEndpoints();
 app.MapSegmentationEndpoints();
 app.MapAiEndpoints();
 // Denetimde bulundu: diğer her endpoint korunuyorken bu ikisi unutulmuştu — MCP

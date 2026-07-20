@@ -97,4 +97,29 @@ public class CustomerTests
 
         customer.CurrentPropensity.Should().Be(SpendingPropensity.HighlyResponsive);
     }
+
+    [Fact]
+    public void UpdateEducationLevel_VarsayilanOlarakNull_SonraGuncellenebilir()
+    {
+        var customer = Domain.Entities.Customer.Create(ValidBankId, "Ali", "Veli", "ali@example.com", ValidBirthDate);
+        customer.EducationLevel.Should().BeNull();
+
+        customer.UpdateEducationLevel(EducationLevel.Lisans);
+
+        customer.EducationLevel.Should().Be(EducationLevel.Lisans);
+    }
+
+    [Theory]
+    [InlineData(20, AgeBracket.Age18To25)]
+    [InlineData(30, AgeBracket.Age26To35)]
+    [InlineData(40, AgeBracket.Age36To45)]
+    [InlineData(50, AgeBracket.Age46To55)]
+    [InlineData(60, AgeBracket.Age56Plus)]
+    public void GetAgeBracket_YasaGoreDogruAraligiDoner(int age, AgeBracket expected)
+    {
+        var birthDate = DateTime.UtcNow.AddYears(-age).AddDays(-1);
+        var customer = Domain.Entities.Customer.Create(ValidBankId, "Test", "Kullanıcı", "test@example.com", birthDate);
+
+        customer.GetAgeBracket().Should().Be(expected);
+    }
 }

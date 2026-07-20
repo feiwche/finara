@@ -18,6 +18,7 @@ public class Customer : BaseEntity
     public DateTime DateOfBirth { get; private set; }
     public bool HasInvestmentAccount { get; private set; }
     public bool HasInternationalTransfers { get; private set; }
+    public EducationLevel? EducationLevel { get; private set; }
     public SpendingPropensity CurrentPropensity { get; private set; } = SpendingPropensity.Neutral;
 
     private readonly List<Transaction> _transactions = new();
@@ -68,6 +69,21 @@ public class Customer : BaseEntity
         HasInternationalTransfers = hasInternationalTransfers;
         MarkUpdated();
     }
+
+    public void UpdateEducationLevel(EducationLevel? educationLevel)
+    {
+        EducationLevel = educationLevel;
+        MarkUpdated();
+    }
+
+    public AgeBracket GetAgeBracket() => GetAge() switch
+    {
+        <= 25 => AgeBracket.Age18To25,
+        <= 35 => AgeBracket.Age26To35,
+        <= 45 => AgeBracket.Age36To45,
+        <= 55 => AgeBracket.Age46To55,
+        _ => AgeBracket.Age56Plus
+    };
 
     public void AssignPropensity(SpendingPropensity propensity)
     {

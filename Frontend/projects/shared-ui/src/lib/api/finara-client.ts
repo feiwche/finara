@@ -1080,6 +1080,64 @@ export class Client {
     }
 
     /**
+     * @return OK
+     */
+    cohorts(): Observable<CohortSummary[]> {
+        let url_ = this.baseUrl + "/api/cohorts";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processCohorts(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processCohorts(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<CohortSummary[]>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<CohortSummary[]>;
+        }));
+    }
+
+    protected processCohorts(response: HttpResponseBase): Observable<CohortSummary[]> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(CohortSummary.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
      * @return Created
      */
     customers(body: CreateCustomerRequest): Observable<CustomerSummary> {
@@ -1863,6 +1921,14 @@ export interface IAdminUserSummary {
     createdAtUtc?: Date;
 }
 
+export enum AgeBracket {
+    Age18To25 = "Age18To25",
+    Age26To35 = "Age26To35",
+    Age36To45 = "Age36To45",
+    Age46To55 = "Age46To55",
+    Age56Plus = "Age56Plus",
+}
+
 export class AiInsightRequest implements IAiInsightRequest {
     question?: string | undefined;
 
@@ -2268,6 +2334,62 @@ export interface ICampaignSummary {
     endDateUtc?: Date | undefined;
 }
 
+export class CohortSummary implements ICohortSummary {
+    ageBracket?: AgeBracket;
+    educationLevel?: EducationLevel;
+    propensity?: SpendingPropensity;
+    dominantCategory?: TransactionCategory;
+    customerCount?: number;
+    isOther?: boolean;
+
+    constructor(data?: ICohortSummary) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.ageBracket = _data["ageBracket"];
+            this.educationLevel = _data["educationLevel"];
+            this.propensity = _data["propensity"];
+            this.dominantCategory = _data["dominantCategory"];
+            this.customerCount = _data["customerCount"];
+            this.isOther = _data["isOther"];
+        }
+    }
+
+    static fromJS(data: any): CohortSummary {
+        data = typeof data === 'object' ? data : {};
+        let result = new CohortSummary();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["ageBracket"] = this.ageBracket;
+        data["educationLevel"] = this.educationLevel;
+        data["propensity"] = this.propensity;
+        data["dominantCategory"] = this.dominantCategory;
+        data["customerCount"] = this.customerCount;
+        data["isOther"] = this.isOther;
+        return data;
+    }
+}
+
+export interface ICohortSummary {
+    ageBracket?: AgeBracket;
+    educationLevel?: EducationLevel;
+    propensity?: SpendingPropensity;
+    dominantCategory?: TransactionCategory;
+    customerCount?: number;
+    isOther?: boolean;
+}
+
 export class CreateAdminRequest implements ICreateAdminRequest {
     email?: string;
     password?: string;
@@ -2431,6 +2553,7 @@ export class CreateCustomerRequest implements ICreateCustomerRequest {
     dateOfBirth?: Date;
     hasInvestmentAccount?: boolean;
     hasInternationalTransfers?: boolean;
+    educationLevel?: EducationLevel;
 
     constructor(data?: ICreateCustomerRequest) {
         if (data) {
@@ -2449,6 +2572,7 @@ export class CreateCustomerRequest implements ICreateCustomerRequest {
             this.dateOfBirth = _data["dateOfBirth"] ? new Date(_data["dateOfBirth"].toString()) : undefined as any;
             this.hasInvestmentAccount = _data["hasInvestmentAccount"];
             this.hasInternationalTransfers = _data["hasInternationalTransfers"];
+            this.educationLevel = _data["educationLevel"];
         }
     }
 
@@ -2467,6 +2591,7 @@ export class CreateCustomerRequest implements ICreateCustomerRequest {
         data["dateOfBirth"] = this.dateOfBirth ? this.dateOfBirth.toISOString() : undefined as any;
         data["hasInvestmentAccount"] = this.hasInvestmentAccount;
         data["hasInternationalTransfers"] = this.hasInternationalTransfers;
+        data["educationLevel"] = this.educationLevel;
         return data;
     }
 }
@@ -2478,6 +2603,7 @@ export interface ICreateCustomerRequest {
     dateOfBirth?: Date;
     hasInvestmentAccount?: boolean;
     hasInternationalTransfers?: boolean;
+    educationLevel?: EducationLevel;
 }
 
 export class CustomerSummary implements ICustomerSummary {
@@ -2487,6 +2613,9 @@ export class CustomerSummary implements ICustomerSummary {
     email?: string;
     age?: number;
     propensity?: SpendingPropensity;
+    hasInvestmentAccount?: boolean;
+    hasInternationalTransfers?: boolean;
+    educationLevel?: EducationLevel;
 
     constructor(data?: ICustomerSummary) {
         if (data) {
@@ -2505,6 +2634,9 @@ export class CustomerSummary implements ICustomerSummary {
             this.email = _data["email"];
             this.age = _data["age"];
             this.propensity = _data["propensity"];
+            this.hasInvestmentAccount = _data["hasInvestmentAccount"];
+            this.hasInternationalTransfers = _data["hasInternationalTransfers"];
+            this.educationLevel = _data["educationLevel"];
         }
     }
 
@@ -2523,6 +2655,9 @@ export class CustomerSummary implements ICustomerSummary {
         data["email"] = this.email;
         data["age"] = this.age;
         data["propensity"] = this.propensity;
+        data["hasInvestmentAccount"] = this.hasInvestmentAccount;
+        data["hasInternationalTransfers"] = this.hasInternationalTransfers;
+        data["educationLevel"] = this.educationLevel;
         return data;
     }
 }
@@ -2534,6 +2669,17 @@ export interface ICustomerSummary {
     email?: string;
     age?: number;
     propensity?: SpendingPropensity;
+    hasInvestmentAccount?: boolean;
+    hasInternationalTransfers?: boolean;
+    educationLevel?: EducationLevel;
+}
+
+export enum EducationLevel {
+    Ilkogretim = "Ilkogretim",
+    Lise = "Lise",
+    Onlisans = "Onlisans",
+    Lisans = "Lisans",
+    Lisansustu = "Lisansustu",
 }
 
 export class GenerateMockDataRequest implements IGenerateMockDataRequest {

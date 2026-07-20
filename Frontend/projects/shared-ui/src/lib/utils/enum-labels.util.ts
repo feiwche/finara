@@ -1,4 +1,4 @@
-import { AuditActionType, SpendingPropensity, TransactionCategory, UserRole } from '../api/finara-client';
+import { AgeBracket, AuditActionType, EducationLevel, SpendingPropensity, TransactionCategory, UserRole } from '../api/finara-client';
 
 // Backend enum'ları (İngilizce, API sözleşmesinin parçası) ile arayüzde gösterilen
 // metin birbirinden ayrılıyor — [(ngModel)]/API çağrıları hep İngilizce değeri kullanır,
@@ -52,6 +52,22 @@ const AUDIT_ACTION_TYPE_LABELS: Record<string, string> = {
   TransactionRecorded: 'İşlem Kaydedildi'
 };
 
+const EDUCATION_LEVEL_LABELS: Record<string, string> = {
+  Ilkogretim: 'İlköğretim',
+  Lise: 'Lise',
+  Onlisans: 'Önlisans',
+  Lisans: 'Lisans',
+  Lisansustu: 'Lisansüstü'
+};
+
+const AGE_BRACKET_LABELS: Record<string, string> = {
+  Age18To25: '18-25',
+  Age26To35: '26-35',
+  Age36To45: '36-45',
+  Age46To55: '46-55',
+  Age56Plus: '56+'
+};
+
 export function transactionCategoryLabel(category: string): string {
   return TRANSACTION_CATEGORY_LABELS[category] ?? category;
 }
@@ -76,6 +92,14 @@ export function userRoleLabel(role: string): string {
   return USER_ROLE_LABELS[role] ?? role;
 }
 
+export function educationLevelLabel(level: string): string {
+  return EDUCATION_LEVEL_LABELS[level] ?? level;
+}
+
+export function ageBracketLabel(bracket: string): string {
+  return AGE_BRACKET_LABELS[bracket] ?? bracket;
+}
+
 // p-select gibi dropdown'lar için: değer İngilizce enum olarak kalır (API'ye o gönderilir),
 // kullanıcıya sadece label gösterilir (optionLabel="label" optionValue="value" ile).
 export const TRANSACTION_CATEGORY_OPTIONS = Object.values(TransactionCategory).map(value => ({
@@ -95,5 +119,15 @@ export const AUDIT_ACTION_TYPE_OPTIONS = Object.values(AuditActionType).map(valu
 
 export const USER_ROLE_OPTIONS = Object.values(UserRole).map(value => ({
   label: userRoleLabel(value),
+  value
+}));
+
+export const EDUCATION_LEVEL_OPTIONS = Object.values(EducationLevel).map(value => ({
+  label: educationLevelLabel(value),
+  value
+}));
+
+export const AGE_BRACKET_OPTIONS = Object.values(AgeBracket).map(value => ({
+  label: ageBracketLabel(value),
   value
 }));
