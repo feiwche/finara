@@ -1,1 +1,126 @@
 /* You can add global styles to this file, and also import other style files */
+
+// Bilinçli açık tema kilidi — client'takiyle aynı gerekçe: body'ye arka plan set
+// edilmezse tarayıcı/OS koyu modu tercih ettiğinde siyah arka plan üzerinde beyaz
+// PrimeNG kartları (tasarlanmamış bir görünüm) oluşuyordu.
+:root {
+  color-scheme: light;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  background: #f4f6f9;
+  color: #1f2937;
+}
+
+.app-shell-title {
+  font-weight: 700;
+  font-size: 1.2rem;
+  padding: 0 1rem;
+}
+
+.app-shell-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  a {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.5rem 0.9rem;
+    border-radius: 6px;
+    color: var(--p-text-muted-color, #6b7280);
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: background-color 0.15s, color 0.15s;
+
+    &:hover {
+      background: var(--p-surface-100, #f3f4f6);
+      color: var(--p-text-color, #1f2937);
+    }
+
+    &.active {
+      background: var(--p-primary-50, #eef2ff);
+      color: var(--p-primary-color, #4f46e5);
+      font-weight: 600;
+    }
+  }
+}
+
+.app-shell-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-right: 0.5rem;
+}
+
+.app-shell-content {
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+
+  label {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+}
+
+.field-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.field-invalid {
+  border-color: var(--p-red-400, #f87171) !important;
+}
+
+.field-error {
+  color: var(--p-red-500, #ef4444);
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 360px;
+}
+
+// Kampanya yaşam döngüsü aksiyon butonları — durum bazlı birden fazla buton yan yana.
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.muted-text {
+  color: var(--p-text-muted-color, #6b7280);
+}

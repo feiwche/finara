@@ -1,9 +1,31 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { APP_INITIALIZER, ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { provideClientHydration } from '@angular/platform-browser';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 
 import { routes } from './app.routes';
-import { provideClientHydration } from '@angular/platform-browser';
+import { API_BASE_URL, AuthService, Client, authInterceptor, provideFinaraUi } from '@finara/shared-ui';
+import { environment } from '../environments/environment';
 
 export const appConfig: ApplicationConfig = {
-  providers: [provideZoneChangeDetection({ eventCoalescing: true }), provideRouter(routes), provideClientHydration()]
+  providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
+    provideRouter(routes),
+    provideClientHydration(),
+    provideAnimationsAsync(),
+    provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
+    provideFinaraUi(),
+    { provide: API_BASE_URL, useValue: environment.apiBaseUrl },
+    Client,
+    // Route guard'ları değerlendirilmeden önce localStorage'daki refresh token ile
+    // oturumu sessizce geri yükler — yoksa bir sayfa yenilemesinde authGuard, henüz
+    // restoreSession tamamlanmadan isAuthenticated=false görüp /login'e atardı.
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (authService: AuthService) => () => authService.restoreSession(),
+      deps: [AuthService],
+      multi: true
+    }
+  ]
 };

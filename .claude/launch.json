@@ -7,6 +7,13 @@
       "runtimeArgs": ["node_modules/@angular/cli/bin/ng.js", "serve", "client", "--port", "4200"],
       "cwd": "Frontend",
       "port": 4200
+    },
+    {
+      "name": "frontend-backoffice",
+      "runtimeExecutable": "C:\\nodejs\\node.exe",
+      "runtimeArgs": ["node_modules/@angular/cli/bin/ng.js", "serve", "backoffice", "--port", "4300"],
+      "cwd": "Frontend",
+      "port": 4300
     }
   ]
 }

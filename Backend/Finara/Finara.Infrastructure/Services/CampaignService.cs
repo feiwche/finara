@@ -27,13 +27,28 @@ public class CampaignService(FinaraDbContext dbContext) : ICampaignService
         return ToSummary(campaign);
     }
 
-    public async Task<CampaignSummary?> ActivateCampaignAsync(Guid campaignId, CancellationToken cancellationToken = default)
+    public Task<CampaignSummary?> ActivateCampaignAsync(Guid campaignId, CancellationToken cancellationToken = default) =>
+        TransitionAsync(campaignId, c => c.Activate(), cancellationToken);
+
+    public Task<CampaignSummary?> PauseCampaignAsync(Guid campaignId, CancellationToken cancellationToken = default) =>
+        TransitionAsync(campaignId, c => c.Pause(), cancellationToken);
+
+    public Task<CampaignSummary?> CompleteCampaignAsync(Guid campaignId, CancellationToken cancellationToken = default) =>
+        TransitionAsync(campaignId, c => c.Complete(), cancellationToken);
+
+    public Task<CampaignSummary?> ArchiveCampaignAsync(Guid campaignId, CancellationToken cancellationToken = default) =>
+        TransitionAsync(campaignId, c => c.Archive(), cancellationToken);
+
+    // Dört yaşam döngüsü geçişi de aynı iskeleti paylaşıyor: kampanyayı bul (yoksa null →
+    // endpoint 404'e çevirir), domain durum-makinesi metodunu çağır (geçersiz geçişte
+    // InvalidOperationException fırlatır → GlobalExceptionHandler 400'e çevirir), kaydet.
+    private async Task<CampaignSummary?> TransitionAsync(Guid campaignId, Action<Campaign> transition, CancellationToken cancellationToken)
     {
         var campaign = await dbContext.Campaigns.FirstOrDefaultAsync(c => c.Id == campaignId, cancellationToken);
         if (campaign is null)
             return null;
 
-        campaign.Activate();
+        transition(campaign);
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return ToSummary(campaign);

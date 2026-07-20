@@ -1,0 +1,18 @@
+<p-menubar>
+  <ng-template #start>
+    <span class="app-shell-title">Finara <p-tag value="BackOffice" severity="contrast" /></span>
+    <nav class="app-shell-nav">
+      <a routerLink="/campaigns" routerLinkActive="active"><i class="pi pi-megaphone"></i> Kampanyalar</a>
+    </nav>
+  </ng-template>
+  <ng-template #end>
+    <div class="app-shell-user">
+      <span>{{ authService.email() }}</span>
+      <p-button icon="pi pi-sign-out" severity="secondary" text label="Çıkış" (onClick)="logout()" />
+    </div>
+  </ng-template>
+</p-menubar>
+
+<main class="app-shell-content">
+  <router-outlet />
+</main>

@@ -8,5 +8,11 @@ public interface ICampaignService
 
     Task<CampaignSummary?> ActivateCampaignAsync(Guid campaignId, CancellationToken cancellationToken = default);
 
+    Task<CampaignSummary?> PauseCampaignAsync(Guid campaignId, CancellationToken cancellationToken = default);
+
+    Task<CampaignSummary?> CompleteCampaignAsync(Guid campaignId, CancellationToken cancellationToken = default);
+
+    Task<CampaignSummary?> ArchiveCampaignAsync(Guid campaignId, CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<CampaignSummary>> GetCampaignsAsync(CancellationToken cancellationToken = default);
 }

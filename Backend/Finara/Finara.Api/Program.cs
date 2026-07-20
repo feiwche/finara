@@ -82,12 +82,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// Faz 3.5: Angular dev server (ng serve, varsayılan 4200) buradan erişebilsin diye.
-// Faz 6/7'de gerçek origin'ler appsettings üzerinden yapılandırılabilir hale getirilecek.
+// Angular dev server'ları buradan erişebilsin diye: client (4200) ve BackOffice (4300).
+// Faz 8'de gerçek origin'ler appsettings üzerinden yapılandırılabilir hale getirilecek.
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngularDev", policy =>
-        policy.WithOrigins("http://localhost:4200")
+        policy.WithOrigins("http://localhost:4200", "http://localhost:4300")
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
