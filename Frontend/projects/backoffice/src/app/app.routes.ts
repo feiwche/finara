@@ -18,6 +18,16 @@ export const routes: Routes = [
         path: 'campaigns',
         title: 'Finara BackOffice — Kampanya Yönetimi',
         loadComponent: () => import('./features/campaigns/campaign-management.component').then(m => m.CampaignManagementComponent)
+      },
+      {
+        path: 'audit-logs',
+        title: 'Finara BackOffice — Denetim Kaydı',
+        loadComponent: () => import('./features/audit-logs/audit-log.component').then(m => m.AuditLogComponent)
+      },
+      {
+        path: 'admin-accounts',
+        title: 'Finara BackOffice — Yönetici Hesapları',
+        loadComponent: () => import('./features/admin-accounts/admin-accounts.component').then(m => m.AdminAccountsComponent)
       }
     ]
   },

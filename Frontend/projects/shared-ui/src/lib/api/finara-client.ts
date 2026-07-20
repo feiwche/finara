@@ -28,6 +28,180 @@ export class Client {
     /**
      * @return OK
      */
+    adminUsersAll(): Observable<AdminUserSummary[]> {
+        let url_ = this.baseUrl + "/api/admin-users";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processAdminUsersAll(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processAdminUsersAll(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<AdminUserSummary[]>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<AdminUserSummary[]>;
+        }));
+    }
+
+    protected processAdminUsersAll(response: HttpResponseBase): Observable<AdminUserSummary[]> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(AdminUserSummary.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @return Created
+     */
+    adminUsers(body: CreateAdminRequest): Observable<AdminUserSummary> {
+        let url_ = this.baseUrl + "/api/admin-users";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processAdminUsers(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processAdminUsers(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<AdminUserSummary>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<AdminUserSummary>;
+        }));
+    }
+
+    protected processAdminUsers(response: HttpResponseBase): Observable<AdminUserSummary> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 201) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = AdminUserSummary.fromJS(resultData201);
+            return _observableOf(result201);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    deactivate(userId: string): Observable<AdminUserSummary> {
+        let url_ = this.baseUrl + "/api/admin-users/{userId}/deactivate";
+        if (userId === undefined || userId === null)
+            throw new globalThis.Error("The parameter 'userId' must be defined.");
+        url_ = url_.replace("{userId}", encodeURIComponent("" + userId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processDeactivate(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processDeactivate(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<AdminUserSummary>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<AdminUserSummary>;
+        }));
+    }
+
+    protected processDeactivate(response: HttpResponseBase): Observable<AdminUserSummary> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AdminUserSummary.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status === 404) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @return OK
+     */
     ping(body: AiPingRequest): Observable<AiPingResponse> {
         let url_ = this.baseUrl + "/api/ai/ping";
         url_ = url_.replace(/[?&]$/, "");
@@ -136,6 +310,84 @@ export class Client {
             let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
             result404 = ProblemDetails.fromJS(resultData404);
             return throwException("Not Found", status, _responseText, _headers, result404);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @param customerId (optional) 
+     * @param actionType (optional) 
+     * @param fromUtc (optional) 
+     * @param toUtc (optional) 
+     * @return OK
+     */
+    auditLogs(customerId?: string | undefined, actionType?: AuditActionType | undefined, fromUtc?: Date | undefined, toUtc?: Date | undefined): Observable<AuditLogSummary[]> {
+        let url_ = this.baseUrl + "/api/audit-logs?";
+        if (customerId === null)
+            throw new globalThis.Error("The parameter 'customerId' cannot be null.");
+        else if (customerId !== undefined)
+            url_ += "customerId=" + encodeURIComponent("" + customerId) + "&";
+        if (actionType === null)
+            throw new globalThis.Error("The parameter 'actionType' cannot be null.");
+        else if (actionType !== undefined)
+            url_ += "actionType=" + encodeURIComponent("" + actionType) + "&";
+        if (fromUtc === null)
+            throw new globalThis.Error("The parameter 'fromUtc' cannot be null.");
+        else if (fromUtc !== undefined)
+            url_ += "fromUtc=" + encodeURIComponent(fromUtc ? "" + fromUtc.toISOString() : "") + "&";
+        if (toUtc === null)
+            throw new globalThis.Error("The parameter 'toUtc' cannot be null.");
+        else if (toUtc !== undefined)
+            url_ += "toUtc=" + encodeURIComponent(toUtc ? "" + toUtc.toISOString() : "") + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processAuditLogs(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processAuditLogs(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<AuditLogSummary[]>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<AuditLogSummary[]>;
+        }));
+    }
+
+    protected processAuditLogs(response: HttpResponseBase): Observable<AuditLogSummary[]> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(AuditLogSummary.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return _observableOf(result200);
             }));
         } else if (status !== 200 && status !== 204) {
             return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
@@ -1442,6 +1694,58 @@ export class Client {
     }
 }
 
+export class AdminUserSummary implements IAdminUserSummary {
+    id?: string;
+    email?: string;
+    role?: UserRole;
+    isActive?: boolean;
+    createdAtUtc?: Date;
+
+    constructor(data?: IAdminUserSummary) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.email = _data["email"];
+            this.role = _data["role"];
+            this.isActive = _data["isActive"];
+            this.createdAtUtc = _data["createdAtUtc"] ? new Date(_data["createdAtUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): AdminUserSummary {
+        data = typeof data === 'object' ? data : {};
+        let result = new AdminUserSummary();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["email"] = this.email;
+        data["role"] = this.role;
+        data["isActive"] = this.isActive;
+        data["createdAtUtc"] = this.createdAtUtc ? this.createdAtUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IAdminUserSummary {
+    id?: string;
+    email?: string;
+    role?: UserRole;
+    isActive?: boolean;
+    createdAtUtc?: Date;
+}
+
 export class AiInsightRequest implements IAiInsightRequest {
     question?: string | undefined;
 
@@ -1598,6 +1902,75 @@ export interface IAiPingResponse {
     response?: string;
 }
 
+export enum AuditActionType {
+    SegmentAssigned = "SegmentAssigned",
+    CampaignOfferPresented = "CampaignOfferPresented",
+    CampaignOfferAccepted = "CampaignOfferAccepted",
+    CampaignOfferDeclined = "CampaignOfferDeclined",
+    CustomerCreated = "CustomerCreated",
+    TransactionRecorded = "TransactionRecorded",
+}
+
+export class AuditLogSummary implements IAuditLogSummary {
+    id?: string;
+    customerId?: string;
+    customerName?: string | undefined;
+    actionType?: AuditActionType;
+    details?: string | undefined;
+    performedByUserId?: string | undefined;
+    occurredAtUtc?: Date;
+
+    constructor(data?: IAuditLogSummary) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.customerId = _data["customerId"];
+            this.customerName = _data["customerName"];
+            this.actionType = _data["actionType"];
+            this.details = _data["details"];
+            this.performedByUserId = _data["performedByUserId"];
+            this.occurredAtUtc = _data["occurredAtUtc"] ? new Date(_data["occurredAtUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): AuditLogSummary {
+        data = typeof data === 'object' ? data : {};
+        let result = new AuditLogSummary();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["customerId"] = this.customerId;
+        data["customerName"] = this.customerName;
+        data["actionType"] = this.actionType;
+        data["details"] = this.details;
+        data["performedByUserId"] = this.performedByUserId;
+        data["occurredAtUtc"] = this.occurredAtUtc ? this.occurredAtUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IAuditLogSummary {
+    id?: string;
+    customerId?: string;
+    customerName?: string | undefined;
+    actionType?: AuditActionType;
+    details?: string | undefined;
+    performedByUserId?: string | undefined;
+    occurredAtUtc?: Date;
+}
+
 export class AuthResult implements IAuthResult {
     accessToken?: string;
     accessTokenExpiresAtUtc?: Date;
@@ -1728,6 +2101,46 @@ export interface ICampaignSummary {
     targetsInternationalTransferUsers?: boolean;
     startDateUtc?: Date;
     endDateUtc?: Date | undefined;
+}
+
+export class CreateAdminRequest implements ICreateAdminRequest {
+    email?: string;
+    password?: string;
+
+    constructor(data?: ICreateAdminRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.email = _data["email"];
+            this.password = _data["password"];
+        }
+    }
+
+    static fromJS(data: any): CreateAdminRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateAdminRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["email"] = this.email;
+        data["password"] = this.password;
+        return data;
+    }
+}
+
+export interface ICreateAdminRequest {
+    email?: string;
+    password?: string;
 }
 
 export class CreateCampaignRequest implements ICreateCampaignRequest {
@@ -2544,6 +2957,10 @@ export interface ITransactionSummary {
     occurredAtUtc?: Date;
     currency?: string;
     isInternational?: boolean;
+}
+
+export enum UserRole {
+    Admin = "Admin",
 }
 
 export class ApiException extends Error {

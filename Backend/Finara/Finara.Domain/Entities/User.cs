@@ -10,10 +10,17 @@ public class User : BaseEntity
     public string Email { get; private set; } = string.Empty;
     public string PasswordHash { get; private set; } = string.Empty;
     public UserRole Role { get; private set; }
+    public bool IsActive { get; private set; } = true;
+
+    // Faz 8.1 (multi-tenancy) hazırlığı — henüz hiçbir yerde kullanılmıyor/filtrelenmiyor,
+    // şimdiden eklenmesinin amacı Faz 7.2'deki Yönetici Hesapları ekranının/DTO'sunun
+    // SuperAdmin/BankAdmin rolleri gelince yeniden yazılmasını gerektirmemek (bkz. mimar
+    // incelemesinde kabul edilen karar).
+    public Guid? BankId { get; private set; }
 
     private User() { }
 
-    public static User Create(string email, string passwordHash, UserRole role = UserRole.Admin)
+    public static User Create(string email, string passwordHash, UserRole role = UserRole.Admin, Guid? bankId = null)
     {
         if (!IsValidEmail(email))
             throw new ArgumentException("Geçersiz e-posta formatı.", nameof(email));
@@ -25,8 +32,19 @@ public class User : BaseEntity
         {
             Email = email.Trim().ToLowerInvariant(),
             PasswordHash = passwordHash,
-            Role = role
+            Role = role,
+            BankId = bankId,
+            IsActive = true
         };
+    }
+
+    public void Deactivate()
+    {
+        if (!IsActive)
+            throw new InvalidOperationException("Kullanıcı zaten pasif.");
+
+        IsActive = false;
+        MarkUpdated();
     }
 
     private static bool IsValidEmail(string email)

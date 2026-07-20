@@ -1,4 +1,4 @@
-import { SpendingPropensity, TransactionCategory } from '../api/finara-client';
+import { AuditActionType, SpendingPropensity, TransactionCategory } from '../api/finara-client';
 
 // Backend enum'ları (İngilizce, API sözleşmesinin parçası) ile arayüzde gösterilen
 // metin birbirinden ayrılıyor — [(ngModel)]/API çağrıları hep İngilizce değeri kullanır,
@@ -38,6 +38,19 @@ const OFFER_RESPONSE_LABELS: Record<string, string> = {
   Expired: 'Süresi Doldu'
 };
 
+const USER_ROLE_LABELS: Record<string, string> = {
+  Admin: 'Yönetici'
+};
+
+const AUDIT_ACTION_TYPE_LABELS: Record<string, string> = {
+  SegmentAssigned: 'Segment Atandı',
+  CampaignOfferPresented: 'Teklif Sunuldu',
+  CampaignOfferAccepted: 'Teklif Kabul Edildi',
+  CampaignOfferDeclined: 'Teklif Reddedildi',
+  CustomerCreated: 'Müşteri Oluşturuldu',
+  TransactionRecorded: 'İşlem Kaydedildi'
+};
+
 export function transactionCategoryLabel(category: string): string {
   return TRANSACTION_CATEGORY_LABELS[category] ?? category;
 }
@@ -54,6 +67,14 @@ export function offerResponseLabel(response: string): string {
   return OFFER_RESPONSE_LABELS[response] ?? response;
 }
 
+export function auditActionTypeLabel(actionType: string): string {
+  return AUDIT_ACTION_TYPE_LABELS[actionType] ?? actionType;
+}
+
+export function userRoleLabel(role: string): string {
+  return USER_ROLE_LABELS[role] ?? role;
+}
+
 // p-select gibi dropdown'lar için: değer İngilizce enum olarak kalır (API'ye o gönderilir),
 // kullanıcıya sadece label gösterilir (optionLabel="label" optionValue="value" ile).
 export const TRANSACTION_CATEGORY_OPTIONS = Object.values(TransactionCategory).map(value => ({
@@ -63,5 +84,10 @@ export const TRANSACTION_CATEGORY_OPTIONS = Object.values(TransactionCategory).m
 
 export const SPENDING_PROPENSITY_OPTIONS = Object.values(SpendingPropensity).map(value => ({
   label: spendingPropensityLabel(value),
+  value
+}));
+
+export const AUDIT_ACTION_TYPE_OPTIONS = Object.values(AuditActionType).map(value => ({
+  label: auditActionTypeLabel(value),
   value
 }));

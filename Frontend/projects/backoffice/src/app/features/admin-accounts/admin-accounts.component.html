@@ -1,0 +1,68 @@
+<div class="toolbar">
+  <h1>Yönetici Hesapları</h1>
+  <p-button label="Yeni Yönetici" icon="pi pi-user-plus" (onClick)="openCreateDialog()" />
+</div>
+
+<p-table [value]="admins()" [loading]="loading()" [rows]="20" [paginator]="admins().length > 20" styleClass="p-datatable-sm">
+  <ng-template pTemplate="header">
+    <tr>
+      <th>E-posta</th>
+      <th>Rol</th>
+      <th>Durum</th>
+      <th>Oluşturulma Tarihi</th>
+      <th>İşlemler</th>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="body" let-admin>
+    <tr>
+      <td>{{ admin.email }} @if (isSelf(admin)) { <span class="muted-text">(siz)</span> }</td>
+      <td>{{ roleLabel(admin.role ?? '') }}</td>
+      <td>
+        <p-tag [value]="admin.isActive ? 'Aktif' : 'Pasif'" [severity]="admin.isActive ? 'success' : 'danger'" />
+      </td>
+      <td>{{ admin.createdAtUtc | date: 'yyyy-MM-dd' }}</td>
+      <td>
+        @if (admin.isActive && !isSelf(admin)) {
+          <p-button
+            label="Pasifleştir"
+            icon="pi pi-user-minus"
+            size="small"
+            severity="danger"
+            [outlined]="true"
+            [loading]="busyId() === admin.id"
+            (onClick)="confirmDeactivate(admin)"
+          />
+        }
+        @if (!admin.isActive) {
+          <span class="muted-text">—</span>
+        }
+      </td>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="emptymessage">
+    <tr>
+      <td colspan="5">Henüz yönetici hesabı yok.</td>
+    </tr>
+  </ng-template>
+</p-table>
+
+<p-dialog header="Yeni Yönetici Hesabı" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '420px' }">
+  <div class="field">
+    <label>E-posta *</label>
+    <input type="text" pInputText [(ngModel)]="newAdmin.email" [class.field-invalid]="createSubmitted && !newAdmin.email" />
+    @if (createSubmitted && !newAdmin.email) {
+      <small class="field-error">E-posta zorunlu.</small>
+    }
+  </div>
+  <div class="field">
+    <label>Şifre *</label>
+    <p-password [(ngModel)]="newAdmin.password" [toggleMask]="true" [feedback]="true" [class.field-invalid]="createSubmitted && !newAdmin.password" />
+    @if (createSubmitted && !newAdmin.password) {
+      <small class="field-error">Şifre zorunlu (en az 8 karakter, harf ve rakam içermeli).</small>
+    }
+  </div>
+  @if (createError()) {
+    <p-message severity="error" [text]="createError()!" />
+  }
+  <p-button label="Oluştur" [loading]="createBusy()" (onClick)="createAdmin()" />
+</p-dialog>

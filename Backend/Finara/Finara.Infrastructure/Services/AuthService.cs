@@ -17,7 +17,7 @@ public class AuthService(FinaraDbContext dbContext, IConfiguration configuration
 {
     public async Task RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
     {
-        ValidatePasswordStrength(request.Password);
+        PasswordPolicy.Validate(request.Password);
 
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
         var exists = await dbContext.Users.AnyAsync(u => u.Email == normalizedEmail, cancellationToken);
@@ -35,6 +35,9 @@ public class AuthService(FinaraDbContext dbContext, IConfiguration configuration
         var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail, cancellationToken);
         if (user is null || !PasswordHasher.Verify(request.Password, user.PasswordHash))
             throw new UnauthorizedAccessException("E-posta veya şifre hatalı.");
+
+        if (!user.IsActive)
+            throw new UnauthorizedAccessException("Bu hesap pasifleştirilmiş.");
 
         return await IssueTokensAsync(user, cancellationToken);
     }
@@ -65,15 +68,6 @@ public class AuthService(FinaraDbContext dbContext, IConfiguration configuration
 
         existing.Revoke();
         await dbContext.SaveChangesAsync(cancellationToken);
-    }
-
-    private static void ValidatePasswordStrength(string password)
-    {
-        if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
-            throw new ArgumentException("Şifre en az 8 karakter olmalı.", nameof(password));
-
-        if (!password.Any(char.IsDigit) || !password.Any(char.IsLetter))
-            throw new ArgumentException("Şifre en az bir harf ve bir rakam içermeli.", nameof(password));
     }
 
     private async Task<AuthResult> IssueTokensAsync(User user, CancellationToken cancellationToken)

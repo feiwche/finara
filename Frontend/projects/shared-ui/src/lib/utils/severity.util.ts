@@ -40,3 +40,18 @@ export function propensitySeverity(propensity: string): TagSeverity {
       return 'info';
   }
 }
+
+export function auditActionTypeSeverity(actionType: string): TagSeverity {
+  switch (actionType) {
+    case 'CampaignOfferAccepted':
+      return 'success';
+    case 'CampaignOfferDeclined':
+      return 'danger';
+    case 'CampaignOfferPresented':
+      return 'warn';
+    case 'CustomerCreated':
+      return 'info';
+    default:
+      return 'secondary';
+  }
+}

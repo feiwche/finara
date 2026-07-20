@@ -72,6 +72,18 @@ html, body {
   gap: 12px;
 }
 
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 4px;
+
+  .field {
+    margin-bottom: 0;
+  }
+}
+
 .field {
   display: flex;
   flex-direction: column;

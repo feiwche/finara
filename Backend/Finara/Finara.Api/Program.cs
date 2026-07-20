@@ -33,6 +33,7 @@ builder.Services.Configure<PayloadGuardOptions>(builder.Configuration.GetSection
 builder.Services.AddScoped<IBankDataProvider, MockBankDataProvider>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IAdminUserService, AdminUserService>();
 builder.Services.AddScoped<ICampaignService, CampaignService>();
 builder.Services.AddScoped<ISegmentationService, SegmentationService>();
 builder.Services.AddScoped<INextBestOfferService, NextBestOfferService>();
@@ -207,6 +208,8 @@ app.MapGet("/", () => "Hello World!");
 app.MapAuthEndpoints();
 app.MapCustomerEndpoints();
 app.MapCampaignEndpoints();
+app.MapAuditLogEndpoints();
+app.MapAdminUserEndpoints();
 app.MapSegmentationEndpoints();
 app.MapAiEndpoints();
 // Denetimde bulundu: diğer her endpoint korunuyorken bu ikisi unutulmuştu — MCP

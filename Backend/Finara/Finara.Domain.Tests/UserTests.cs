@@ -46,4 +46,44 @@ public class UserTests
 
         act.Should().Throw<ArgumentException>().WithParameterName("passwordHash");
     }
+
+    [Fact]
+    public void Create_VarsayilanOlarakAktifVeBankIdSiz()
+    {
+        var user = Domain.Entities.User.Create("admin@example.com", "hashed-value");
+
+        user.IsActive.Should().BeTrue();
+        user.BankId.Should().BeNull();
+    }
+
+    [Fact]
+    public void Create_BankIdVerilebilir()
+    {
+        var bankId = Guid.NewGuid();
+
+        var user = Domain.Entities.User.Create("admin@example.com", "hashed-value", bankId: bankId);
+
+        user.BankId.Should().Be(bankId);
+    }
+
+    [Fact]
+    public void Deactivate_AktifKullaniciyiPasiflestirir()
+    {
+        var user = Domain.Entities.User.Create("admin@example.com", "hashed-value");
+
+        user.Deactivate();
+
+        user.IsActive.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Deactivate_ZatenPasifKullanicida_InvalidOperationFirlatir()
+    {
+        var user = Domain.Entities.User.Create("admin@example.com", "hashed-value");
+        user.Deactivate();
+
+        var act = () => user.Deactivate();
+
+        act.Should().Throw<InvalidOperationException>();
+    }
 }

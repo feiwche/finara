@@ -1,0 +1,69 @@
+<div class="toolbar">
+  <h1>Denetim Kaydı</h1>
+</div>
+
+<div class="filter-bar">
+  <div class="field">
+    <label>Aksiyon Tipi</label>
+    <p-select
+      [options]="actionTypes"
+      optionLabel="label"
+      optionValue="value"
+      [(ngModel)]="actionTypeFilter"
+      [showClear]="true"
+      placeholder="Tümü"
+      (onChange)="loadLogs()"
+      (onClear)="loadLogs()"
+    />
+  </div>
+  <div class="field">
+    <label>Başlangıç Tarihi</label>
+    <p-datepicker [(ngModel)]="fromUtc" dateFormat="yy-mm-dd" [showIcon]="true" [showButtonBar]="true" (onSelect)="loadLogs()" (onClearClick)="loadLogs()" />
+  </div>
+  <div class="field">
+    <label>Bitiş Tarihi</label>
+    <p-datepicker [(ngModel)]="toUtc" dateFormat="yy-mm-dd" [showIcon]="true" [showButtonBar]="true" (onSelect)="loadLogs()" (onClearClick)="loadLogs()" />
+  </div>
+  <p-button label="Filtreleri Temizle" severity="secondary" [outlined]="true" size="small" (onClick)="clearFilters()" />
+</div>
+
+<p-table
+  [value]="logs()"
+  [loading]="loading()"
+  [rows]="20"
+  [paginator]="logs().length > 20"
+  [globalFilterFields]="['customerName']"
+  styleClass="p-datatable-sm"
+  #dt
+>
+  <ng-template pTemplate="caption">
+    <div class="toolbar">
+      <span></span>
+      <p-iconfield>
+        <p-inputicon styleClass="pi pi-search" />
+        <input pInputText type="text" placeholder="Müşteri ara…" (input)="dt.filterGlobal($any($event.target).value, 'contains')" />
+      </p-iconfield>
+    </div>
+  </ng-template>
+  <ng-template pTemplate="header">
+    <tr>
+      <th>Tarih</th>
+      <th>Müşteri</th>
+      <th>Aksiyon</th>
+      <th>Detay</th>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="body" let-log>
+    <tr>
+      <td>{{ log.occurredAtUtc | date: 'yyyy-MM-dd HH:mm' }}</td>
+      <td>{{ log.customerName ?? '—' }}</td>
+      <td><p-tag [value]="actionTypeLabel(log.actionType ?? '')" [severity]="actionTypeSeverity(log.actionType ?? '')" /></td>
+      <td>{{ log.details ?? '—' }}</td>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="emptymessage">
+    <tr>
+      <td colspan="4">Seçilen filtrelere uyan bir denetim kaydı yok.</td>
+    </tr>
+  </ng-template>
+</p-table>
