@@ -24,7 +24,7 @@
     <label>Bitiş Tarihi</label>
     <p-datepicker [(ngModel)]="toUtc" dateFormat="yy-mm-dd" [showIcon]="true" [showButtonBar]="true" (onSelect)="loadLogs()" (onClearClick)="loadLogs()" />
   </div>
-  <p-button label="Filtreleri Temizle" severity="secondary" [outlined]="true" size="small" (onClick)="clearFilters()" />
+  <p-button label="Filtreleri Temizle" severity="secondary" [outlined]="true" size="small" (onClick)="clearFilters(dt)" />
 </div>
 
 <p-table
@@ -41,7 +41,7 @@
       <span></span>
       <p-iconfield>
         <p-inputicon styleClass="pi pi-search" />
-        <input pInputText type="text" placeholder="Müşteri ara…" (input)="dt.filterGlobal($any($event.target).value, 'contains')" />
+        <input #searchBox pInputText type="text" placeholder="Müşteri ara…" (input)="dt.filterGlobal($any($event.target).value, 'contains')" />
       </p-iconfield>
     </div>
   </ng-template>

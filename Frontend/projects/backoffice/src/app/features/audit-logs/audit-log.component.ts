@@ -1,9 +1,9 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 
-import { TableModule } from 'primeng/table';
+import { Table, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
@@ -45,6 +45,11 @@ export class AuditLogComponent implements OnInit {
   private readonly client = inject(Client);
   private readonly messageService = inject(MessageService);
 
+  // #searchBox p-table'ın "caption" ng-template'i içinde tanımlı — Angular'ın embedded
+  // view kapsam kuralı yüzünden template reference variable olarak dışarıdan (ör. filtre
+  // barındaki butondan) erişilemiyor, bu yüzden ViewChild ile alınıyor.
+  @ViewChild('searchBox') private searchBoxRef?: ElementRef<HTMLInputElement>;
+
   protected logs = signal<AuditLogSummary[]>([]);
   protected loading = signal(false);
 
@@ -64,7 +69,12 @@ export class AuditLogComponent implements OnInit {
     this.loading.set(true);
     try {
       const from = this.fromUtc ? new Date(toUtcDateOnlyIso(this.fromUtc)) : undefined;
-      const to = this.toUtc ? new Date(toUtcDateOnlyIso(this.toUtc)) : undefined;
+      // Bitiş tarihi backend'de "<=" ile karşılaştırılıyor — seçilen günün gece yarısını
+      // (00:00 UTC) değil, o günün son anını (23:59:59.999 UTC) göndermek gerekiyor,
+      // yoksa seçilen günün neredeyse tamamı yanlışlıkla dışlanır.
+      const to = this.toUtc
+        ? new Date(Date.UTC(this.toUtc.getFullYear(), this.toUtc.getMonth(), this.toUtc.getDate(), 23, 59, 59, 999))
+        : undefined;
       this.logs.set(await firstValueFrom(this.client.auditLogs(undefined, this.actionTypeFilter ?? undefined, from, to)));
     } catch (err) {
       this.messageService.add({ severity: 'error', summary: 'Denetim kayıtları yüklenemedi', detail: describeApiError(err) });
@@ -73,10 +83,15 @@ export class AuditLogComponent implements OnInit {
     }
   }
 
-  clearFilters(): void {
+  // Müşteri arama kutusu ngModel'e bağlı değil (p-table'ın global filter deseni bu
+  // şekilde kuruldu) — bu yüzden "Filtreleri Temizle" tablonun/input'un kendisine
+  // referansla erişip görsel değeri ve filtre durumunu birlikte sıfırlıyor.
+  clearFilters(table: Table): void {
     this.actionTypeFilter = null;
     this.fromUtc = null;
     this.toUtc = null;
+    if (this.searchBoxRef) this.searchBoxRef.nativeElement.value = '';
+    table.filterGlobal('', 'contains');
     this.loadLogs();
   }
 
