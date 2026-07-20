@@ -11,22 +11,24 @@ namespace Finara.Domain.Tests;
 // bu testler de bilinçli olarak güncellenmeli.
 public class NextBestOfferScorerTests
 {
+    private static readonly Guid ValidBankId = Guid.NewGuid();
+
     private static Customer CreateCustomer(bool hasInvestment = false, bool hasInternational = false)
     {
-        var customer = Customer.Create("Test", "Müşteri", $"{Guid.NewGuid()}@example.com", DateTime.UtcNow.AddYears(-30));
+        var customer = Customer.Create(ValidBankId, "Test", "Müşteri", $"{Guid.NewGuid()}@example.com", DateTime.UtcNow.AddYears(-30));
         customer.UpdateFinancialFlags(hasInvestment, hasInternational);
         return customer;
     }
 
     private static Segment CreateSegment(int recency, int frequency, int monetary, SpendingPropensity propensity, TransactionCategory? dominantCategory) =>
-        Segment.Create(Guid.NewGuid(), recency, frequency, monetary, propensity, dominantCategory);
+        Segment.Create(ValidBankId, Guid.NewGuid(), recency, frequency, monetary, propensity, dominantCategory);
 
     [Fact]
     public void Ayse_MotosikletMeraklisi_KaskoKampanyasindanYuksekPuanAlir()
     {
         var customer = CreateCustomer();
         var segment = CreateSegment(4, 3, 5, SpendingPropensity.HighlyResponsive, TransactionCategory.Motorcycle); // toplam 12
-        var kaskoKampanyasi = Campaign.Create("Motosiklet Kaskosu", "Açıklama", DateTime.UtcNow, targetCategory: TransactionCategory.Motorcycle);
+        var kaskoKampanyasi = Campaign.Create(ValidBankId, "Motosiklet Kaskosu", "Açıklama", DateTime.UtcNow, targetCategory: TransactionCategory.Motorcycle);
 
         var score = NextBestOfferScorer.Score(segment, customer, kaskoKampanyasi);
 
@@ -39,7 +41,7 @@ public class NextBestOfferScorerTests
     {
         var customer = CreateCustomer(hasInvestment: true, hasInternational: true);
         var segment = CreateSegment(4, 4, 5, SpendingPropensity.Neutral, TransactionCategory.Travel); // toplam 13
-        var seyahatSigortasi = Campaign.Create(
+        var seyahatSigortasi = Campaign.Create(ValidBankId, 
             "Seyahat Sigortası", "Açıklama", DateTime.UtcNow,
             targetCategory: TransactionCategory.Travel,
             targetsInternationalTransferUsers: true);
@@ -55,7 +57,7 @@ public class NextBestOfferScorerTests
     {
         var customer = CreateCustomer(hasInvestment: true, hasInternational: true);
         var segment = CreateSegment(4, 4, 5, SpendingPropensity.Neutral, TransactionCategory.Travel); // toplam 13, baskın kategori Travel
-        var dovizKampanyasi = Campaign.Create(
+        var dovizKampanyasi = Campaign.Create(ValidBankId, 
             "Döviz Avantajlı Kredi Kartı", "Açıklama", DateTime.UtcNow,
             targetCategory: TransactionCategory.ForeignExchange,
             targetsInternationalTransferUsers: true);
@@ -71,7 +73,7 @@ public class NextBestOfferScorerTests
     {
         var customer = CreateCustomer();
         var segment = CreateSegment(2, 1, 2, SpendingPropensity.NeedsEngagement, TransactionCategory.Groceries); // toplam 5
-        var eTicaretKampanyasi = Campaign.Create(
+        var eTicaretKampanyasi = Campaign.Create(ValidBankId, 
             "E-ticaret Puan Kampanyası", "Açıklama", DateTime.UtcNow,
             targetCategory: TransactionCategory.ECommerce,
             targetPropensity: SpendingPropensity.HighlyResponsive);
@@ -87,7 +89,7 @@ public class NextBestOfferScorerTests
     {
         var customer = CreateCustomer();
         var segment = CreateSegment(3, 3, 3, SpendingPropensity.Neutral, TransactionCategory.Groceries); // toplam 9
-        var genelKampanya = Campaign.Create("Genel Hoşgeldin Kampanyası", "Açıklama", DateTime.UtcNow);
+        var genelKampanya = Campaign.Create(ValidBankId, "Genel Hoşgeldin Kampanyası", "Açıklama", DateTime.UtcNow);
 
         var score = NextBestOfferScorer.Score(segment, customer, genelKampanya);
 

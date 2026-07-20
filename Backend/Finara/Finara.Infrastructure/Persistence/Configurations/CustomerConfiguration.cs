@@ -14,7 +14,15 @@ public class CustomerConfiguration : IEntityTypeConfiguration<Customer>
         builder.Property(c => c.FirstName).HasMaxLength(100).IsRequired();
         builder.Property(c => c.LastName).HasMaxLength(100).IsRequired();
         builder.Property(c => c.Email).HasMaxLength(256).IsRequired();
-        builder.HasIndex(c => c.Email).IsUnique();
+
+        // Banka bazlı benzersizlik — iki farklı banka aynı e-postayı kendi müşterisi
+        // olarak ayrı ayrı kaydedebilir (bkz. CustomerService.CreateCustomerAsync).
+        builder.HasIndex(c => new { c.BankId, c.Email }).IsUnique();
+
+        builder.HasOne<Bank>()
+            .WithMany()
+            .HasForeignKey(c => c.BankId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // Customer.Transactions salt-okunur bir IReadOnlyCollection — EF'e özel Add metodu
         // sunmuyor, bu yüzden private _transactions alanına doğrudan erişmesini söylüyoruz.

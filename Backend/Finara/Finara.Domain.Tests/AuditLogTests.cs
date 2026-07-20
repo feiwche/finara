@@ -6,13 +6,14 @@ namespace Finara.Domain.Tests;
 
 public class AuditLogTests
 {
+    private static readonly Guid ValidBankId = Guid.NewGuid();
     private static readonly Guid ValidCustomerId = Guid.NewGuid();
 
     [Fact]
     public void Create_GecerliBilgilerle_KayitOlusturur()
     {
         var log = Domain.Entities.AuditLog.Create(
-            ValidCustomerId, AuditActionType.CustomerCreated, "İlk kayıt");
+            ValidBankId, ValidCustomerId, AuditActionType.CustomerCreated, "İlk kayıt");
 
         log.CustomerId.Should().Be(ValidCustomerId);
         log.ActionType.Should().Be(AuditActionType.CustomerCreated);
@@ -22,9 +23,17 @@ public class AuditLogTests
     }
 
     [Fact]
+    public void Create_BosBankaId_ArgumentExceptionFirlatir()
+    {
+        var act = () => Domain.Entities.AuditLog.Create(Guid.Empty, ValidCustomerId, AuditActionType.CustomerCreated);
+
+        act.Should().Throw<ArgumentException>().WithParameterName("bankId");
+    }
+
+    [Fact]
     public void Create_BosMusteriId_ArgumentExceptionFirlatir()
     {
-        var act = () => Domain.Entities.AuditLog.Create(Guid.Empty, AuditActionType.CustomerCreated);
+        var act = () => Domain.Entities.AuditLog.Create(ValidBankId, Guid.Empty, AuditActionType.CustomerCreated);
 
         act.Should().Throw<ArgumentException>().WithParameterName("customerId");
     }
@@ -35,7 +44,7 @@ public class AuditLogTests
         var userId = Guid.NewGuid();
 
         var log = Domain.Entities.AuditLog.Create(
-            ValidCustomerId, AuditActionType.CampaignOfferAccepted, performedByUserId: userId);
+            ValidBankId, ValidCustomerId, AuditActionType.CampaignOfferAccepted, performedByUserId: userId);
 
         log.PerformedByUserId.Should().Be(userId);
     }

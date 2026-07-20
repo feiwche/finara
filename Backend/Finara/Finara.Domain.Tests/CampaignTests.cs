@@ -6,8 +6,10 @@ namespace Finara.Domain.Tests;
 
 public class CampaignTests
 {
+    private static readonly Guid ValidBankId = Guid.NewGuid();
+
     private static Domain.Entities.Campaign CreateDraftCampaign() =>
-        Domain.Entities.Campaign.Create("Yaz Kampanyası", "Açıklama", DateTime.UtcNow);
+        Domain.Entities.Campaign.Create(ValidBankId, "Yaz Kampanyası", "Açıklama", DateTime.UtcNow);
 
     [Fact]
     public void Create_GecerliBilgilerle_TaslakKampanyaOlusturur()
@@ -25,7 +27,7 @@ public class CampaignTests
     public void Create_HedefBayraklariVerilebilir()
     {
         var campaign = Domain.Entities.Campaign.Create(
-            "Seyahat Sigortası", "Açıklama", DateTime.UtcNow,
+            ValidBankId, "Seyahat Sigortası", "Açıklama", DateTime.UtcNow,
             targetCategory: TransactionCategory.Travel,
             targetsInvestmentAccountHolders: true,
             targetsInternationalTransferUsers: true);
@@ -35,9 +37,17 @@ public class CampaignTests
     }
 
     [Fact]
+    public void Create_BosBankaId_ArgumentExceptionFirlatir()
+    {
+        var act = () => Domain.Entities.Campaign.Create(Guid.Empty, "Kampanya", "Açıklama", DateTime.UtcNow);
+
+        act.Should().Throw<ArgumentException>().WithParameterName("bankId");
+    }
+
+    [Fact]
     public void Create_BosAd_ArgumentExceptionFirlatir()
     {
-        var act = () => Domain.Entities.Campaign.Create("", "Açıklama", DateTime.UtcNow);
+        var act = () => Domain.Entities.Campaign.Create(ValidBankId, "", "Açıklama", DateTime.UtcNow);
 
         act.Should().Throw<ArgumentException>().WithParameterName("name");
     }
@@ -46,7 +56,7 @@ public class CampaignTests
     public void Create_BitisTarihiBaslangictanOnce_ArgumentExceptionFirlatir()
     {
         var start = DateTime.UtcNow;
-        var act = () => Domain.Entities.Campaign.Create("Kampanya", "Açıklama", start, endDateUtc: start.AddDays(-1));
+        var act = () => Domain.Entities.Campaign.Create(ValidBankId, "Kampanya", "Açıklama", start, endDateUtc: start.AddDays(-1));
 
         act.Should().Throw<ArgumentException>().WithParameterName("endDateUtc");
     }
@@ -65,7 +75,7 @@ public class CampaignTests
     public void Activate_BitisTarihiGecmisteKalanKampanyada_InvalidOperationFirlatir()
     {
         var campaign = Domain.Entities.Campaign.Create(
-            "Eski Kampanya", "Açıklama",
+            ValidBankId, "Eski Kampanya", "Açıklama",
             startDateUtc: DateTime.UtcNow.AddYears(-1),
             endDateUtc: DateTime.UtcNow.AddDays(-1));
 

@@ -20,7 +20,7 @@ namespace Finara.Infrastructure.Services;
 // AiInteractionLog kaydı bu etkileşimin izini zaten tutuyor; ayrıca genel AuditLog'a
 // yazmıyoruz (AuditActionType bu senaryo için henüz bir değer içermiyor — gerekirse
 // ileride eklenir).
-public class AiInsightService(FinaraDbContext dbContext, CustomerContextTools tools, IChatClient chatClient)
+public class AiInsightService(FinaraDbContext dbContext, CustomerContextTools tools, IChatClient chatClient, ICurrentUserContext currentUser)
     : IAiInsightService
 {
     private const string DefaultQuestion =
@@ -29,8 +29,8 @@ public class AiInsightService(FinaraDbContext dbContext, CustomerContextTools to
 
     public async Task<AiInsightResult?> GenerateInsightAsync(Guid customerId, string? question, CancellationToken cancellationToken = default)
     {
-        var customerExists = await dbContext.Customers.AnyAsync(c => c.Id == customerId, cancellationToken);
-        if (!customerExists)
+        var customer = await dbContext.Customers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == customerId, cancellationToken);
+        if (customer is null || (!currentUser.IsSuperAdmin && customer.BankId != currentUser.BankId))
             return null;
 
         var effectiveQuestion = string.IsNullOrWhiteSpace(question) ? DefaultQuestion : question;

@@ -10,6 +10,7 @@ public class FinaraDbContext : DbContext
     {
     }
 
+    public DbSet<Bank> Banks => Set<Bank>();
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<Transaction> Transactions => Set<Transaction>();
     public DbSet<Segment> Segments => Set<Segment>();

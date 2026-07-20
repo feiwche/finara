@@ -6,6 +6,7 @@ using Finara.Api.Endpoints;
 using Finara.Api.ExceptionHandling;
 using Finara.Api.Middleware;
 using Finara.Api.RateLimiting;
+using Finara.Api.Security;
 using Finara.Application.Interfaces;
 using Finara.Infrastructure.MockData;
 using Finara.Infrastructure.Persistence;
@@ -26,6 +27,12 @@ builder.Services.AddDbContext<FinaraDbContext>(options =>
 
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 
+// Faz 8.1 — multi-tenancy. HttpContextAccessor'ı gerektiren tek yer burası; CurrentUserContext
+// Api katmanında yaşıyor (Infrastructure "plain" SDK projesi, ASP.NET Core paylaşılan
+// framework'üne bağımlı olmamalı) ama arayüzü (ICurrentUserContext) Application'da.
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
+
 builder.Services.Configure<PayloadGuardOptions>(builder.Configuration.GetSection("PayloadGuard"));
 
 // Banka entegrasyonu henüz yok — tek implementasyon Bogus tabanlı mock üretici.
@@ -34,6 +41,7 @@ builder.Services.AddScoped<IBankDataProvider, MockBankDataProvider>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAdminUserService, AdminUserService>();
+builder.Services.AddScoped<IBankService, BankService>();
 builder.Services.AddScoped<ICampaignService, CampaignService>();
 builder.Services.AddScoped<ISegmentationService, SegmentationService>();
 builder.Services.AddScoped<INextBestOfferService, NextBestOfferService>();
@@ -210,6 +218,7 @@ app.MapCustomerEndpoints();
 app.MapCampaignEndpoints();
 app.MapAuditLogEndpoints();
 app.MapAdminUserEndpoints();
+app.MapBankEndpoints();
 app.MapSegmentationEndpoints();
 app.MapAiEndpoints();
 // Denetimde bulundu: diğer her endpoint korunuyorken bu ikisi unutulmuştu — MCP

@@ -1,17 +1,22 @@
 using Finara.Application.Contracts;
 using Finara.Application.Interfaces;
 using Finara.Domain.Entities;
+using Finara.Domain.Enums;
 using Finara.Infrastructure.Persistence;
 using Finara.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 
 namespace Finara.Infrastructure.Services;
 
-public class AdminUserService(FinaraDbContext dbContext) : IAdminUserService
+public class AdminUserService(FinaraDbContext dbContext, ICurrentUserContext currentUser) : IAdminUserService
 {
     public async Task<IReadOnlyList<AdminUserSummary>> GetAdminsAsync(CancellationToken cancellationToken = default)
     {
-        var users = await dbContext.Users.AsNoTracking().OrderBy(u => u.Email).ToListAsync(cancellationToken);
+        var query = dbContext.Users.AsNoTracking().AsQueryable();
+        if (!currentUser.IsSuperAdmin)
+            query = query.Where(u => u.BankId == currentUser.BankId);
+
+        var users = await query.OrderBy(u => u.Email).ToListAsync(cancellationToken);
         return users.Select(ToSummary).ToList();
     }
 
@@ -19,12 +24,37 @@ public class AdminUserService(FinaraDbContext dbContext) : IAdminUserService
     {
         PasswordPolicy.Validate(request.Password);
 
+        UserRole role;
+        Guid? bankId;
+        if (currentUser.IsSuperAdmin)
+        {
+            role = request.Role ?? UserRole.BankAdmin;
+            if (role == UserRole.BankAdmin)
+            {
+                if (request.BankId is null)
+                    throw new ArgumentException("BankAdmin oluşturmak için bir banka seçilmeli.", nameof(request.BankId));
+                bankId = request.BankId;
+            }
+            else
+            {
+                bankId = null;
+            }
+        }
+        else
+        {
+            // BankAdmin sadece kendi bankası için BankAdmin oluşturabilir — istekte
+            // farklı bir Role/BankId gelse bile yoksayılır (başka bankaya yönetici
+            // atayamaz, SuperAdmin oluşturamaz).
+            role = UserRole.BankAdmin;
+            bankId = currentUser.BankId;
+        }
+
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
         var exists = await dbContext.Users.AnyAsync(u => u.Email == normalizedEmail, cancellationToken);
         if (exists)
             throw new InvalidOperationException($"'{request.Email}' e-posta adresiyle kayıtlı bir kullanıcı zaten var.");
 
-        var user = User.Create(request.Email, PasswordHasher.Hash(request.Password));
+        var user = User.Create(request.Email, PasswordHasher.Hash(request.Password), role, bankId);
         dbContext.Users.Add(user);
         await dbContext.SaveChangesAsync(cancellationToken);
 
@@ -37,7 +67,9 @@ public class AdminUserService(FinaraDbContext dbContext) : IAdminUserService
             throw new InvalidOperationException("Kendi hesabınızı pasifleştiremezsiniz.");
 
         var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-        if (user is null)
+        // Başka bankanın yöneticisine erişim denemesi de "bulunamadı" — o hesabın
+        // başka bir bankada var olduğunu sızdırmaz.
+        if (user is null || (!currentUser.IsSuperAdmin && user.BankId != currentUser.BankId))
             return null;
 
         user.Deactivate();
@@ -47,5 +79,5 @@ public class AdminUserService(FinaraDbContext dbContext) : IAdminUserService
     }
 
     private static AdminUserSummary ToSummary(User user) =>
-        new(user.Id, user.Email, user.Role, user.IsActive, user.CreatedAtUtc);
+        new(user.Id, user.Email, user.Role, user.BankId, user.IsActive, user.CreatedAtUtc);
 }

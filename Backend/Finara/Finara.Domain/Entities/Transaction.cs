@@ -11,6 +11,7 @@ namespace Finara.Domain.Entities;
 
 public class Transaction : BaseEntity
 {
+    public Guid BankId { get; private set; }
     public Guid CustomerId { get; private set; }
     public Customer? Customer { get; private set; }
 
@@ -24,6 +25,7 @@ public class Transaction : BaseEntity
     private Transaction() { }
 
     public static Transaction Create(
+        Guid bankId,
         Guid customerId,
         decimal amount,
         TransactionCategory category,
@@ -32,6 +34,9 @@ public class Transaction : BaseEntity
         string currency = "TRY",
         bool isInternational = false)
     {
+        if (bankId == Guid.Empty)
+            throw new ArgumentException("Geçerli bir banka kimliği gerekli.", nameof(bankId));
+
         if (customerId == Guid.Empty)
             throw new ArgumentException("Geçerli bir müşteri kimliği gerekli.", nameof(customerId));
 
@@ -46,6 +51,7 @@ public class Transaction : BaseEntity
 
         return new Transaction
         {
+            BankId = bankId,
             CustomerId = customerId,
             Amount = amount,
             Currency = currency,

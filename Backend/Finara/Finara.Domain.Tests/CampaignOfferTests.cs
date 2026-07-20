@@ -5,11 +5,12 @@ namespace Finara.Domain.Tests;
 
 public class CampaignOfferTests
 {
+    private static readonly Guid ValidBankId = Guid.NewGuid();
     private static readonly Guid ValidCampaignId = Guid.NewGuid();
     private static readonly Guid ValidCustomerId = Guid.NewGuid();
 
     private static Domain.Entities.CampaignOffer CreatePendingOffer(double confidence = 80) =>
-        Domain.Entities.CampaignOffer.Create(ValidCampaignId, ValidCustomerId, confidence);
+        Domain.Entities.CampaignOffer.Create(ValidBankId, ValidCampaignId, ValidCustomerId, confidence);
 
     [Fact]
     public void Create_GecerliBilgilerle_BekleyenTeklifOlusturur()
@@ -22,9 +23,17 @@ public class CampaignOfferTests
     }
 
     [Fact]
+    public void Create_BosBankaId_ArgumentExceptionFirlatir()
+    {
+        var act = () => Domain.Entities.CampaignOffer.Create(Guid.Empty, ValidCampaignId, ValidCustomerId, 50);
+
+        act.Should().Throw<ArgumentException>().WithParameterName("bankId");
+    }
+
+    [Fact]
     public void Create_BosKampanyaId_ArgumentExceptionFirlatir()
     {
-        var act = () => Domain.Entities.CampaignOffer.Create(Guid.Empty, ValidCustomerId, 50);
+        var act = () => Domain.Entities.CampaignOffer.Create(ValidBankId, Guid.Empty, ValidCustomerId, 50);
 
         act.Should().Throw<ArgumentException>().WithParameterName("campaignId");
     }
@@ -34,7 +43,7 @@ public class CampaignOfferTests
     [InlineData(101)]
     public void Create_GecersizGuvenSkoru_ArgumentOutOfRangeFirlatir(double confidence)
     {
-        var act = () => Domain.Entities.CampaignOffer.Create(ValidCampaignId, ValidCustomerId, confidence);
+        var act = () => Domain.Entities.CampaignOffer.Create(ValidBankId, ValidCampaignId, ValidCustomerId, confidence);
 
         act.Should().Throw<ArgumentOutOfRangeException>().WithParameterName("confidenceScore");
     }

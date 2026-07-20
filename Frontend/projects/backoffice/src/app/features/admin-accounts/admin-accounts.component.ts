@@ -8,6 +8,7 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
+import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { MessageModule } from 'primeng/message';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -15,8 +16,11 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import {
   AdminUserSummary,
   AuthService,
+  BankSummary,
   Client,
   CreateAdminRequest,
+  USER_ROLE_OPTIONS,
+  UserRole,
   describeApiError,
   userRoleLabel
 } from '@finara/shared-ui';
@@ -24,7 +28,7 @@ import {
 @Component({
   selector: 'app-admin-accounts',
   standalone: true,
-  imports: [DatePipe, FormsModule, TableModule, ButtonModule, DialogModule, InputTextModule, PasswordModule, TagModule, MessageModule],
+  imports: [DatePipe, FormsModule, TableModule, ButtonModule, DialogModule, InputTextModule, PasswordModule, SelectModule, TagModule, MessageModule],
   templateUrl: './admin-accounts.component.html'
 })
 export class AdminAccountsComponent implements OnInit {
@@ -34,17 +38,26 @@ export class AdminAccountsComponent implements OnInit {
   protected readonly authService = inject(AuthService);
 
   protected admins = signal<AdminUserSummary[]>([]);
+  protected banks = signal<BankSummary[]>([]);
   protected loading = signal(false);
   protected busyId = signal<string | null>(null);
+
+  protected readonly roleOptions = USER_ROLE_OPTIONS;
 
   protected dialogVisible = signal(false);
   protected createBusy = signal(false);
   protected createError = signal<string | null>(null);
   protected createSubmitted = false;
-  protected newAdmin = { email: '', password: '' };
+  protected newAdmin = this.emptyNewAdmin();
 
   async ngOnInit(): Promise<void> {
     await this.loadAdmins();
+    // Banka listesi sadece SuperAdmin'in "Yeni Yönetici" dialogunda BankAdmin için
+    // banka seçebilmesi amacıyla yükleniyor — BankAdmin zaten kendi bankasına
+    // sabitlendiği için (backend bunu zorluyor) bu isteğe hiç ihtiyaç duymaz.
+    if (this.authService.isSuperAdmin()) {
+      await this.loadBanks();
+    }
   }
 
   async loadAdmins(): Promise<void> {
@@ -58,8 +71,20 @@ export class AdminAccountsComponent implements OnInit {
     }
   }
 
+  async loadBanks(): Promise<void> {
+    try {
+      this.banks.set(await firstValueFrom(this.client.banksAll()));
+    } catch (err) {
+      this.messageService.add({ severity: 'error', summary: 'Banka listesi yüklenemedi', detail: describeApiError(err) });
+    }
+  }
+
+  private emptyNewAdmin() {
+    return { email: '', password: '', role: UserRole.BankAdmin as UserRole | null, bankId: null as string | null };
+  }
+
   openCreateDialog(): void {
-    this.newAdmin = { email: '', password: '' };
+    this.newAdmin = this.emptyNewAdmin();
     this.createError.set(null);
     this.createSubmitted = false;
     this.dialogVisible.set(true);
@@ -68,12 +93,18 @@ export class AdminAccountsComponent implements OnInit {
   async createAdmin(): Promise<void> {
     this.createError.set(null);
     this.createSubmitted = true;
-    if (!this.newAdmin.email || !this.newAdmin.password) return;
+    const needsBank = this.authService.isSuperAdmin() && this.newAdmin.role === UserRole.BankAdmin;
+    if (!this.newAdmin.email || !this.newAdmin.password || (needsBank && !this.newAdmin.bankId)) return;
 
     this.createBusy.set(true);
     try {
       await firstValueFrom(
-        this.client.adminUsers(new CreateAdminRequest({ email: this.newAdmin.email, password: this.newAdmin.password }))
+        this.client.adminUsers(new CreateAdminRequest({
+          email: this.newAdmin.email,
+          password: this.newAdmin.password,
+          role: this.newAdmin.role ?? undefined,
+          bankId: needsBank ? this.newAdmin.bankId! : undefined
+        }))
       );
       this.dialogVisible.set(false);
       this.messageService.add({ severity: 'success', summary: 'Yönetici hesabı oluşturuldu', detail: this.newAdmin.email });
@@ -102,7 +133,13 @@ export class AdminAccountsComponent implements OnInit {
     return admin.email === this.authService.email();
   }
 
+  bankName(bankId: string | undefined): string {
+    if (!bankId) return '—';
+    return this.banks().find(b => b.id === bankId)?.name ?? bankId;
+  }
+
   protected readonly roleLabel = userRoleLabel;
+  protected readonly UserRole = UserRole;
 
   private async deactivate(admin: AdminUserSummary): Promise<void> {
     this.busyId.set(admin.id ?? null);

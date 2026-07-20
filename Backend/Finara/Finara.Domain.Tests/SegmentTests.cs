@@ -6,13 +6,14 @@ namespace Finara.Domain.Tests;
 
 public class SegmentTests
 {
+    private static readonly Guid ValidBankId = Guid.NewGuid();
     private static readonly Guid ValidCustomerId = Guid.NewGuid();
 
     [Fact]
     public void Create_GecerliSkorlarla_SegmentOlusturur()
     {
         var segment = Domain.Entities.Segment.Create(
-            ValidCustomerId, recencyScore: 5, frequencyScore: 4, monetaryScore: 3,
+            ValidBankId, ValidCustomerId, recencyScore: 5, frequencyScore: 4, monetaryScore: 3,
             SpendingPropensity.HighlyResponsive, TransactionCategory.Travel);
 
         segment.RecencyScore.Should().Be(5);
@@ -23,10 +24,19 @@ public class SegmentTests
     }
 
     [Fact]
+    public void Create_BosBankaId_ArgumentExceptionFirlatir()
+    {
+        var act = () => Domain.Entities.Segment.Create(
+            Guid.Empty, ValidCustomerId, 3, 3, 3, SpendingPropensity.Neutral);
+
+        act.Should().Throw<ArgumentException>().WithParameterName("bankId");
+    }
+
+    [Fact]
     public void Create_BosMusteriId_ArgumentExceptionFirlatir()
     {
         var act = () => Domain.Entities.Segment.Create(
-            Guid.Empty, 3, 3, 3, SpendingPropensity.Neutral);
+            ValidBankId, Guid.Empty, 3, 3, 3, SpendingPropensity.Neutral);
 
         act.Should().Throw<ArgumentException>().WithParameterName("customerId");
     }
@@ -37,7 +47,7 @@ public class SegmentTests
     public void Create_GecersizRecencySkoru_ArgumentOutOfRangeFirlatir(int score)
     {
         var act = () => Domain.Entities.Segment.Create(
-            ValidCustomerId, score, 3, 3, SpendingPropensity.Neutral);
+            ValidBankId, ValidCustomerId, score, 3, 3, SpendingPropensity.Neutral);
 
         act.Should().Throw<ArgumentOutOfRangeException>().WithParameterName("recencyScore");
     }
@@ -46,7 +56,7 @@ public class SegmentTests
     public void GetTotalScore_UcSkorunToplaminiDondurur()
     {
         var segment = Domain.Entities.Segment.Create(
-            ValidCustomerId, 5, 4, 3, SpendingPropensity.HighlyResponsive);
+            ValidBankId, ValidCustomerId, 5, 4, 3, SpendingPropensity.HighlyResponsive);
 
         segment.GetTotalScore().Should().Be(12);
     }
@@ -55,7 +65,7 @@ public class SegmentTests
     public void Deactivate_AktifBayraginiKapatir()
     {
         var segment = Domain.Entities.Segment.Create(
-            ValidCustomerId, 3, 3, 3, SpendingPropensity.Neutral);
+            ValidBankId, ValidCustomerId, 3, 3, 3, SpendingPropensity.Neutral);
 
         segment.Deactivate();
 

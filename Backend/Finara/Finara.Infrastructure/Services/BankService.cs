@@ -1,0 +1,35 @@
+using Finara.Application.Contracts;
+using Finara.Application.Interfaces;
+using Finara.Domain.Entities;
+using Finara.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+
+namespace Finara.Infrastructure.Services;
+
+public class BankService(FinaraDbContext dbContext, ICurrentUserContext currentUser) : IBankService
+{
+    public async Task<IReadOnlyList<BankSummary>> GetBanksAsync(CancellationToken cancellationToken = default)
+    {
+        var banks = await dbContext.Banks.AsNoTracking().OrderBy(b => b.Name).ToListAsync(cancellationToken);
+        return banks.Select(ToSummary).ToList();
+    }
+
+    public async Task<BankSummary> CreateBankAsync(CreateBankRequest request, CancellationToken cancellationToken = default)
+    {
+        if (!currentUser.IsSuperAdmin)
+            throw new InvalidOperationException("Yeni banka oluşturmak için SuperAdmin yetkisi gerekli.");
+
+        var normalizedCode = request.Code.Trim().ToUpperInvariant();
+        var codeInUse = await dbContext.Banks.AnyAsync(b => b.Code == normalizedCode, cancellationToken);
+        if (codeInUse)
+            throw new InvalidOperationException($"'{request.Code}' kodlu bir banka zaten var.");
+
+        var bank = Bank.Create(request.Name, request.Code);
+        dbContext.Banks.Add(bank);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return ToSummary(bank);
+    }
+
+    private static BankSummary ToSummary(Bank bank) => new(bank.Id, bank.Name, bank.Code, bank.IsActive);
+}

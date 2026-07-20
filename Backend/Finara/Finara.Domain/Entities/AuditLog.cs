@@ -9,6 +9,7 @@ namespace Finara.Domain.Entities;
 public class AuditLog
 {
     public Guid Id { get; init; }
+    public Guid BankId { get; init; }
     public Guid CustomerId { get; init; }
     public AuditActionType ActionType { get; init; }
     public string? Details { get; init; }
@@ -16,17 +17,22 @@ public class AuditLog
     public DateTime OccurredAtUtc { get; init; }
 
     public static AuditLog Create(
+        Guid bankId,
         Guid customerId,
         AuditActionType actionType,
         string? details = null,
         Guid? performedByUserId = null)
     {
+        if (bankId == Guid.Empty)
+            throw new ArgumentException("Geçerli bir banka kimliği gerekli.", nameof(bankId));
+
         if (customerId == Guid.Empty)
             throw new ArgumentException("Geçerli bir müşteri kimliği gerekli.", nameof(customerId));
 
         return new AuditLog
         {
             Id = Guid.NewGuid(),
+            BankId = bankId,
             CustomerId = customerId,
             ActionType = actionType,
             Details = details,

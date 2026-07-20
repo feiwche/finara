@@ -20,7 +20,13 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
             .HasForeignKey(t => t.CustomerId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasOne<Bank>()
+            .WithMany()
+            .HasForeignKey(t => t.BankId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasIndex(t => t.OccurredAtUtc);
         builder.HasIndex(t => t.Category);
+        builder.HasIndex(t => t.BankId);
     }
 }

@@ -1,4 +1,5 @@
 using System.Text;
+using Finara.Application.Interfaces;
 using Finara.Domain.Enums;
 using Finara.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -9,12 +10,16 @@ namespace Finara.Infrastructure.Ai;
 // de kendi ai-insight endpoint'imizde native function-calling olarak kullanılıyor,
 // tek bir yerden. Çıktılar bilerek düz metin: LLM'ler serbest metni JSON'dan daha
 // güvenilir yorumluyor ve tool şemasını basit tutuyor.
-public class CustomerContextTools(FinaraDbContext dbContext)
+//
+// Faz 8.1: bank-scope'lanmadan önce bir BankAdmin, customerId'sini bilse/tahmin
+// etse başka bir bankanın müşteri verisini AI/MCP üzerinden çekebiliyordu — bulundu
+// ve düzeltildi, her metot artık ICurrentUserContext ile banka sınırını kontrol ediyor.
+public class CustomerContextTools(FinaraDbContext dbContext, ICurrentUserContext currentUser)
 {
     public async Task<string> GetCustomerProfile(Guid customerId)
     {
         var customer = await dbContext.Customers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == customerId);
-        if (customer is null)
+        if (customer is null || (!currentUser.IsSuperAdmin && customer.BankId != currentUser.BankId))
             return "Müşteri bulunamadı.";
 
         var segment = await dbContext.Segments.AsNoTracking()
@@ -49,7 +54,7 @@ public class CustomerContextTools(FinaraDbContext dbContext)
         days = Math.Clamp(days, 1, 3650);
         var since = DateTime.UtcNow.AddDays(-days);
         var transactions = await dbContext.Transactions.AsNoTracking()
-            .Where(t => t.CustomerId == customerId && t.OccurredAtUtc >= since)
+            .Where(t => t.CustomerId == customerId && (currentUser.IsSuperAdmin || t.BankId == currentUser.BankId) && t.OccurredAtUtc >= since)
             .OrderByDescending(t => t.OccurredAtUtc)
             .Take(20)
             .ToListAsync();
@@ -69,7 +74,7 @@ public class CustomerContextTools(FinaraDbContext dbContext)
     {
         var offers = await dbContext.CampaignOffers.AsNoTracking()
             .Include(o => o.Campaign)
-            .Where(o => o.CustomerId == customerId)
+            .Where(o => o.CustomerId == customerId && (currentUser.IsSuperAdmin || o.BankId == currentUser.BankId))
             .OrderByDescending(o => o.PresentedAtUtc)
             .ToListAsync();
 
@@ -87,7 +92,7 @@ public class CustomerContextTools(FinaraDbContext dbContext)
     public async Task<string> GetActiveCampaigns()
     {
         var campaigns = await dbContext.Campaigns.AsNoTracking()
-            .Where(c => c.Status == CampaignStatus.Active)
+            .Where(c => c.Status == CampaignStatus.Active && (currentUser.IsSuperAdmin || c.BankId == currentUser.BankId))
             .ToListAsync();
 
         if (campaigns.Count == 0)

@@ -6,13 +6,14 @@ namespace Finara.Domain.Tests;
 
 public class TransactionTests
 {
+    private static readonly Guid ValidBankId = Guid.NewGuid();
     private static readonly Guid ValidCustomerId = Guid.NewGuid();
 
     [Fact]
     public void Create_GecerliBilgilerle_IslemOlusturur()
     {
         var transaction = Domain.Entities.Transaction.Create(
-            ValidCustomerId, 150.75m, TransactionCategory.Groceries, "Migros", DateTime.UtcNow.AddHours(-1));
+            ValidBankId, ValidCustomerId, 150.75m, TransactionCategory.Groceries, "Migros", DateTime.UtcNow.AddHours(-1));
 
         transaction.CustomerId.Should().Be(ValidCustomerId);
         transaction.Amount.Should().Be(150.75m);
@@ -23,10 +24,19 @@ public class TransactionTests
     }
 
     [Fact]
+    public void Create_BosBankaId_ArgumentExceptionFirlatir()
+    {
+        var act = () => Domain.Entities.Transaction.Create(
+            Guid.Empty, ValidCustomerId, 100m, TransactionCategory.Fuel, "Shell", DateTime.UtcNow);
+
+        act.Should().Throw<ArgumentException>().WithParameterName("bankId");
+    }
+
+    [Fact]
     public void Create_BosMusteriId_ArgumentExceptionFirlatir()
     {
         var act = () => Domain.Entities.Transaction.Create(
-            Guid.Empty, 100m, TransactionCategory.Fuel, "Shell", DateTime.UtcNow);
+            ValidBankId, Guid.Empty, 100m, TransactionCategory.Fuel, "Shell", DateTime.UtcNow);
 
         act.Should().Throw<ArgumentException>().WithParameterName("customerId");
     }
@@ -37,7 +47,7 @@ public class TransactionTests
     public void Create_SifirVeyaNegatifTutar_ArgumentExceptionFirlatir(decimal amount)
     {
         var act = () => Domain.Entities.Transaction.Create(
-            ValidCustomerId, amount, TransactionCategory.Fuel, "Shell", DateTime.UtcNow);
+            ValidBankId, ValidCustomerId, amount, TransactionCategory.Fuel, "Shell", DateTime.UtcNow);
 
         act.Should().Throw<ArgumentException>().WithParameterName("amount");
     }
@@ -46,7 +56,7 @@ public class TransactionTests
     public void Create_BosIsyeriAdi_ArgumentExceptionFirlatir()
     {
         var act = () => Domain.Entities.Transaction.Create(
-            ValidCustomerId, 100m, TransactionCategory.Fuel, "  ", DateTime.UtcNow);
+            ValidBankId, ValidCustomerId, 100m, TransactionCategory.Fuel, "  ", DateTime.UtcNow);
 
         act.Should().Throw<ArgumentException>().WithParameterName("merchantName");
     }
@@ -55,7 +65,7 @@ public class TransactionTests
     public void Create_GelecekTarihliIslem_ArgumentExceptionFirlatir()
     {
         var act = () => Domain.Entities.Transaction.Create(
-            ValidCustomerId, 100m, TransactionCategory.Fuel, "Shell", DateTime.UtcNow.AddDays(1));
+            ValidBankId, ValidCustomerId, 100m, TransactionCategory.Fuel, "Shell", DateTime.UtcNow.AddDays(1));
 
         act.Should().Throw<ArgumentException>().WithParameterName("occurredAtUtc");
     }
@@ -64,7 +74,7 @@ public class TransactionTests
     public void Create_YurtdisiIslemBayragiIsaretlenebilir()
     {
         var transaction = Domain.Entities.Transaction.Create(
-            ValidCustomerId, 500m, TransactionCategory.Travel, "Booking.com",
+            ValidBankId, ValidCustomerId, 500m, TransactionCategory.Travel, "Booking.com",
             DateTime.UtcNow, currency: "USD", isInternational: true);
 
         transaction.IsInternational.Should().BeTrue();

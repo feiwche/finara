@@ -12,21 +12,24 @@ public class User : BaseEntity
     public UserRole Role { get; private set; }
     public bool IsActive { get; private set; } = true;
 
-    // Faz 8.1 (multi-tenancy) hazırlığı — henüz hiçbir yerde kullanılmıyor/filtrelenmiyor,
-    // şimdiden eklenmesinin amacı Faz 7.2'deki Yönetici Hesapları ekranının/DTO'sunun
-    // SuperAdmin/BankAdmin rolleri gelince yeniden yazılmasını gerektirmemek (bkz. mimar
-    // incelemesinde kabul edilen karar).
+    // SuperAdmin için null (tüm bankaları görür), BankAdmin için zorunlu (bkz. Create).
     public Guid? BankId { get; private set; }
 
     private User() { }
 
-    public static User Create(string email, string passwordHash, UserRole role = UserRole.Admin, Guid? bankId = null)
+    public static User Create(string email, string passwordHash, UserRole role = UserRole.SuperAdmin, Guid? bankId = null)
     {
         if (!IsValidEmail(email))
             throw new ArgumentException("Geçersiz e-posta formatı.", nameof(email));
 
         if (string.IsNullOrWhiteSpace(passwordHash))
             throw new ArgumentException("Şifre hash'i boş olamaz.", nameof(passwordHash));
+
+        if (role == UserRole.BankAdmin && bankId is null)
+            throw new ArgumentException("BankAdmin rolü bir banka kimliği gerektirir.", nameof(bankId));
+
+        if (role == UserRole.SuperAdmin && bankId is not null)
+            throw new ArgumentException("SuperAdmin bir bankaya bağlı olamaz.", nameof(bankId));
 
         return new User
         {

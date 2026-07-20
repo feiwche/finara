@@ -7,17 +7,25 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Finara.Infrastructure.Services;
 
-public class CustomerService(FinaraDbContext dbContext, IBankDataProvider bankDataProvider, IAuditLogRepository auditLogRepository)
+public class CustomerService(
+    FinaraDbContext dbContext,
+    IBankDataProvider bankDataProvider,
+    IAuditLogRepository auditLogRepository,
+    ICurrentUserContext currentUser)
     : ICustomerService
 {
     public async Task<CustomerSummary> CreateCustomerAsync(CreateCustomerRequest request, CancellationToken cancellationToken = default)
     {
+        var bankId = currentUser.ResolveBankIdForWrite();
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
-        var emailInUse = await dbContext.Customers.AnyAsync(c => c.Email == normalizedEmail, cancellationToken);
+        // E-posta benzersizliği banka bazlı — iki farklı banka aynı gerçek kişiyi
+        // (aynı e-posta) kendi müşterisi olarak ayrı ayrı kaydedebilir (bkz. CustomerConfiguration'daki
+        // (BankId, Email) bileşik unique index).
+        var emailInUse = await dbContext.Customers.AnyAsync(c => c.BankId == bankId && c.Email == normalizedEmail, cancellationToken);
         if (emailInUse)
             throw new InvalidOperationException($"'{request.Email}' e-posta adresiyle kayıtlı bir müşteri zaten var.");
 
-        var customer = Customer.Create(request.FirstName, request.LastName, request.Email, request.DateOfBirth);
+        var customer = Customer.Create(bankId, request.FirstName, request.LastName, request.Email, request.DateOfBirth);
         if (request.HasInvestmentAccount || request.HasInternationalTransfers)
             customer.UpdateFinancialFlags(request.HasInvestmentAccount, request.HasInternationalTransfers);
 
@@ -25,7 +33,7 @@ public class CustomerService(FinaraDbContext dbContext, IBankDataProvider bankDa
         await dbContext.SaveChangesAsync(cancellationToken);
 
         await auditLogRepository.InsertAsync(
-            AuditLog.Create(customer.Id, AuditActionType.CustomerCreated, $"{customer.FirstName} {customer.LastName}"),
+            AuditLog.Create(bankId, customer.Id, AuditActionType.CustomerCreated, $"{customer.FirstName} {customer.LastName}"),
             cancellationToken);
 
         return ToSummary(customer);
@@ -33,25 +41,31 @@ public class CustomerService(FinaraDbContext dbContext, IBankDataProvider bankDa
 
     public async Task<IReadOnlyList<CustomerSummary>> GetCustomersAsync(CancellationToken cancellationToken = default)
     {
-        var customers = await dbContext.Customers.AsNoTracking().ToListAsync(cancellationToken);
+        var query = dbContext.Customers.AsNoTracking().AsQueryable();
+        if (!currentUser.IsSuperAdmin)
+            query = query.Where(c => c.BankId == currentUser.BankId);
+
+        var customers = await query.ToListAsync(cancellationToken);
         return customers.Select(ToSummary).ToList();
     }
 
     public async Task<TransactionSummary?> RecordTransactionAsync(Guid customerId, RecordTransactionRequest request, CancellationToken cancellationToken = default)
     {
-        var customerExists = await dbContext.Customers.AnyAsync(c => c.Id == customerId, cancellationToken);
-        if (!customerExists)
+        var customer = await dbContext.Customers.FirstOrDefaultAsync(c => c.Id == customerId, cancellationToken);
+        // Başka bankanın müşterisine erişim denemesi de "bulunamadı" gibi ele alınıyor —
+        // 403 yerine 404 vermek, o customerId'nin başka bir bankada var olduğunu sızdırmaz.
+        if (customer is null || (!currentUser.IsSuperAdmin && customer.BankId != currentUser.BankId))
             return null;
 
         var transaction = Transaction.Create(
-            customerId, request.Amount, request.Category, request.MerchantName,
+            customer.BankId, customerId, request.Amount, request.Category, request.MerchantName,
             request.OccurredAtUtc, request.Currency, request.IsInternational);
 
         dbContext.Transactions.Add(transaction);
         await dbContext.SaveChangesAsync(cancellationToken);
 
         await auditLogRepository.InsertAsync(
-            AuditLog.Create(customerId, AuditActionType.TransactionRecorded, $"{transaction.MerchantName} — {transaction.Amount} {transaction.Currency}"),
+            AuditLog.Create(customer.BankId, customerId, AuditActionType.TransactionRecorded, $"{transaction.MerchantName} — {transaction.Amount} {transaction.Currency}"),
             cancellationToken);
 
         return ToSummary(transaction);
@@ -59,8 +73,8 @@ public class CustomerService(FinaraDbContext dbContext, IBankDataProvider bankDa
 
     public async Task<IReadOnlyList<TransactionSummary>?> GetTransactionsAsync(Guid customerId, CancellationToken cancellationToken = default)
     {
-        var customerExists = await dbContext.Customers.AnyAsync(c => c.Id == customerId, cancellationToken);
-        if (!customerExists)
+        var customer = await dbContext.Customers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == customerId, cancellationToken);
+        if (customer is null || (!currentUser.IsSuperAdmin && customer.BankId != currentUser.BankId))
             return null;
 
         var transactions = await dbContext.Transactions
@@ -77,13 +91,14 @@ public class CustomerService(FinaraDbContext dbContext, IBankDataProvider bankDa
         if (request.CustomerCount <= 0 || request.TransactionsPerCustomer < 0)
             throw new ArgumentException("customerCount pozitif, transactionsPerCustomer negatif olmayan bir sayı olmalı.");
 
+        var bankId = currentUser.ResolveBankIdForWrite();
         var customersCreated = 0;
         var transactionsCreated = 0;
 
         for (var i = 0; i < request.CustomerCount; i++)
         {
             var data = await bankDataProvider.GenerateCustomerAsync(cancellationToken);
-            var customer = Customer.Create(data.FirstName, data.LastName, data.Email, data.DateOfBirth);
+            var customer = Customer.Create(bankId, data.FirstName, data.LastName, data.Email, data.DateOfBirth);
             customer.UpdateFinancialFlags(data.HasInvestmentAccount, data.HasInternationalTransfers);
             dbContext.Customers.Add(customer);
             customersCreated++;
@@ -92,7 +107,7 @@ public class CustomerService(FinaraDbContext dbContext, IBankDataProvider bankDa
             foreach (var t in transactionData)
             {
                 dbContext.Transactions.Add(Transaction.Create(
-                    customer.Id, t.Amount, t.Category, t.MerchantName, t.OccurredAtUtc, t.Currency, t.IsInternational));
+                    bankId, customer.Id, t.Amount, t.Category, t.MerchantName, t.OccurredAtUtc, t.Currency, t.IsInternational));
                 transactionsCreated++;
             }
         }

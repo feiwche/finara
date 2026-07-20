@@ -18,6 +18,8 @@ public enum OfferResponse
 
 public class CampaignOffer : BaseEntity
 {
+    public Guid BankId { get; private set; }
+
     public Guid CampaignId { get; private set; }
     public Campaign? Campaign { get; private set; }
 
@@ -33,8 +35,11 @@ public class CampaignOffer : BaseEntity
 
     private CampaignOffer() { }
 
-    public static CampaignOffer Create(Guid campaignId, Guid customerId, double confidenceScore)
+    public static CampaignOffer Create(Guid bankId, Guid campaignId, Guid customerId, double confidenceScore)
     {
+        if (bankId == Guid.Empty)
+            throw new ArgumentException("Geçerli bir banka kimliği gerekli.", nameof(bankId));
+
         if (campaignId == Guid.Empty)
             throw new ArgumentException("Geçerli bir kampanya kimliği gerekli.", nameof(campaignId));
 
@@ -46,6 +51,7 @@ public class CampaignOffer : BaseEntity
 
         return new CampaignOffer
         {
+            BankId = bankId,
             CampaignId = campaignId,
             CustomerId = customerId,
             ConfidenceScore = confidenceScore,

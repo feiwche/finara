@@ -52,10 +52,46 @@ namespace Finara.Infrastructure.Persistence.Migrations
                     b.ToTable("AiInteractionLogs", (string)null);
                 });
 
+            modelBuilder.Entity("Finara.Domain.Entities.Bank", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("Banks", (string)null);
+                });
+
             modelBuilder.Entity("Finara.Domain.Entities.Campaign", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BankId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAtUtc")
@@ -102,6 +138,8 @@ namespace Finara.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("BankId");
+
                     b.HasIndex("Status");
 
                     b.ToTable("Campaigns", (string)null);
@@ -111,6 +149,9 @@ namespace Finara.Infrastructure.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BankId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("CampaignId")
@@ -139,6 +180,8 @@ namespace Finara.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("BankId");
+
                     b.HasIndex("CampaignId");
 
                     b.HasIndex("CustomerId");
@@ -152,6 +195,9 @@ namespace Finara.Infrastructure.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BankId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAtUtc")
@@ -189,7 +235,7 @@ namespace Finara.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Email")
+                    b.HasIndex("BankId", "Email")
                         .IsUnique();
 
                     b.ToTable("Customers", (string)null);
@@ -237,6 +283,9 @@ namespace Finara.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("BankId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("CalculatedAtUtc")
                         .HasColumnType("datetime2");
 
@@ -269,6 +318,8 @@ namespace Finara.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("BankId");
+
                     b.HasIndex("CustomerId")
                         .IsUnique()
                         .HasDatabaseName("IX_Segments_CustomerId_ActiveOnly")
@@ -285,6 +336,9 @@ namespace Finara.Infrastructure.Persistence.Migrations
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("BankId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Category")
                         .HasColumnType("int");
@@ -315,6 +369,8 @@ namespace Finara.Infrastructure.Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BankId");
 
                     b.HasIndex("Category");
 
@@ -358,6 +414,8 @@ namespace Finara.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("BankId");
+
                     b.HasIndex("Email")
                         .IsUnique();
 
@@ -373,8 +431,23 @@ namespace Finara.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Finara.Domain.Entities.Campaign", b =>
+                {
+                    b.HasOne("Finara.Domain.Entities.Bank", null)
+                        .WithMany()
+                        .HasForeignKey("BankId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Finara.Domain.Entities.CampaignOffer", b =>
                 {
+                    b.HasOne("Finara.Domain.Entities.Bank", null)
+                        .WithMany()
+                        .HasForeignKey("BankId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Finara.Domain.Entities.Campaign", "Campaign")
                         .WithMany("Offers")
                         .HasForeignKey("CampaignId")
@@ -392,6 +465,15 @@ namespace Finara.Infrastructure.Persistence.Migrations
                     b.Navigation("Customer");
                 });
 
+            modelBuilder.Entity("Finara.Domain.Entities.Customer", b =>
+                {
+                    b.HasOne("Finara.Domain.Entities.Bank", null)
+                        .WithMany()
+                        .HasForeignKey("BankId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Finara.Domain.Entities.RefreshToken", b =>
                 {
                     b.HasOne("Finara.Domain.Entities.User", null)
@@ -403,6 +485,12 @@ namespace Finara.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Finara.Domain.Entities.Segment", b =>
                 {
+                    b.HasOne("Finara.Domain.Entities.Bank", null)
+                        .WithMany()
+                        .HasForeignKey("BankId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Finara.Domain.Entities.Customer", "Customer")
                         .WithMany()
                         .HasForeignKey("CustomerId")
@@ -414,6 +502,12 @@ namespace Finara.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Finara.Domain.Entities.Transaction", b =>
                 {
+                    b.HasOne("Finara.Domain.Entities.Bank", null)
+                        .WithMany()
+                        .HasForeignKey("BankId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Finara.Domain.Entities.Customer", "Customer")
                         .WithMany("Transactions")
                         .HasForeignKey("CustomerId")
@@ -421,6 +515,14 @@ namespace Finara.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("Finara.Domain.Entities.User", b =>
+                {
+                    b.HasOne("Finara.Domain.Entities.Bank", null)
+                        .WithMany()
+                        .HasForeignKey("BankId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("Finara.Domain.Entities.Campaign", b =>

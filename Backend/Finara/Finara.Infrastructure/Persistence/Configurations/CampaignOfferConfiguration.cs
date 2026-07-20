@@ -21,6 +21,12 @@ public class CampaignOfferConfiguration : IEntityTypeConfiguration<CampaignOffer
             .HasForeignKey(o => o.CustomerId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasOne<Bank>()
+            .WithMany()
+            .HasForeignKey(o => o.BankId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasIndex(o => o.Response);
+        builder.HasIndex(o => o.BankId);
     }
 }

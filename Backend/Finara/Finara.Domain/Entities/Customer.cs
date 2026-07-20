@@ -11,6 +11,7 @@ namespace Finara.Domain.Entities;
 
 public class Customer : BaseEntity
 {
+    public Guid BankId { get; private set; }
     public string FirstName { get; private set; } = string.Empty;
     public string LastName { get; private set; } = string.Empty;
     public string Email { get; private set; } = string.Empty;
@@ -26,8 +27,11 @@ public class Customer : BaseEntity
     // 'private' yaparak bunu sadece EF Core'un kullanmasını sağlıyoruz, uygulama kodu kullanamaz.
     private Customer() { }
 
-    public static Customer Create(string firstName, string lastName, string email, DateTime dateOfBirth)
+    public static Customer Create(Guid bankId, string firstName, string lastName, string email, DateTime dateOfBirth)
     {
+        if (bankId == Guid.Empty)
+            throw new ArgumentException("Geçerli bir banka kimliği gerekli.", nameof(bankId));
+
         if (string.IsNullOrWhiteSpace(firstName))
             throw new ArgumentException("Ad boş olamaz.", nameof(firstName));
 
@@ -42,6 +46,7 @@ public class Customer : BaseEntity
 
         return new Customer
         {
+            BankId = bankId,
             FirstName = firstName.Trim(),
             LastName = lastName.Trim(),
             Email = email.Trim().ToLowerInvariant(),

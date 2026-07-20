@@ -11,6 +11,7 @@ namespace Finara.Domain.Entities;
 
 public class Segment : BaseEntity
 {
+    public Guid BankId { get; private set; }
     public Guid CustomerId { get; private set; }
     public Customer? Customer { get; private set; }
 
@@ -29,6 +30,7 @@ public class Segment : BaseEntity
     private Segment() { }
 
     public static Segment Create(
+        Guid bankId,
         Guid customerId,
         int recencyScore,
         int frequencyScore,
@@ -36,6 +38,9 @@ public class Segment : BaseEntity
         SpendingPropensity propensity,
         TransactionCategory? dominantCategory = null)
     {
+        if (bankId == Guid.Empty)
+            throw new ArgumentException("Geçerli bir banka kimliği gerekli.", nameof(bankId));
+
         if (customerId == Guid.Empty)
             throw new ArgumentException("Geçerli bir müşteri kimliği gerekli.", nameof(customerId));
 
@@ -45,6 +50,7 @@ public class Segment : BaseEntity
 
         return new Segment
         {
+            BankId = bankId,
             CustomerId = customerId,
             RecencyScore = recencyScore,
             FrequencyScore = frequencyScore,

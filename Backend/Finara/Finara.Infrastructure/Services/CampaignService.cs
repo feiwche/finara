@@ -6,11 +6,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Finara.Infrastructure.Services;
 
-public class CampaignService(FinaraDbContext dbContext) : ICampaignService
+public class CampaignService(FinaraDbContext dbContext, ICurrentUserContext currentUser) : ICampaignService
 {
     public async Task<CampaignSummary> CreateCampaignAsync(CreateCampaignRequest request, CancellationToken cancellationToken = default)
     {
         var campaign = Campaign.Create(
+            currentUser.ResolveBankIdForWrite(),
             request.Name,
             request.Description,
             request.StartDateUtc,
@@ -45,7 +46,9 @@ public class CampaignService(FinaraDbContext dbContext) : ICampaignService
     private async Task<CampaignSummary?> TransitionAsync(Guid campaignId, Action<Campaign> transition, CancellationToken cancellationToken)
     {
         var campaign = await dbContext.Campaigns.FirstOrDefaultAsync(c => c.Id == campaignId, cancellationToken);
-        if (campaign is null)
+        // Başka bankanın kampanyasına erişim denemesi de "bulunamadı" — o kampanyanın
+        // başka bir bankada var olduğunu sızdırmaz.
+        if (campaign is null || (!currentUser.IsSuperAdmin && campaign.BankId != currentUser.BankId))
             return null;
 
         transition(campaign);
@@ -56,7 +59,11 @@ public class CampaignService(FinaraDbContext dbContext) : ICampaignService
 
     public async Task<IReadOnlyList<CampaignSummary>> GetCampaignsAsync(CancellationToken cancellationToken = default)
     {
-        var campaigns = await dbContext.Campaigns.AsNoTracking().ToListAsync(cancellationToken);
+        var query = dbContext.Campaigns.AsNoTracking().AsQueryable();
+        if (!currentUser.IsSuperAdmin)
+            query = query.Where(c => c.BankId == currentUser.BankId);
+
+        var campaigns = await query.ToListAsync(cancellationToken);
         return campaigns.Select(ToSummary).ToList();
     }
 

@@ -11,6 +11,7 @@ namespace Finara.Domain.Entities;
 
 public class Campaign : BaseEntity
 {
+    public Guid BankId { get; private set; }
     public string Name { get; private set; } = string.Empty;
     public string Description { get; private set; } = string.Empty;
     public CampaignStatus Status { get; private set; } = CampaignStatus.Draft;
@@ -36,6 +37,7 @@ public class Campaign : BaseEntity
     private Campaign() { }
 
     public static Campaign Create(
+        Guid bankId,
         string name,
         string description,
         DateTime startDateUtc,
@@ -46,6 +48,9 @@ public class Campaign : BaseEntity
         bool targetsInvestmentAccountHolders = false,
         bool targetsInternationalTransferUsers = false)
     {
+        if (bankId == Guid.Empty)
+            throw new ArgumentException("Geçerli bir banka kimliği gerekli.", nameof(bankId));
+
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Kampanya adı boş olamaz.", nameof(name));
 
@@ -54,6 +59,7 @@ public class Campaign : BaseEntity
 
         return new Campaign
         {
+            BankId = bankId,
             Name = name.Trim(),
             Description = description?.Trim() ?? string.Empty,
             VariantId = variantId,

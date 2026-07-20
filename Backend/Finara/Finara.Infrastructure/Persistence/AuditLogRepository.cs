@@ -12,18 +12,20 @@ namespace Finara.Infrastructure.Persistence;
 public class AuditLogRepository : IAuditLogRepository
 {
     private readonly string _connectionString;
+    private readonly ICurrentUserContext _currentUser;
 
-    public AuditLogRepository(IConfiguration configuration)
+    public AuditLogRepository(IConfiguration configuration, ICurrentUserContext currentUser)
     {
         _connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("'DefaultConnection' bağlantı dizesi bulunamadı.");
+        _currentUser = currentUser;
     }
 
     public async Task InsertAsync(AuditLog auditLog, CancellationToken cancellationToken = default)
     {
         const string sql = """
-            INSERT INTO AuditLogs (Id, CustomerId, ActionType, Details, PerformedByUserId, OccurredAtUtc)
-            VALUES (@Id, @CustomerId, @ActionType, @Details, @PerformedByUserId, @OccurredAtUtc);
+            INSERT INTO AuditLogs (Id, BankId, CustomerId, ActionType, Details, PerformedByUserId, OccurredAtUtc)
+            VALUES (@Id, @BankId, @CustomerId, @ActionType, @Details, @PerformedByUserId, @OccurredAtUtc);
             """;
 
         await using var connection = new SqlConnection(_connectionString);
@@ -48,12 +50,15 @@ public class AuditLogRepository : IAuditLogRepository
 
     public async Task<IReadOnlyList<AuditLogSummary>> GetAllAsync(AuditLogFilter filter, CancellationToken cancellationToken = default)
     {
+        // SuperAdmin tüm bankaları görür (BankId parametresi NULL geçilir, WHERE koşulu
+        // devre dışı kalır) — BankAdmin için @BankId sabitlenir.
         const string sql = """
             SELECT a.Id, a.CustomerId, CONCAT(c.FirstName, N' ', c.LastName) AS CustomerName,
                    a.ActionType, a.Details, a.PerformedByUserId, a.OccurredAtUtc
             FROM AuditLogs a
             LEFT JOIN Customers c ON c.Id = a.CustomerId
-            WHERE (@CustomerId IS NULL OR a.CustomerId = @CustomerId)
+            WHERE (@BankId IS NULL OR a.BankId = @BankId)
+              AND (@CustomerId IS NULL OR a.CustomerId = @CustomerId)
               AND (@ActionType IS NULL OR a.ActionType = @ActionType)
               AND (@FromUtc IS NULL OR a.OccurredAtUtc >= @FromUtc)
               AND (@ToUtc IS NULL OR a.OccurredAtUtc <= @ToUtc)
@@ -64,6 +69,7 @@ public class AuditLogRepository : IAuditLogRepository
         var rows = await connection.QueryAsync<AuditLogSummary>(
             new CommandDefinition(sql, new
             {
+                BankId = _currentUser.IsSuperAdmin ? (Guid?)null : _currentUser.BankId,
                 filter.CustomerId,
                 ActionType = (int?)filter.ActionType,
                 filter.FromUtc,

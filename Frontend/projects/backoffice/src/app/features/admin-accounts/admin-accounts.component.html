@@ -8,6 +8,9 @@
     <tr>
       <th>E-posta</th>
       <th>Rol</th>
+      @if (authService.isSuperAdmin()) {
+        <th>Banka</th>
+      }
       <th>Durum</th>
       <th>Oluşturulma Tarihi</th>
       <th>İşlemler</th>
@@ -17,6 +20,9 @@
     <tr>
       <td>{{ admin.email }} @if (isSelf(admin)) { <span class="muted-text">(siz)</span> }</td>
       <td>{{ roleLabel(admin.role ?? '') }}</td>
+      @if (authService.isSuperAdmin()) {
+        <td>{{ bankName(admin.bankId) }}</td>
+      }
       <td>
         <p-tag [value]="admin.isActive ? 'Aktif' : 'Pasif'" [severity]="admin.isActive ? 'success' : 'danger'" />
       </td>
@@ -41,7 +47,7 @@
   </ng-template>
   <ng-template pTemplate="emptymessage">
     <tr>
-      <td colspan="5">Henüz yönetici hesabı yok.</td>
+      <td [attr.colspan]="authService.isSuperAdmin() ? 6 : 5">Henüz yönetici hesabı yok.</td>
     </tr>
   </ng-template>
 </p-table>
@@ -61,6 +67,30 @@
       <small class="field-error">Şifre zorunlu (en az 8 karakter, harf ve rakam içermeli).</small>
     }
   </div>
+  @if (authService.isSuperAdmin()) {
+    <div class="field">
+      <label>Rol</label>
+      <p-select [options]="roleOptions" optionLabel="label" optionValue="value" [(ngModel)]="newAdmin.role" />
+    </div>
+    @if (newAdmin.role === UserRole.BankAdmin) {
+      <div class="field">
+        <label>Banka *</label>
+        <p-select
+          [options]="banks()"
+          optionLabel="name"
+          optionValue="id"
+          [(ngModel)]="newAdmin.bankId"
+          placeholder="Banka seçin"
+          [class.field-invalid]="createSubmitted && !newAdmin.bankId"
+        />
+        @if (createSubmitted && !newAdmin.bankId) {
+          <small class="field-error">BankAdmin için banka seçimi zorunlu.</small>
+        }
+      </div>
+    }
+  } @else {
+    <p class="muted-text">Yeni hesap, sizin bankanız için Banka Yöneticisi olarak oluşturulacak.</p>
+  }
   @if (createError()) {
     <p-message severity="error" [text]="createError()!" />
   }

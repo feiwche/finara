@@ -8,12 +8,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Finara.Infrastructure.Services;
 
-public class NextBestOfferService(FinaraDbContext dbContext, IAuditLogRepository auditLogRepository) : INextBestOfferService
+public class NextBestOfferService(FinaraDbContext dbContext, IAuditLogRepository auditLogRepository, ICurrentUserContext currentUser) : INextBestOfferService
 {
     public async Task<GenerateOffersResult?> GenerateOffersAsync(Guid customerId, int maxOffers, CancellationToken cancellationToken = default)
     {
         var customer = await dbContext.Customers.FirstOrDefaultAsync(c => c.Id == customerId, cancellationToken);
-        if (customer is null)
+        if (customer is null || (!currentUser.IsSuperAdmin && customer.BankId != currentUser.BankId))
             return null;
 
         var segment = await dbContext.Segments
@@ -25,8 +25,9 @@ public class NextBestOfferService(FinaraDbContext dbContext, IAuditLogRepository
         var activeCampaigns = await dbContext.Campaigns
             // Süresi dolmuş (EndDateUtc geçmişte) bir kampanya Status=Active kalmış olsa bile
             // önerilmemeli — Faz 4 denetiminde bulundu: aktive edilmiş ama bitiş tarihi geçmiş
-            // bir kampanya müşteriye öneriliyordu.
-            .Where(c => c.Status == CampaignStatus.Active && (c.EndDateUtc == null || c.EndDateUtc > referenceUtc))
+            // bir kampanya müşteriye öneriliyordu. Kampanya, müşterinin KENDİ bankasına ait
+            // olmalı — bankaların kampanya katalogları birbirine karışmaz.
+            .Where(c => c.BankId == customer.BankId && c.Status == CampaignStatus.Active && (c.EndDateUtc == null || c.EndDateUtc > referenceUtc))
             .ToListAsync(cancellationToken);
 
         // Aynı kampanya için zaten bekleyen bir teklif varsa tekrar üretme —
@@ -46,9 +47,9 @@ public class NextBestOfferService(FinaraDbContext dbContext, IAuditLogRepository
 
         foreach (var (campaign, score) in scoredCampaigns)
         {
-            dbContext.CampaignOffers.Add(CampaignOffer.Create(campaign.Id, customerId, score));
+            dbContext.CampaignOffers.Add(CampaignOffer.Create(customer.BankId, campaign.Id, customerId, score));
             await auditLogRepository.InsertAsync(
-                AuditLog.Create(customerId, AuditActionType.CampaignOfferPresented, $"{campaign.Name} (güven skoru: {score})"),
+                AuditLog.Create(customer.BankId, customerId, AuditActionType.CampaignOfferPresented, $"{campaign.Name} (güven skoru: {score})"),
                 cancellationToken);
         }
 
@@ -59,8 +60,8 @@ public class NextBestOfferService(FinaraDbContext dbContext, IAuditLogRepository
 
     public async Task<IReadOnlyList<OfferSummary>?> GetOffersAsync(Guid customerId, CancellationToken cancellationToken = default)
     {
-        var customerExists = await dbContext.Customers.AnyAsync(c => c.Id == customerId, cancellationToken);
-        if (!customerExists)
+        var customer = await dbContext.Customers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == customerId, cancellationToken);
+        if (customer is null || (!currentUser.IsSuperAdmin && customer.BankId != currentUser.BankId))
             return null;
 
         var offers = await dbContext.CampaignOffers
@@ -86,13 +87,13 @@ public class NextBestOfferService(FinaraDbContext dbContext, IAuditLogRepository
         var offer = await dbContext.CampaignOffers
             .Include(o => o.Campaign)
             .FirstOrDefaultAsync(o => o.Id == offerId && o.CustomerId == customerId, cancellationToken);
-        if (offer is null)
+        if (offer is null || (!currentUser.IsSuperAdmin && offer.BankId != currentUser.BankId))
             return null;
 
         respond(offer);
 
         await auditLogRepository.InsertAsync(
-            AuditLog.Create(customerId, actionType, offer.Campaign?.Name ?? string.Empty),
+            AuditLog.Create(offer.BankId, customerId, actionType, offer.Campaign?.Name ?? string.Empty),
             cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);

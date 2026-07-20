@@ -16,6 +16,12 @@ public class CampaignConfiguration : IEntityTypeConfiguration<Campaign>
         builder.Property(c => c.VariantId).HasMaxLength(50).IsRequired();
 
         builder.HasIndex(c => c.Status);
+        builder.HasIndex(c => c.BankId);
+
+        builder.HasOne<Bank>()
+            .WithMany()
+            .HasForeignKey(c => c.BankId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // Campaign.Offers salt-okunur bir IReadOnlyCollection — CampaignOfferConfiguration
         // tarafında WithMany(c => c.Offers) ile eşleştiği için burada field access mode yeterli.

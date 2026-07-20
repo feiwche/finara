@@ -1,8 +1,13 @@
 namespace Finara.Domain.Enums;
 
-// Şimdilik tek rol var — API'yi dışarıya karşı korumak için (bkz. User entity).
-// Faz 6/7'deki gerçek müşteri/backoffice kimlik doğrulaması ayrıca ele alınacak.
+// Faz 8.1 — multi-tenancy. SuperAdmin BİLİNÇLİ OLARAK 0 değerinde bırakıldı: eski
+// tek değerli enum'da Admin=0'dı, DB'de zaten int olarak saklı olan tüm mevcut
+// kullanıcılar (admin@finara.dev fixture'ı dahil) bu sıralama sayesinde ekstra bir
+// veri migrasyonuna gerek kalmadan otomatik SuperAdmin olarak okunuyor.
+// SuperAdmin: User.BankId null, tüm bankaları görür/yönetir.
+// BankAdmin: User.BankId dolu, sadece kendi bankasına scope'lu.
 public enum UserRole
 {
-    Admin
+    SuperAdmin,
+    BankAdmin
 }

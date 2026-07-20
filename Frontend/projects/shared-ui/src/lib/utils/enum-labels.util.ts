@@ -1,4 +1,4 @@
-import { AuditActionType, SpendingPropensity, TransactionCategory } from '../api/finara-client';
+import { AuditActionType, SpendingPropensity, TransactionCategory, UserRole } from '../api/finara-client';
 
 // Backend enum'ları (İngilizce, API sözleşmesinin parçası) ile arayüzde gösterilen
 // metin birbirinden ayrılıyor — [(ngModel)]/API çağrıları hep İngilizce değeri kullanır,
@@ -39,7 +39,8 @@ const OFFER_RESPONSE_LABELS: Record<string, string> = {
 };
 
 const USER_ROLE_LABELS: Record<string, string> = {
-  Admin: 'Yönetici'
+  SuperAdmin: 'Süper Yönetici',
+  BankAdmin: 'Banka Yöneticisi'
 };
 
 const AUDIT_ACTION_TYPE_LABELS: Record<string, string> = {
@@ -89,5 +90,10 @@ export const SPENDING_PROPENSITY_OPTIONS = Object.values(SpendingPropensity).map
 
 export const AUDIT_ACTION_TYPE_OPTIONS = Object.values(AuditActionType).map(value => ({
   label: auditActionTypeLabel(value),
+  value
+}));
+
+export const USER_ROLE_OPTIONS = Object.values(UserRole).map(value => ({
+  label: userRoleLabel(value),
   value
 }));

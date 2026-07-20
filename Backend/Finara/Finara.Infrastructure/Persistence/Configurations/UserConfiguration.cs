@@ -14,5 +14,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.Email).HasMaxLength(256).IsRequired();
         builder.Property(u => u.PasswordHash).HasMaxLength(512).IsRequired();
         builder.HasIndex(u => u.Email).IsUnique();
+
+        // SuperAdmin için null (tüm bankaları görür) — bu yüzden FK nullable.
+        builder.HasOne<Bank>()
+            .WithMany()
+            .HasForeignKey(u => u.BankId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

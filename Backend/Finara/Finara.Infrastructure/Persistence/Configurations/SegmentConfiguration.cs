@@ -16,6 +16,11 @@ public class SegmentConfiguration : IEntityTypeConfiguration<Segment>
             .HasForeignKey(s => s.CustomerId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasOne<Bank>()
+            .WithMany()
+            .HasForeignKey(s => s.BankId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         // Bir müşterinin en fazla bir "aktif" segment kaydı olabilir — geçmiş kayıtlar
         // IsActive=false ile arşivlenir, bu yüzden filtrelenmiş benzersiz index kullanılıyor.
         builder.HasIndex(s => s.CustomerId)

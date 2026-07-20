@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Finara.Application.Contracts;
 using Finara.Application.Interfaces;
+using Finara.Application.Security;
 using Finara.Domain.Entities;
 using Finara.Infrastructure.Persistence;
 using Finara.Infrastructure.Security;
@@ -78,13 +79,18 @@ public class AuthService(FinaraDbContext dbContext, IConfiguration configuration
         var refreshTokenDays = int.Parse(jwtSection["RefreshTokenDays"] ?? "7");
 
         var accessTokenExpires = DateTime.UtcNow.AddMinutes(accessTokenMinutes);
-        var claims = new[]
+        var claims = new List<Claim>
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.Role.ToString()),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new(JwtRegisteredClaimNames.Email, user.Email),
+            new(ClaimTypes.Role, user.Role.ToString()),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
+
+        // SuperAdmin için eklenmiyor (BankId null) — tüm bankaları görür. BankAdmin
+        // için ekleniyor, CurrentUserContext bunu okuyup servislerde bank-scope uyguluyor.
+        if (user.BankId.HasValue)
+            claims.Add(new Claim(JwtClaimNames.BankId, user.BankId.Value.ToString()));
 
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
         var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);

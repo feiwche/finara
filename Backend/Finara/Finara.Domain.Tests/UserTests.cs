@@ -13,7 +13,7 @@ public class UserTests
 
         user.Email.Should().Be("admin@example.com");
         user.PasswordHash.Should().Be("hashed-value");
-        user.Role.Should().Be(UserRole.Admin);
+        user.Role.Should().Be(UserRole.SuperAdmin);
     }
 
     [Theory]
@@ -57,13 +57,30 @@ public class UserTests
     }
 
     [Fact]
-    public void Create_BankIdVerilebilir()
+    public void Create_BankAdminBankIdIleOlusturulabilir()
     {
         var bankId = Guid.NewGuid();
 
-        var user = Domain.Entities.User.Create("admin@example.com", "hashed-value", bankId: bankId);
+        var user = Domain.Entities.User.Create("admin@example.com", "hashed-value", UserRole.BankAdmin, bankId);
 
         user.BankId.Should().Be(bankId);
+        user.Role.Should().Be(UserRole.BankAdmin);
+    }
+
+    [Fact]
+    public void Create_BankAdminBankIdSiz_ArgumentExceptionFirlatir()
+    {
+        var act = () => Domain.Entities.User.Create("admin@example.com", "hashed-value", UserRole.BankAdmin);
+
+        act.Should().Throw<ArgumentException>().WithParameterName("bankId");
+    }
+
+    [Fact]
+    public void Create_SuperAdminBankIdIle_ArgumentExceptionFirlatir()
+    {
+        var act = () => Domain.Entities.User.Create("admin@example.com", "hashed-value", UserRole.SuperAdmin, Guid.NewGuid());
+
+        act.Should().Throw<ArgumentException>().WithParameterName("bankId");
     }
 
     [Fact]

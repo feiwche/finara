@@ -610,6 +610,119 @@ export class Client {
     }
 
     /**
+     * @return OK
+     */
+    banksAll(): Observable<BankSummary[]> {
+        let url_ = this.baseUrl + "/api/banks";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processBanksAll(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processBanksAll(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<BankSummary[]>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<BankSummary[]>;
+        }));
+    }
+
+    protected processBanksAll(response: HttpResponseBase): Observable<BankSummary[]> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(BankSummary.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @return Created
+     */
+    banks(body: CreateBankRequest): Observable<BankSummary> {
+        let url_ = this.baseUrl + "/api/banks";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processBanks(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processBanks(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<BankSummary>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<BankSummary>;
+        }));
+    }
+
+    protected processBanks(response: HttpResponseBase): Observable<BankSummary> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 201) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = BankSummary.fromJS(resultData201);
+            return _observableOf(result201);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
      * @return Created
      */
     campaigns(body: CreateCampaignRequest): Observable<CampaignSummary> {
@@ -1698,6 +1811,7 @@ export class AdminUserSummary implements IAdminUserSummary {
     id?: string;
     email?: string;
     role?: UserRole;
+    bankId?: string | undefined;
     isActive?: boolean;
     createdAtUtc?: Date;
 
@@ -1715,6 +1829,7 @@ export class AdminUserSummary implements IAdminUserSummary {
             this.id = _data["id"];
             this.email = _data["email"];
             this.role = _data["role"];
+            this.bankId = _data["bankId"];
             this.isActive = _data["isActive"];
             this.createdAtUtc = _data["createdAtUtc"] ? new Date(_data["createdAtUtc"].toString()) : undefined as any;
         }
@@ -1732,6 +1847,7 @@ export class AdminUserSummary implements IAdminUserSummary {
         data["id"] = this.id;
         data["email"] = this.email;
         data["role"] = this.role;
+        data["bankId"] = this.bankId;
         data["isActive"] = this.isActive;
         data["createdAtUtc"] = this.createdAtUtc ? this.createdAtUtc.toISOString() : undefined as any;
         return data;
@@ -1742,6 +1858,7 @@ export interface IAdminUserSummary {
     id?: string;
     email?: string;
     role?: UserRole;
+    bankId?: string | undefined;
     isActive?: boolean;
     createdAtUtc?: Date;
 }
@@ -2019,6 +2136,54 @@ export interface IAuthResult {
     refreshTokenExpiresAtUtc?: Date;
 }
 
+export class BankSummary implements IBankSummary {
+    id?: string;
+    name?: string;
+    code?: string;
+    isActive?: boolean;
+
+    constructor(data?: IBankSummary) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.code = _data["code"];
+            this.isActive = _data["isActive"];
+        }
+    }
+
+    static fromJS(data: any): BankSummary {
+        data = typeof data === 'object' ? data : {};
+        let result = new BankSummary();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["code"] = this.code;
+        data["isActive"] = this.isActive;
+        return data;
+    }
+}
+
+export interface IBankSummary {
+    id?: string;
+    name?: string;
+    code?: string;
+    isActive?: boolean;
+}
+
 export enum CampaignStatus {
     Draft = "Draft",
     Active = "Active",
@@ -2106,6 +2271,8 @@ export interface ICampaignSummary {
 export class CreateAdminRequest implements ICreateAdminRequest {
     email?: string;
     password?: string;
+    role?: UserRole;
+    bankId?: string | undefined;
 
     constructor(data?: ICreateAdminRequest) {
         if (data) {
@@ -2120,6 +2287,8 @@ export class CreateAdminRequest implements ICreateAdminRequest {
         if (_data) {
             this.email = _data["email"];
             this.password = _data["password"];
+            this.role = _data["role"];
+            this.bankId = _data["bankId"];
         }
     }
 
@@ -2134,6 +2303,8 @@ export class CreateAdminRequest implements ICreateAdminRequest {
         data = typeof data === 'object' ? data : {};
         data["email"] = this.email;
         data["password"] = this.password;
+        data["role"] = this.role;
+        data["bankId"] = this.bankId;
         return data;
     }
 }
@@ -2141,6 +2312,48 @@ export class CreateAdminRequest implements ICreateAdminRequest {
 export interface ICreateAdminRequest {
     email?: string;
     password?: string;
+    role?: UserRole;
+    bankId?: string | undefined;
+}
+
+export class CreateBankRequest implements ICreateBankRequest {
+    name?: string;
+    code?: string;
+
+    constructor(data?: ICreateBankRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.name = _data["name"];
+            this.code = _data["code"];
+        }
+    }
+
+    static fromJS(data: any): CreateBankRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateBankRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["name"] = this.name;
+        data["code"] = this.code;
+        return data;
+    }
+}
+
+export interface ICreateBankRequest {
+    name?: string;
+    code?: string;
 }
 
 export class CreateCampaignRequest implements ICreateCampaignRequest {
@@ -2960,7 +3173,8 @@ export interface ITransactionSummary {
 }
 
 export enum UserRole {
-    Admin = "Admin",
+    SuperAdmin = "SuperAdmin",
+    BankAdmin = "BankAdmin",
 }
 
 export class ApiException extends Error {
