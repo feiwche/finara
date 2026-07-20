@@ -1,0 +1,34 @@
+<div class="toolbar">
+  <h1>Genel Bakış</h1>
+</div>
+
+<div class="dashboard-kpi-grid">
+  <p-card styleClass="panel">
+    <div class="kpi-label">Toplam Müşteri</div>
+    <div class="kpi-value">{{ totalCustomers() }}</div>
+  </p-card>
+
+  <p-card styleClass="panel">
+    <div class="kpi-label">Aktif Kampanya</div>
+    <div class="kpi-value">{{ activeCampaigns() }}</div>
+  </p-card>
+
+  <p-card styleClass="panel">
+    <div class="kpi-label">Son 30 Gün — Teklif Kabul/Red</div>
+    @if (offerTotal > 0) {
+      <div class="kpi-value">%{{ offerAcceptRate }}</div>
+      <div class="kpi-sublabel">{{ offerAccepted() }} kabul / {{ offerDeclined() }} red</div>
+    } @else {
+      <div class="kpi-value muted-text">—</div>
+      <div class="kpi-sublabel">Son 30 günde yanıtlanan teklif yok</div>
+    }
+  </p-card>
+</div>
+
+<p-card header="Eğilim Dağılımı" styleClass="panel">
+  <div class="chart-container">
+    @if (chartData()) {
+      <p-chart type="doughnut" [data]="chartData()" [options]="chartOptions" />
+    }
+  </div>
+</p-card>

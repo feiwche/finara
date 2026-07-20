@@ -67,6 +67,14 @@ public class SegmentationService(FinaraDbContext dbContext, IAuditLogRepository 
                 .ToListAsync(cancellationToken);
             var existingActiveByCustomer = existingActiveSegments.ToDictionary(s => s.CustomerId);
 
+            // Segment.Propensity (yeni segment kaydı) tek doğruluk kaynağı olsa da,
+            // Customer.CurrentPropensity (CustomerSummary.propensity ile dışarı veriliyor —
+            // müşteri listesi/Dashboard bunu okuyor) senkronize edilmezse sonsuza dek
+            // varsayılan Neutral'da kalır. Bulundu ve düzeltildi: bu satır hiç yoktu.
+            var customers = await dbContext.Customers
+                .Where(c => customerIds.Contains(c.Id))
+                .ToDictionaryAsync(c => c.Id, cancellationToken);
+
             foreach (var customerId in customerIds)
             {
                 var rfm = rfmScores[customerId];
@@ -78,6 +86,9 @@ public class SegmentationService(FinaraDbContext dbContext, IAuditLogRepository 
 
                 dbContext.Segments.Add(Segment.Create(
                     customerId, rfm.RecencyScore, rfm.FrequencyScore, rfm.MonetaryScore, propensity, dominantCategory));
+
+                if (customers.TryGetValue(customerId, out var customer))
+                    customer.AssignPropensity(propensity);
 
                 await auditLogRepository.InsertAsync(
                     AuditLog.Create(customerId, AuditActionType.SegmentAssigned,

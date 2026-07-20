@@ -30,7 +30,7 @@ export class LoginComponent implements OnInit {
     // olur — oturum zaten geçerliyse (ör. kullanıcı elle /login'e geldiyse) tekrar
     // giriş formuyla karşılaşmasın.
     if (this.auth.isAuthenticated()) {
-      this.router.navigate(['/campaigns']);
+      this.router.navigate(['/dashboard']);
     }
   }
 
@@ -39,7 +39,7 @@ export class LoginComponent implements OnInit {
     this.busy.set(true);
     try {
       await this.auth.login(this.email, this.password);
-      await this.router.navigate(['/campaigns']);
+      await this.router.navigate(['/dashboard']);
     } catch (err) {
       this.error.set(describeApiError(err));
     } finally {

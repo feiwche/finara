@@ -13,7 +13,12 @@ export const routes: Routes = [
     component: AppShellComponent,
     canActivate: [authGuard],
     children: [
-      { path: '', redirectTo: 'campaigns', pathMatch: 'full' },
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      {
+        path: 'dashboard',
+        title: 'Finara BackOffice — Genel Bakış',
+        loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
+      },
       {
         path: 'campaigns',
         title: 'Finara BackOffice — Kampanya Yönetimi',
