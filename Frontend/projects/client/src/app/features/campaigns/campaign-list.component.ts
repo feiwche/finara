@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
@@ -56,6 +56,9 @@ export class CampaignListComponent implements OnInit {
   protected campaigns = signal<CampaignSummary[]>([]);
   protected loading = signal(false);
   protected activatingId = signal<string | null>(null);
+
+  protected readonly activeCount = computed(() => this.campaigns().filter(c => c.status === 'Active').length);
+  protected readonly draftCount = computed(() => this.campaigns().filter(c => c.status === 'Draft').length);
 
   protected categories = TRANSACTION_CATEGORY_OPTIONS;
   protected propensities = SPENDING_PROPENSITY_OPTIONS;

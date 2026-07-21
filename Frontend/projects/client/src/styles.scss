@@ -229,6 +229,94 @@ h1, h2, h3 {
   }
 }
 
+// Liste ekranlarının başlığı altında, sayfanın kendi "KPI kartı" dilini konuşan
+// küçük ve yatay bir özet şeridi — Dashboard'daki dille tutarlı ama daha kompakt
+// (tam bir hero şeridi her liste ekranında tekrarlanırsa özelliğini kaybeder).
+.stat-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.stat-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.6rem 1rem;
+  border-radius: var(--p-content-border-radius, 14px);
+  background: var(--p-surface-0, #ffffff);
+  border: 1px solid var(--p-content-border-color, #DCE3E0);
+  box-shadow: 0 1px 2px 0 rgba(8, 30, 25, 0.04), 0 6px 16px -10px rgba(8, 30, 25, 0.15);
+}
+
+.stat-chip-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--p-primary-50, #EEF7F4);
+  color: var(--p-primary-600, #1B6553);
+  font-size: 0.9rem;
+}
+
+.stat-chip--accent .stat-chip-icon {
+  background: var(--p-amber-50, #FBF6ED);
+  color: var(--p-amber-600, #955D22);
+}
+
+.stat-chip-value {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.2rem;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: var(--p-primary-950, #081E19);
+}
+
+.stat-chip--accent .stat-chip-value {
+  color: var(--p-amber-600, #955D22);
+}
+
+.stat-chip-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--p-text-muted-color, #6C7B74);
+  white-space: nowrap;
+}
+
+// İsim/soyisim baş harflerinden oluşan yuvarlak rozet — tablo satırlarında ve
+// detay başlıklarında "gerçek bir insan" hissini güçlendiriyor.
+.avatar-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--p-primary-100, #D7ECE5);
+  color: var(--p-primary-700, #175243);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.avatar-circle--lg {
+  width: 48px;
+  height: 48px;
+  font-size: 1.1rem;
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
 .field-invalid {
   border-color: var(--p-red-400, #f87171) !important;
 }

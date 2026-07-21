@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -58,6 +58,17 @@ export class CustomerListComponent implements OnInit {
   protected customers = signal<CustomerSummary[]>([]);
   protected loading = signal(false);
   protected searchTerm = '';
+
+  protected readonly highlyResponsiveCount = computed(
+    () => this.customers().filter(c => c.propensity === 'HighlyResponsive').length
+  );
+  protected readonly needsEngagementCount = computed(
+    () => this.customers().filter(c => c.propensity === 'NeedsEngagement').length
+  );
+
+  protected initials(customer: CustomerSummary): string {
+    return `${customer.firstName?.[0] ?? ''}${customer.lastName?.[0] ?? ''}`.toUpperCase();
+  }
 
   protected dialogVisible = signal(false);
   protected createBusy = signal(false);

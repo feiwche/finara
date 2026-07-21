@@ -3,6 +3,30 @@
   <p-button label="Yeni Kampanya" icon="pi pi-plus" (onClick)="openCreateDialog()" />
 </div>
 
+<div class="stat-strip">
+  <div class="stat-chip">
+    <span class="stat-chip-icon"><i class="pi pi-megaphone"></i></span>
+    <div>
+      <div class="stat-chip-value">{{ campaigns().length }}</div>
+      <div class="stat-chip-label">TOPLAM KAMPANYA</div>
+    </div>
+  </div>
+  <div class="stat-chip stat-chip--accent">
+    <span class="stat-chip-icon"><i class="pi pi-bolt"></i></span>
+    <div>
+      <div class="stat-chip-value">{{ activeCount() }}</div>
+      <div class="stat-chip-label">AKTİF</div>
+    </div>
+  </div>
+  <div class="stat-chip">
+    <span class="stat-chip-icon"><i class="pi pi-file-edit"></i></span>
+    <div>
+      <div class="stat-chip-value">{{ draftCount() }}</div>
+      <div class="stat-chip-label">TASLAK</div>
+    </div>
+  </div>
+</div>
+
 <p-table [value]="campaigns()" [loading]="loading()" [rows]="20" [paginator]="campaigns().length > 20" styleClass="p-datatable-sm">
   <ng-template pTemplate="header">
     <tr>

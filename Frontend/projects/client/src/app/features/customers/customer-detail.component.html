@@ -1,12 +1,17 @@
 <p-breadcrumb [model]="breadcrumbItems()" [home]="breadcrumbHome" styleClass="detail-breadcrumb" />
 
-<h1>
+<div class="detail-header">
   @if (customer(); as c) {
-    {{ c.firstName }} {{ c.lastName }}
-  } @else {
-    Müşteri
+    <span class="avatar-circle avatar-circle--lg">{{ c.firstName?.[0] }}{{ c.lastName?.[0] }}</span>
   }
-</h1>
+  <h1>
+    @if (customer(); as c) {
+      {{ c.firstName }} {{ c.lastName }}
+    } @else {
+      Müşteri
+    }
+  </h1>
+</div>
 
 <p-tabView>
   <p-tabPanel header="Profil">

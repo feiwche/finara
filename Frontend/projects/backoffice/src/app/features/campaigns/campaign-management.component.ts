@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Observable, firstValueFrom } from 'rxjs';
@@ -59,6 +59,9 @@ export class CampaignManagementComponent implements OnInit {
   // Aynı anda tek bir kampanya üzerinde işlem yapılır; o kampanyanın tüm aksiyon
   // butonları bu id ile spinner gösterip devre dışı kalır.
   protected busyId = signal<string | null>(null);
+
+  protected readonly activeCount = computed(() => this.campaigns().filter(c => c.status === 'Active').length);
+  protected readonly draftCount = computed(() => this.campaigns().filter(c => c.status === 'Draft').length);
 
   protected categories = TRANSACTION_CATEGORY_OPTIONS;
   protected propensities = SPENDING_PROPENSITY_OPTIONS;
