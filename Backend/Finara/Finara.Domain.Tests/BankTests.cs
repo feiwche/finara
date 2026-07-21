@@ -56,4 +56,14 @@ public class BankTests
 
         act.Should().Throw<InvalidOperationException>();
     }
+
+    [Fact]
+    public void SetDataProviderType_ProviderTipiniGunceller()
+    {
+        var bank = Domain.Entities.Bank.Create("Test Bankası", "TEST");
+
+        bank.SetDataProviderType(Domain.Enums.BankDataProviderType.GarantiSandbox);
+
+        bank.DataProviderType.Should().Be(Domain.Enums.BankDataProviderType.GarantiSandbox);
+    }
 }

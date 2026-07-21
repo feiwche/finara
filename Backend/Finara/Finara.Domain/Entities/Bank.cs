@@ -44,4 +44,10 @@ public class Bank : BaseEntity
         IsActive = false;
         MarkUpdated();
     }
+
+    public void SetDataProviderType(BankDataProviderType dataProviderType)
+    {
+        DataProviderType = dataProviderType;
+        MarkUpdated();
+    }
 }

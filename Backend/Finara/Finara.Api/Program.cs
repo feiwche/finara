@@ -35,12 +35,21 @@ builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
 
 builder.Services.Configure<PayloadGuardOptions>(builder.Configuration.GetSection("PayloadGuard"));
 
-// Faz 8.2 — banka entegrasyonu henüz yok, tek implementasyon Bogus tabanlı mock üretici,
-// BankDataProviderType.Mock anahtarıyla keyed service olarak kayıtlı. İleride gerçek banka
-// API'sine bağlanan bir implementasyon eklendiğinde yeni bir enum değeri + yeni bir
-// AddKeyedScoped satırı yeterli olacak, IBankDataProviderFactory'yi tüketen kod değişmeyecek.
+// Faz 8.2 — Bogus tabanlı mock üretici, BankDataProviderType.Mock anahtarıyla keyed
+// service olarak kayıtlı. IBankDataProviderFactory'yi tüketen kod değişmeden yeni bir
+// enum değeri + yeni bir AddKeyedScoped satırıyla genişletilebiliyor — tam da bunun
+// için tasarlanmıştı, aşağıdaki GarantiSandbox kaydı bunun ilk gerçek örneği.
 builder.Services.AddKeyedScoped<IBankDataProvider, MockBankDataProvider>(Finara.Domain.Enums.BankDataProviderType.Mock);
 builder.Services.AddScoped<IBankDataProviderFactory, BankDataProviderFactory>();
+
+// Garanti BBVA geliştirici portalı (developers.garantibbva.com.tr) sandbox API'lerine
+// bağlanan gerçek banka entegrasyonu — GarantiTokenProvider token'ı önbelleğe aldığı
+// için Singleton, "Garanti" adlı named HttpClient üzerinden IHttpClientFactory ile
+// paylaşılıyor (bkz. GarantiTokenProvider XML yorumu).
+builder.Services.AddHttpClient("Garanti");
+builder.Services.Configure<GarantiApiOptions>(builder.Configuration.GetSection("Garanti"));
+builder.Services.AddSingleton<IGarantiTokenProvider, GarantiTokenProvider>();
+builder.Services.AddKeyedScoped<IBankDataProvider, GarantiBankDataProvider>(Finara.Domain.Enums.BankDataProviderType.GarantiSandbox);
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAdminUserService, AdminUserService>();
