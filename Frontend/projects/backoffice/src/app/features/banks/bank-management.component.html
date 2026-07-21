@@ -1,0 +1,67 @@
+<div class="toolbar">
+  <h1>Banka Yönetimi</h1>
+  <p-button label="Yeni Banka" icon="pi pi-building" (onClick)="openCreateDialog()" />
+</div>
+
+<p-table [value]="banks()" [loading]="loading()" [rows]="20" [paginator]="banks().length > 20" styleClass="p-datatable-sm">
+  <ng-template pTemplate="header">
+    <tr>
+      <th>Ad</th>
+      <th>Kod</th>
+      <th>Veri Sağlayıcı</th>
+      <th>Durum</th>
+      <th>İşlemler</th>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="body" let-bank>
+    <tr>
+      <td>{{ bank.name }}</td>
+      <td>{{ bank.code }}</td>
+      <td>{{ dataProviderTypeLabel(bank.dataProviderType ?? '') }}</td>
+      <td>
+        <p-tag [value]="bank.isActive ? 'Aktif' : 'Pasif'" [severity]="bank.isActive ? 'success' : 'danger'" />
+      </td>
+      <td>
+        @if (bank.isActive) {
+          <p-button
+            label="Pasifleştir"
+            icon="pi pi-building"
+            size="small"
+            severity="danger"
+            [outlined]="true"
+            [loading]="busyId() === bank.id"
+            (onClick)="confirmDeactivate(bank)"
+          />
+        } @else {
+          <span class="muted-text">—</span>
+        }
+      </td>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="emptymessage">
+    <tr>
+      <td colspan="5">Henüz banka yok.</td>
+    </tr>
+  </ng-template>
+</p-table>
+
+<p-dialog header="Yeni Banka" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '420px' }">
+  <div class="field">
+    <label>Ad *</label>
+    <input type="text" pInputText [(ngModel)]="newBank.name" [class.field-invalid]="createSubmitted && !newBank.name" />
+    @if (createSubmitted && !newBank.name) {
+      <small class="field-error">Banka adı zorunlu.</small>
+    }
+  </div>
+  <div class="field">
+    <label>Kod *</label>
+    <input type="text" pInputText [(ngModel)]="newBank.code" [class.field-invalid]="createSubmitted && !newBank.code" />
+    @if (createSubmitted && !newBank.code) {
+      <small class="field-error">Banka kodu zorunlu.</small>
+    }
+  </div>
+  @if (createError()) {
+    <p-message severity="error" [text]="createError()!" />
+  }
+  <p-button label="Oluştur" [loading]="createBusy()" (onClick)="createBank()" />
+</p-dialog>

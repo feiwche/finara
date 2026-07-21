@@ -10,4 +10,8 @@ public interface IBankService
     // oluşturamaz. Yetkisiz çağrıda InvalidOperationException fırlatır (→ 400,
     // GlobalExceptionHandler'daki mevcut iş kuralı ihlali eşlemesiyle tutarlı).
     Task<BankSummary> CreateBankAsync(CreateBankRequest request, CancellationToken cancellationToken = default);
+
+    // Sadece SuperAdmin çağırabilir (aynı yetki kuralı). Banka bulunamazsa null
+    // (endpoint bunu 404'e çevirir) — AdminUserService.DeactivateAdminAsync ile aynı desen.
+    Task<BankSummary?> DeactivateBankAsync(Guid bankId, CancellationToken cancellationToken = default);
 }

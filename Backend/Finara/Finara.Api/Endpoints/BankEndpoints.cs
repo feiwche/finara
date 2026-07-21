@@ -22,5 +22,16 @@ public static class BankEndpoints
             return Results.Created($"/api/banks/{summary.Id}", summary);
         })
         .Produces<BankSummary>(StatusCodes.Status201Created);
+
+        banks.MapPost("/{id:guid}/deactivate", async (Guid id, IBankService service, CancellationToken ct) =>
+        {
+            var summary = await service.DeactivateBankAsync(id, ct);
+            return summary is null
+                ? Results.Problem(statusCode: StatusCodes.Status404NotFound, title: "Banka bulunamadı",
+                    detail: $"'{id}' kimlikli banka bulunamadı.")
+                : Results.Ok(summary);
+        })
+        .Produces<BankSummary>()
+        .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }

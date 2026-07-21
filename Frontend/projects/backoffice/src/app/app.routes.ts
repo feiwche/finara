@@ -35,6 +35,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/admin-accounts/admin-accounts.component').then(m => m.AdminAccountsComponent)
       },
       {
+        path: 'banks',
+        title: 'Finara BackOffice — Banka Yönetimi',
+        loadComponent: () => import('./features/banks/bank-management.component').then(m => m.BankManagementComponent)
+      },
+      {
         path: 'cohorts',
         title: 'Finara BackOffice — Kohort Gezgini',
         loadComponent: () => import('./features/cohorts/cohort-explorer.component').then(m => m.CohortExplorerComponent)

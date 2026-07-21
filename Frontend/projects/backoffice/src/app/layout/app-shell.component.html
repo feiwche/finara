@@ -6,6 +6,9 @@
       <a routerLink="/campaigns" routerLinkActive="active"><i class="pi pi-megaphone"></i> Kampanyalar</a>
       <a routerLink="/audit-logs" routerLinkActive="active"><i class="pi pi-list"></i> Denetim Kaydı</a>
       <a routerLink="/admin-accounts" routerLinkActive="active"><i class="pi pi-users"></i> Yönetici Hesapları</a>
+      @if (authService.isSuperAdmin()) {
+        <a routerLink="/banks" routerLinkActive="active"><i class="pi pi-building"></i> Banka Yönetimi</a>
+      }
       <a routerLink="/cohorts" routerLinkActive="active"><i class="pi pi-sitemap"></i> Kohort Gezgini</a>
       <a routerLink="/notifications" routerLinkActive="active"><i class="pi pi-send"></i> Bildirim Kaydı</a>
     </nav>

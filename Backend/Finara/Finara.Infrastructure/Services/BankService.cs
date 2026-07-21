@@ -31,5 +31,20 @@ public class BankService(FinaraDbContext dbContext, ICurrentUserContext currentU
         return ToSummary(bank);
     }
 
-    private static BankSummary ToSummary(Bank bank) => new(bank.Id, bank.Name, bank.Code, bank.IsActive);
+    public async Task<BankSummary?> DeactivateBankAsync(Guid bankId, CancellationToken cancellationToken = default)
+    {
+        if (!currentUser.IsSuperAdmin)
+            throw new InvalidOperationException("Banka pasifleştirmek için SuperAdmin yetkisi gerekli.");
+
+        var bank = await dbContext.Banks.FirstOrDefaultAsync(b => b.Id == bankId, cancellationToken);
+        if (bank is null)
+            return null;
+
+        bank.Deactivate();
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return ToSummary(bank);
+    }
+
+    private static BankSummary ToSummary(Bank bank) => new(bank.Id, bank.Name, bank.Code, bank.IsActive, bank.DataProviderType);
 }

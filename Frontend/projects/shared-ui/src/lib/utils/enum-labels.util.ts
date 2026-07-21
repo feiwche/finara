@@ -1,4 +1,4 @@
-import { AgeBracket, AuditActionType, ConsentChannel, EducationLevel, SpendingPropensity, TransactionCategory, UserRole } from '../api/finara-client';
+import { AgeBracket, AuditActionType, BankDataProviderType, ConsentChannel, EducationLevel, SpendingPropensity, TransactionCategory, UserRole } from '../api/finara-client';
 
 // Backend enum'ları (İngilizce, API sözleşmesinin parçası) ile arayüzde gösterilen
 // metin birbirinden ayrılıyor — [(ngModel)]/API çağrıları hep İngilizce değeri kullanır,
@@ -69,6 +69,11 @@ const EDUCATION_LEVEL_LABELS: Record<string, string> = {
   Lisansustu: 'Lisansüstü'
 };
 
+const BANK_DATA_PROVIDER_TYPE_LABELS: Record<string, string> = {
+  Mock: 'Simüle Veri (Mock)',
+  GarantiSandbox: 'Garanti BBVA Sandbox'
+};
+
 const AGE_BRACKET_LABELS: Record<string, string> = {
   Age18To25: '18-25',
   Age26To35: '26-35',
@@ -111,6 +116,10 @@ export function ageBracketLabel(bracket: string): string {
 
 export function consentChannelLabel(channel: string): string {
   return CONSENT_CHANNEL_LABELS[channel] ?? channel;
+}
+
+export function bankDataProviderTypeLabel(type: string): string {
+  return BANK_DATA_PROVIDER_TYPE_LABELS[type] ?? type;
 }
 
 // p-select gibi dropdown'lar için: değer İngilizce enum olarak kalır (API'ye o gönderilir),
