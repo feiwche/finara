@@ -17,10 +17,9 @@ import {
 } from '@finara/shared-ui';
 
 @Component({
-  selector: 'app-cohort-explorer',
-  standalone: true,
-  imports: [TableModule, TagModule],
-  templateUrl: './cohort-explorer.component.html'
+    selector: 'app-cohort-explorer',
+    imports: [TableModule, TagModule],
+    templateUrl: './cohort-explorer.component.html'
 })
 export class CohortExplorerComponent implements OnInit {
   private readonly client = inject(Client);

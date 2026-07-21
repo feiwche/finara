@@ -29,23 +29,22 @@ import {
 } from '@finara/shared-ui';
 
 @Component({
-  selector: 'app-customer-list',
-  standalone: true,
-  imports: [
-    FormsModule,
-    TableModule,
-    ButtonModule,
-    DialogModule,
-    InputTextModule,
-    DatePickerModule,
-    CheckboxModule,
-    MessageModule,
-    TagModule,
-    IconFieldModule,
-    InputIconModule,
-    SelectModule
-  ],
-  templateUrl: './customer-list.component.html'
+    selector: 'app-customer-list',
+    imports: [
+        FormsModule,
+        TableModule,
+        ButtonModule,
+        DialogModule,
+        InputTextModule,
+        DatePickerModule,
+        CheckboxModule,
+        MessageModule,
+        TagModule,
+        IconFieldModule,
+        InputIconModule,
+        SelectModule
+    ],
+    templateUrl: './customer-list.component.html'
 })
 export class CustomerListComponent implements OnInit {
   private readonly client = inject(Client);

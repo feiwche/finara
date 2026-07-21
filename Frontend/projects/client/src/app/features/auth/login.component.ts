@@ -11,10 +11,9 @@ import { MessageModule } from 'primeng/message';
 import { AuthService, describeApiError } from '@finara/shared-ui';
 
 @Component({
-  selector: 'app-login',
-  standalone: true,
-  imports: [FormsModule, InputTextModule, PasswordModule, ButtonModule, CardModule, MessageModule],
-  templateUrl: './login.component.html'
+    selector: 'app-login',
+    imports: [FormsModule, InputTextModule, PasswordModule, ButtonModule, CardModule, MessageModule],
+    templateUrl: './login.component.html'
 })
 export class LoginComponent implements OnInit {
   private readonly auth = inject(AuthService);

@@ -10,10 +10,9 @@ import { MessageService } from 'primeng/api';
 import { Client, GenerateMockDataRequest, describeApiError } from '@finara/shared-ui';
 
 @Component({
-  selector: 'app-tools',
-  standalone: true,
-  imports: [FormsModule, CardModule, ButtonModule, InputNumberModule],
-  templateUrl: './tools.component.html'
+    selector: 'app-tools',
+    imports: [FormsModule, CardModule, ButtonModule, InputNumberModule],
+    templateUrl: './tools.component.html'
 })
 export class ToolsComponent {
   private readonly client = inject(Client);

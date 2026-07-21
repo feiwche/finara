@@ -6,10 +6,9 @@ import { TagModule } from 'primeng/tag';
 import { AuthService } from '@finara/shared-ui';
 
 @Component({
-  selector: 'app-shell',
-  standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, MenubarModule, ButtonModule, TagModule],
-  templateUrl: './app-shell.component.html'
+    selector: 'app-shell',
+    imports: [RouterOutlet, RouterLink, RouterLinkActive, MenubarModule, ButtonModule, TagModule],
+    templateUrl: './app-shell.component.html'
 })
 export class AppShellComponent {
   private readonly router = inject(Router);

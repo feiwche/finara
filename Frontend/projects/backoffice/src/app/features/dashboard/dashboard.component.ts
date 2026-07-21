@@ -13,10 +13,9 @@ import {
 } from '@finara/shared-ui';
 
 @Component({
-  selector: 'app-dashboard',
-  standalone: true,
-  imports: [CardModule, ChartModule],
-  templateUrl: './dashboard.component.html'
+    selector: 'app-dashboard',
+    imports: [CardModule, ChartModule],
+    templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent implements OnInit {
   private readonly client = inject(Client);

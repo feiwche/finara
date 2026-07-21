@@ -62,29 +62,28 @@ const CATEGORY_ICONS: Record<string, string> = {
 };
 
 @Component({
-  selector: 'app-customer-detail',
-  standalone: true,
-  imports: [
-    CurrencyPipe,
-    DatePipe,
-    NgClass,
-    FormsModule,
-    TabViewModule,
-    TableModule,
-    ButtonModule,
-    CardModule,
-    MessageModule,
-    TagModule,
-    InputTextModule,
-    InputNumberModule,
-    SelectModule,
-    DatePickerModule,
-    ProgressSpinnerModule,
-    ProgressBarModule,
-    TextareaModule,
-    BreadcrumbModule
-  ],
-  templateUrl: './customer-detail.component.html'
+    selector: 'app-customer-detail',
+    imports: [
+        CurrencyPipe,
+        DatePipe,
+        NgClass,
+        FormsModule,
+        TabViewModule,
+        TableModule,
+        ButtonModule,
+        CardModule,
+        MessageModule,
+        TagModule,
+        InputTextModule,
+        InputNumberModule,
+        SelectModule,
+        DatePickerModule,
+        ProgressSpinnerModule,
+        ProgressBarModule,
+        TextareaModule,
+        BreadcrumbModule
+    ],
+    templateUrl: './customer-detail.component.html'
 })
 export class CustomerDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);

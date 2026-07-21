@@ -24,21 +24,20 @@ import {
 } from '@finara/shared-ui';
 
 @Component({
-  selector: 'app-notification-log',
-  standalone: true,
-  imports: [
-    DatePipe,
-    FormsModule,
-    TableModule,
-    ButtonModule,
-    SelectModule,
-    DatePickerModule,
-    TagModule,
-    IconFieldModule,
-    InputIconModule,
-    InputTextModule
-  ],
-  templateUrl: './notification-log.component.html'
+    selector: 'app-notification-log',
+    imports: [
+        DatePipe,
+        FormsModule,
+        TableModule,
+        ButtonModule,
+        SelectModule,
+        DatePickerModule,
+        TagModule,
+        IconFieldModule,
+        InputIconModule,
+        InputTextModule
+    ],
+    templateUrl: './notification-log.component.html'
 })
 export class NotificationLogComponent implements OnInit {
   private readonly client = inject(Client);

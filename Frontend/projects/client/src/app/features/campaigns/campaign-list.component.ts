@@ -32,23 +32,22 @@ import {
 } from '@finara/shared-ui';
 
 @Component({
-  selector: 'app-campaign-list',
-  standalone: true,
-  imports: [
-    DatePipe,
-    FormsModule,
-    TableModule,
-    ButtonModule,
-    DialogModule,
-    InputTextModule,
-    TextareaModule,
-    DatePickerModule,
-    SelectModule,
-    CheckboxModule,
-    TagModule,
-    MessageModule
-  ],
-  templateUrl: './campaign-list.component.html'
+    selector: 'app-campaign-list',
+    imports: [
+        DatePipe,
+        FormsModule,
+        TableModule,
+        ButtonModule,
+        DialogModule,
+        InputTextModule,
+        TextareaModule,
+        DatePickerModule,
+        SelectModule,
+        CheckboxModule,
+        TagModule,
+        MessageModule
+    ],
+    templateUrl: './campaign-list.component.html'
 })
 export class CampaignListComponent implements OnInit {
   private readonly client = inject(Client);

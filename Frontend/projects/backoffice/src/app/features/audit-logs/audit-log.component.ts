@@ -25,21 +25,20 @@ import {
 } from '@finara/shared-ui';
 
 @Component({
-  selector: 'app-audit-log',
-  standalone: true,
-  imports: [
-    DatePipe,
-    FormsModule,
-    TableModule,
-    ButtonModule,
-    SelectModule,
-    DatePickerModule,
-    TagModule,
-    IconFieldModule,
-    InputIconModule,
-    InputTextModule
-  ],
-  templateUrl: './audit-log.component.html'
+    selector: 'app-audit-log',
+    imports: [
+        DatePipe,
+        FormsModule,
+        TableModule,
+        ButtonModule,
+        SelectModule,
+        DatePickerModule,
+        TagModule,
+        IconFieldModule,
+        InputIconModule,
+        InputTextModule
+    ],
+    templateUrl: './audit-log.component.html'
 })
 export class AuditLogComponent implements OnInit {
   private readonly client = inject(Client);

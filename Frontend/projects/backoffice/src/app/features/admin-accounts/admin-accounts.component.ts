@@ -26,10 +26,9 @@ import {
 } from '@finara/shared-ui';
 
 @Component({
-  selector: 'app-admin-accounts',
-  standalone: true,
-  imports: [DatePipe, FormsModule, TableModule, ButtonModule, DialogModule, InputTextModule, PasswordModule, SelectModule, TagModule, MessageModule],
-  templateUrl: './admin-accounts.component.html'
+    selector: 'app-admin-accounts',
+    imports: [DatePipe, FormsModule, TableModule, ButtonModule, DialogModule, InputTextModule, PasswordModule, SelectModule, TagModule, MessageModule],
+    templateUrl: './admin-accounts.component.html'
 })
 export class AdminAccountsComponent implements OnInit {
   private readonly client = inject(Client);
