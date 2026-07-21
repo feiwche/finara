@@ -10,36 +10,36 @@ namespace Finara.Infrastructure.Services;
 
 // Faz 8'in gerçek banka entegrasyonu — Garanti BBVA'nın geliştirici portalındaki
 // (developers.garantibbva.com.tr) "Account Information" ve "Account Transactions"
-// sandbox API'lerine bağlanıyor. IBankDataProviderFactory'yi tüketen kod (CustomerService)
-// hiç değişmedi — Faz 8.2'nin tam da bunun için tasarlandığı an bu.
+// sandbox API'lerine bağlanıyor. Şema, portaldaki "Documentation" sekmesinden elle
+// doğrulandı (2026-07-21) — GET değil POST, JSON gövdeli, consentId ZORUNLU.
 //
-// ÖNEMLİ — bilinen sınır: API'nin tam yanıt şeması (alan adları) sadece geliştirici
-// portalında hesap açılıp "Account Information"/"Account Transactions" API'lerinin
-// "More Info" dokümantasyonuna girildiğinde görülebiliyor (login arkasında). Aşağıdaki
-// GarantiAccountResponse/GarantiTransaction record'ları makul bir varsayıma dayanıyor —
-// gerçek hesap açılıp ilk canlı çağrı denendiğinde alan adları doğrulanmalı/düzeltilmeli.
-// Banka hesap API'si e-posta/telefon/eğitim durumu gibi Finara'ya özel alanları hiç
-// döndürmüyor — bunlar placeholder değerlerle dolduruluyor, içe aktarma sonrası
-// BackOffice/CRM'den elle tamamlanmalı. KVKK gereği rıza da VARSAYILAMAZ, hepsi false.
+// ÖNEMLİ: Account Information yanıtı müşteri adı DÖNDÜRMÜYOR (sadece bakiye/IBAN/hesap
+// tipi) — müşteri adı Account Transactions yanıtındaki "customerName" alanından
+// alınıyor, bu yüzden GenerateCustomerAsync önce bir işlem sayfası çekiyor. E-posta/
+// telefon/eğitim durumu gibi Finara'ya özel alanları hiçbir Garanti API'si döndürmüyor —
+// placeholder değerlerle dolduruluyor, içe aktarma sonrası elle tamamlanmalı. KVKK
+// gereği rıza da varsayılamıyor, hepsi false.
 public class GarantiBankDataProvider(IHttpClientFactory httpClientFactory, IGarantiTokenProvider tokenProvider, IOptions<GarantiApiOptions> options) : IBankDataProvider
 {
     private readonly GarantiApiOptions _options = options.Value;
 
     public async Task<CustomerData> GenerateCustomerAsync(CancellationToken cancellationToken = default)
     {
-        var response = await SendAsync(
-            $"{_options.BaseUrl}/balancesandmovements/accountinformation/account/v1/{_options.TestAccountNumber}",
+        // Account Information müşteri adı döndürmüyor — sadece hesap/bakiye bilgisi
+        // teyit etmek için çağrılıyor, isim Account Transactions'tan geliyor.
+        await PostAsync<GarantiAccountInformationResponse>(
+            "/balancesandmovements/accountinformation/account/v1/getaccountinformation",
+            new GarantiAccountInformationRequest(_options.ConsentId, _options.UnitNum, _options.AccountNum, _options.Iban),
             cancellationToken);
 
-        var payload = await response.Content.ReadFromJsonAsync<GarantiAccountResponse>(cancellationToken: cancellationToken)
-            ?? throw new InvalidOperationException("Garanti hesap bilgisi yanıtı okunamadı.");
-
-        var (firstName, lastName) = SplitName(payload.AccountHolderName ?? "Garanti Müşteri");
+        var transactions = await FetchTransactionsAsync(cancellationToken);
+        var customerName = transactions.FirstOrDefault()?.CustomerName?.Trim();
+        var (firstName, lastName) = SplitName(string.IsNullOrWhiteSpace(customerName) ? "Garanti Müşteri" : customerName);
 
         return new CustomerData(
             FirstName: firstName,
             LastName: lastName,
-            Email: $"{payload.AccountNumber ?? Guid.NewGuid().ToString("N")}@garanti-import.local",
+            Email: $"{_options.AccountNum}@garanti-import.local",
             DateOfBirth: DateTime.UtcNow.AddYears(-30),
             HasInvestmentAccount: false,
             HasInternationalTransfers: false,
@@ -55,36 +55,58 @@ public class GarantiBankDataProvider(IHttpClientFactory httpClientFactory, IGara
 
     public async Task<IReadOnlyList<TransactionData>> GenerateTransactionsAsync(int count, CancellationToken cancellationToken = default)
     {
-        var response = await SendAsync(
-            $"{_options.BaseUrl}/balancesandmovements/accountinformation/transaction/v1/gettransactions?accountNumber={_options.TestAccountNumber}",
-            cancellationToken);
+        var transactions = await FetchTransactionsAsync(cancellationToken);
 
-        var payload = await response.Content.ReadFromJsonAsync<GarantiTransactionListResponse>(cancellationToken: cancellationToken)
-            ?? throw new InvalidOperationException("Garanti işlem listesi yanıtı okunamadı.");
-
-        return payload.Transactions
+        return transactions
             .Take(count)
             .Select(t => new TransactionData(
                 Amount: Math.Abs(t.Amount),
-                Category: MapCategory(t.Description),
-                MerchantName: t.Description ?? "Garanti İşlemi",
-                OccurredAtUtc: DateTime.SpecifyKind(t.TransactionDate, DateTimeKind.Utc),
-                Currency: t.Currency ?? "TRY",
-                IsInternational: false))
+                Category: MapCategory(t.Explanation),
+                MerchantName: string.IsNullOrWhiteSpace(t.Explanation) ? "Garanti İşlemi" : t.Explanation.Trim(),
+                OccurredAtUtc: DateTime.SpecifyKind(t.ActivityDate, DateTimeKind.Utc),
+                Currency: string.IsNullOrWhiteSpace(t.CurrencyCode) ? "TRY" : NormalizeCurrency(t.CurrencyCode),
+                IsInternational: t.ClasificationCode?.Contains("DOV", StringComparison.OrdinalIgnoreCase) == true))
             .ToList();
     }
 
-    private async Task<HttpResponseMessage> SendAsync(string url, CancellationToken cancellationToken)
+    private async Task<IReadOnlyList<GarantiTransaction>> FetchTransactionsAsync(CancellationToken cancellationToken)
+    {
+        var now = DateTime.UtcNow;
+        var request = new GarantiTransactionsRequest(
+            ConsentId: _options.ConsentId,
+            UnitNum: _options.UnitNum,
+            AccountNum: _options.AccountNum,
+            Iban: _options.Iban,
+            // Garanti'nin kendi kısıtı: aralık 30 günden fazla olamaz.
+            StartDate: now.AddDays(-30).ToString("yyyy-MM-ddTHH:mm:ss.fff"),
+            EndDate: now.ToString("yyyy-MM-ddTHH:mm:ss.fff"),
+            PageIndex: 1,
+            PageSize: 100);
+
+        var response = await PostAsync<GarantiTransactionListResponse>(
+            "/balancesandmovements/accountinformation/transaction/v1/gettransactions",
+            request,
+            cancellationToken);
+
+        return response.Transactions ?? [];
+    }
+
+    private async Task<T> PostAsync<T>(string path, object body, CancellationToken cancellationToken)
     {
         var token = await tokenProvider.GetAccessTokenAsync(cancellationToken);
 
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"{_options.BaseUrl}{path}")
+        {
+            Content = JsonContent.Create(body)
+        };
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var client = httpClientFactory.CreateClient("Garanti");
         var response = await client.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
-        return response;
+
+        return await response.Content.ReadFromJsonAsync<T>(cancellationToken: cancellationToken)
+            ?? throw new InvalidOperationException($"Garanti '{path}' yanıtı okunamadı.");
     }
 
     private static (string FirstName, string LastName) SplitName(string fullName)
@@ -93,14 +115,27 @@ public class GarantiBankDataProvider(IHttpClientFactory httpClientFactory, IGara
         return parts.Length == 2 ? (parts[0], parts[1]) : (parts[0], "-");
     }
 
-    // Garanti'nin işlem açıklamasında yapılandırılmış bir kategori alanı yok — anahtar
-    // kelime eşlemesiyle kaba bir tahmin yapılıyor, gerçek API dokümantasyonu geldiğinde
-    // (muhtemelen bir MCC/kategori kodu döner) iyileştirilmeli.
-    private static TransactionCategory MapCategory(string? description)
+    // Garanti "TL " gibi boşluklu/kısaltılmış kodlar döndürebiliyor (bkz. örnek yanıt) —
+    // Transaction.Create() ISO 4217 formatı beklemiyor ama tutarlılık için normalize ediliyor.
+    private static string NormalizeCurrency(string currencyCode) =>
+        currencyCode.Trim().ToUpperInvariant() switch
+        {
+            "TL" => "TRY",
+            var c => c
+        };
+
+    // Garanti'nin "explanation" (işlem açıklaması) serbest metin — yapılandırılmış bir
+    // kategori/MCC alanı yok, bu yüzden gerçek örnek açıklamalara (MAAŞ ÖDEMESİ, Para
+    // Transferi, DÖVİZ İŞLEMLERİ vb. — Documentation sekmesindeki örnek yanıttan) göre
+    // anahtar kelime eşlemesi yapılıyor.
+    private static TransactionCategory MapCategory(string? explanation)
     {
-        var text = (description ?? string.Empty).ToUpperInvariant();
+        var text = (explanation ?? string.Empty).ToUpperInvariant();
         return text switch
         {
+            var d when d.Contains("MAAŞ") || d.Contains("MAAS") => TransactionCategory.Other,
+            var d when d.Contains("DÖVİZ") || d.Contains("DOVIZ") => TransactionCategory.ForeignExchange,
+            var d when d.Contains("TRANSFER") || d.Contains("EFT") || d.Contains("HAVALE") => TransactionCategory.Other,
             var d when d.Contains("MARKET") || d.Contains("MIGROS") || d.Contains("BIM") || d.Contains("A101") => TransactionCategory.Groceries,
             var d when d.Contains("AKARYAKIT") || d.Contains("PETROL") || d.Contains("SHELL") || d.Contains("OPET") => TransactionCategory.Fuel,
             var d when d.Contains("SEYAHAT") || d.Contains("HAVAYOLLARI") || d.Contains("UCAK") || d.Contains("OTEL") => TransactionCategory.Travel,
@@ -110,16 +145,47 @@ public class GarantiBankDataProvider(IHttpClientFactory httpClientFactory, IGara
         };
     }
 
-    private record GarantiAccountResponse(
-        [property: JsonPropertyName("accountNumber")] string? AccountNumber,
-        [property: JsonPropertyName("accountHolderName")] string? AccountHolderName);
+    private record GarantiAccountInformationRequest(
+        [property: JsonPropertyName("consentId")] string ConsentId,
+        [property: JsonPropertyName("unitNum")] string UnitNum,
+        [property: JsonPropertyName("accountNum")] string AccountNum,
+        [property: JsonPropertyName("IBAN")] string Iban);
+
+    private record GarantiAccountInformationResponse(
+        [property: JsonPropertyName("result")] GarantiResult? Result,
+        [property: JsonPropertyName("accounts")] IReadOnlyList<GarantiAccount>? Accounts);
+
+    private record GarantiAccount(
+        [property: JsonPropertyName("accountNum")] long AccountNum,
+        [property: JsonPropertyName("IBAN")] string? Iban,
+        [property: JsonPropertyName("currencyCode")] string? CurrencyCode,
+        [property: JsonPropertyName("status")] string? Status);
+
+    private record GarantiTransactionsRequest(
+        [property: JsonPropertyName("consentId")] string ConsentId,
+        [property: JsonPropertyName("unitNum")] string UnitNum,
+        [property: JsonPropertyName("accountNum")] string AccountNum,
+        [property: JsonPropertyName("IBAN")] string Iban,
+        [property: JsonPropertyName("startDate")] string StartDate,
+        [property: JsonPropertyName("endDate")] string EndDate,
+        [property: JsonPropertyName("pageIndex")] int PageIndex,
+        [property: JsonPropertyName("pageSize")] int PageSize);
 
     private record GarantiTransactionListResponse(
-        [property: JsonPropertyName("transactions")] IReadOnlyList<GarantiTransaction> Transactions);
+        [property: JsonPropertyName("result")] GarantiResult? Result,
+        [property: JsonPropertyName("transactions")] IReadOnlyList<GarantiTransaction>? Transactions);
 
     private record GarantiTransaction(
-        [property: JsonPropertyName("transactionDate")] DateTime TransactionDate,
+        [property: JsonPropertyName("customerName")] string? CustomerName,
+        [property: JsonPropertyName("activityDate")] DateTime ActivityDate,
         [property: JsonPropertyName("amount")] decimal Amount,
-        [property: JsonPropertyName("currency")] string? Currency,
-        [property: JsonPropertyName("description")] string? Description);
+        [property: JsonPropertyName("currencyCode")] string? CurrencyCode,
+        [property: JsonPropertyName("explanation")] string? Explanation,
+        [property: JsonPropertyName("clasificationCode")] string? ClasificationCode,
+        [property: JsonPropertyName("txnCreditDebitIndicator")] string? TxnCreditDebitIndicator);
+
+    private record GarantiResult(
+        [property: JsonPropertyName("returnCode")] int ReturnCode,
+        [property: JsonPropertyName("reasonCode")] int ReasonCode,
+        [property: JsonPropertyName("messageText")] string? MessageText);
 }
