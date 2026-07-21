@@ -34,11 +34,14 @@ public class AuthService(FinaraDbContext dbContext, IConfiguration configuration
     {
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
         var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail, cancellationToken);
-        if (user is null || !PasswordHasher.Verify(request.Password, user.PasswordHash))
-            throw new UnauthorizedAccessException("E-posta veya şifre hatalı.");
 
-        if (!user.IsActive)
-            throw new UnauthorizedAccessException("Bu hesap pasifleştirilmiş.");
+        // Hesap var mı/pasif mi/şifre yanlış mı — hiçbiri ayrı mesajla dışarı sızmıyor,
+        // hepsi aynı jenerik 401'e düşüyor (hesap varlığı/durumu oracle'ı önlemek için).
+        // Verify her zaman çağrılıyor (user null değilse) ki IsActive kontrolü zamanlama
+        // farkıyla ayrı bir oracle oluşturmasın.
+        var passwordValid = user is not null && PasswordHasher.Verify(request.Password, user.PasswordHash);
+        if (user is null || !passwordValid || !user.IsActive)
+            throw new UnauthorizedAccessException("E-posta veya şifre hatalı.");
 
         return await IssueTokensAsync(user, cancellationToken);
     }

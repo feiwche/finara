@@ -51,8 +51,22 @@ public class SegmentationService(FinaraDbContext dbContext, IAuditLogRepository 
         var staleActiveSegments = await segmentsQuery
             .Where(s => s.IsActive && !activeCustomerIds.Contains(s.CustomerId))
             .ToListAsync(cancellationToken);
-        foreach (var stale in staleActiveSegments)
-            stale.Deactivate();
+        if (staleActiveSegments.Count > 0)
+        {
+            // Segment deaktive olunca müşterinin CurrentPropensity'si de Nötr'e dönmeli —
+            // yoksa segment yokken (404) listede eski bir eğilim gösterilmeye devam eder.
+            var staleCustomerIds = staleActiveSegments.Select(s => s.CustomerId).ToList();
+            var staleCustomers = await customersQuery
+                .Where(c => staleCustomerIds.Contains(c.Id))
+                .ToDictionaryAsync(c => c.Id, cancellationToken);
+
+            foreach (var stale in staleActiveSegments)
+            {
+                stale.Deactivate();
+                if (staleCustomers.TryGetValue(stale.CustomerId, out var staleCustomer))
+                    staleCustomer.AssignPropensity(SpendingPropensity.Neutral);
+            }
+        }
 
         if (activitySummaries.Count > 0)
         {

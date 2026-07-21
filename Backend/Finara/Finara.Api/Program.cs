@@ -145,7 +145,7 @@ builder.Services.AddAuthorization();
 // Faz 8'de gerçek origin'ler appsettings üzerinden yapılandırılabilir hale getirilecek.
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAngularDev", policy =>
+    options.AddPolicy("AllowFrontendApps", policy =>
         policy.WithOrigins("http://localhost:4200", "http://localhost:4300")
               .AllowAnyHeader()
               .AllowAnyMethod());
@@ -244,7 +244,7 @@ var app = builder.Build();
 app.UseExceptionHandler();
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseMiddleware<PayloadGuardMiddleware>();
-app.UseCors("AllowAngularDev");
+app.UseCors("AllowFrontendApps");
 app.UseAuthentication();
 app.UseAuthorization();
 // UseAuthentication/UseAuthorization'dan SONRA çalışmalı — RateLimitPolicies.GetPartitionKey
