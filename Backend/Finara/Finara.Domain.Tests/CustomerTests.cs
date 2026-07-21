@@ -122,4 +122,40 @@ public class CustomerTests
 
         customer.GetAgeBracket().Should().Be(expected);
     }
+
+    [Fact]
+    public void UpdatePhoneNumber_VarsayilanOlarakNull_GecerliE164IleGuncellenebilir()
+    {
+        var customer = Domain.Entities.Customer.Create(ValidBankId, "Ali", "Veli", "ali@example.com", ValidBirthDate);
+        customer.PhoneNumber.Should().BeNull();
+
+        customer.UpdatePhoneNumber("+905551234567");
+
+        customer.PhoneNumber.Should().Be("+905551234567");
+    }
+
+    [Fact]
+    public void UpdatePhoneNumber_BosVerilirse_NullOlur()
+    {
+        var customer = Domain.Entities.Customer.Create(ValidBankId, "Ali", "Veli", "ali@example.com", ValidBirthDate);
+        customer.UpdatePhoneNumber("+905551234567");
+
+        customer.UpdatePhoneNumber(null);
+
+        customer.PhoneNumber.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData("05551234567")]
+    [InlineData("+90 555 123 45 67")]
+    [InlineData("abc")]
+    [InlineData("+0123456789")]
+    public void UpdatePhoneNumber_GecersizFormat_ArgumentExceptionFirlatir(string phoneNumber)
+    {
+        var customer = Domain.Entities.Customer.Create(ValidBankId, "Ali", "Veli", "ali@example.com", ValidBirthDate);
+
+        var act = () => customer.UpdatePhoneNumber(phoneNumber);
+
+        act.Should().Throw<ArgumentException>().WithParameterName("phoneNumber");
+    }
 }

@@ -187,6 +187,13 @@
     <p class="consent-hint">
       KVKK/İYS gereği, bir kanaldan bildirim gönderilebilmesi için müşterinin o kanal için açık rızası olmalı.
     </p>
+    @if (customer(); as c) {
+      <p class="consent-hint">
+        <strong>Telefon:</strong> {{ c.phoneNumber ?? 'Kayıtlı değil (SMS gönderilemez)' }}
+        &nbsp;·&nbsp;
+        <strong>E-posta:</strong> {{ c.email }}
+      </p>
+    }
     <p-table [value]="consents()" styleClass="p-datatable-sm">
       <ng-template pTemplate="header">
         <tr>

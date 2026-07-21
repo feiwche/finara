@@ -19,6 +19,7 @@ public class Customer : BaseEntity
     public bool HasInvestmentAccount { get; private set; }
     public bool HasInternationalTransfers { get; private set; }
     public EducationLevel? EducationLevel { get; private set; }
+    public string? PhoneNumber { get; private set; }
     public SpendingPropensity CurrentPropensity { get; private set; } = SpendingPropensity.Neutral;
 
     private readonly List<Transaction> _transactions = new();
@@ -76,6 +77,15 @@ public class Customer : BaseEntity
         MarkUpdated();
     }
 
+    public void UpdatePhoneNumber(string? phoneNumber)
+    {
+        if (!string.IsNullOrWhiteSpace(phoneNumber) && !IsValidPhoneNumber(phoneNumber))
+            throw new ArgumentException("Geçersiz telefon numarası formatı — E.164 bekleniyor (ör. +905551234567).", nameof(phoneNumber));
+
+        PhoneNumber = string.IsNullOrWhiteSpace(phoneNumber) ? null : phoneNumber.Trim();
+        MarkUpdated();
+    }
+
     public AgeBracket GetAgeBracket() => GetAge() switch
     {
         <= 25 => AgeBracket.Age18To25,
@@ -90,6 +100,12 @@ public class Customer : BaseEntity
         CurrentPropensity = propensity;
         MarkUpdated();
     }
+
+    // Twilio dahil çoğu SMS sağlayıcısı E.164 formatı bekliyor (+ülke kodu + numara,
+    // toplam 8-15 rakam). Format burada, domain seviyesinde zorlanıyor — SMS dispatcher'ının
+    // "numara var ama biçimi bozuk" gibi bir hataya kadar hiç ulaşmaması için.
+    private static bool IsValidPhoneNumber(string phoneNumber) =>
+        System.Text.RegularExpressions.Regex.IsMatch(phoneNumber.Trim(), @"^\+[1-9]\d{7,14}$");
 
     private static bool IsValidEmail(string email)
     {

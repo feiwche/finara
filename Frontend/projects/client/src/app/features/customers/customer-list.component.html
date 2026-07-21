@@ -70,6 +70,10 @@
     }
   </div>
   <div class="field">
+    <label>Telefon (SMS için, E.164 — ör. +905551234567)</label>
+    <input type="text" pInputText [(ngModel)]="newCustomer.phoneNumber" placeholder="+905551234567" />
+  </div>
+  <div class="field">
     <label>Doğum Tarihi *</label>
     <p-datepicker
       [(ngModel)]="newCustomer.dateOfBirth"

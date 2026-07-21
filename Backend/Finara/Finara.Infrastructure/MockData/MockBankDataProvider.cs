@@ -72,6 +72,9 @@ public class MockBankDataProvider : IBankDataProvider
             HasInvestmentAccount: _faker.Random.Bool(0.2f),
             HasInternationalTransfers: _faker.Random.Bool(0.15f),
             EducationLevel: _faker.PickRandom(WeightedEducationLevelPool),
+            // Customer.UpdatePhoneNumber() E.164 bekliyor — Türkiye cep telefonu formatı
+            // (+90 5XX XXX XX XX, "5" ile başlayan 10 haneli operatör numarası).
+            PhoneNumber: $"+905{_faker.Random.Number(10, 59)}{_faker.Random.Number(1000000, 9999999)}",
             // KVKK/İYS: gerçek dünyada rıza sorulmadan hiçbir kanal "var" sayılamaz —
             // mock veri de bunu simüle ediyor, kanal başına bağımsız bir olasılıkla.
             Consents: new Dictionary<ConsentChannel, bool>

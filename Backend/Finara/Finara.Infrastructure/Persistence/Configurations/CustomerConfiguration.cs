@@ -14,6 +14,7 @@ public class CustomerConfiguration : IEntityTypeConfiguration<Customer>
         builder.Property(c => c.FirstName).HasMaxLength(100).IsRequired();
         builder.Property(c => c.LastName).HasMaxLength(100).IsRequired();
         builder.Property(c => c.Email).HasMaxLength(256).IsRequired();
+        builder.Property(c => c.PhoneNumber).HasMaxLength(20);
 
         // Banka bazlı benzersizlik — iki farklı banka aynı e-postayı kendi müşterisi
         // olarak ayrı ayrı kaydedebilir (bkz. CustomerService.CreateCustomerAsync).

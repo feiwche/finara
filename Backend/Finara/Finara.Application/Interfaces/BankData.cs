@@ -13,6 +13,7 @@ public record CustomerData(
     bool HasInvestmentAccount,
     bool HasInternationalTransfers,
     EducationLevel EducationLevel,
+    string PhoneNumber,
     IReadOnlyDictionary<ConsentChannel, bool> Consents);
 
 public record TransactionData(

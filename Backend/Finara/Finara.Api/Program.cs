@@ -56,8 +56,33 @@ builder.Services.AddScoped<ICohortService, CohortService>();
 builder.Services.AddScoped<ConsentService>();
 builder.Services.AddScoped<IConsentService>(sp => sp.GetRequiredService<ConsentService>());
 builder.Services.AddScoped<IConsentGate>(sp => sp.GetRequiredService<ConsentService>());
-builder.Services.AddKeyedScoped<INotificationDispatcher, MockSmsDispatcher>(Finara.Domain.Enums.ConsentChannel.Sms);
-builder.Services.AddKeyedScoped<INotificationDispatcher, MockEmailDispatcher>(Finara.Domain.Enums.ConsentChannel.Email);
+
+// Hangi implementasyonun (Mock/gerçek sağlayıcı) her kanal için kayıtlı olacağı
+// appsettings/user-secrets'taki Notifications:{Email,Sms}:Provider'a göre seçiliyor.
+// Varsayılan HER ZAMAN Mock — kimlik bilgisi eksik/yanlış girildiğinde sessizce gerçek
+// bir SMS/e-posta gönderilmesin (özellikle mock veri üretimi + test akışlarında).
+builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
+builder.Services.Configure<TwilioOptions>(builder.Configuration.GetSection("Twilio"));
+
+var emailProvider = builder.Configuration["Notifications:Email:Provider"] ?? "Mock";
+if (string.Equals(emailProvider, "Smtp", StringComparison.OrdinalIgnoreCase))
+    builder.Services.AddKeyedScoped<INotificationDispatcher, SmtpEmailDispatcher>(Finara.Domain.Enums.ConsentChannel.Email);
+else
+    builder.Services.AddKeyedScoped<INotificationDispatcher, MockEmailDispatcher>(Finara.Domain.Enums.ConsentChannel.Email);
+
+var smsProvider = builder.Configuration["Notifications:Sms:Provider"] ?? "Mock";
+if (string.Equals(smsProvider, "Twilio", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddKeyedScoped<INotificationDispatcher, TwilioSmsDispatcher>(Finara.Domain.Enums.ConsentChannel.Sms);
+    Twilio.TwilioClient.Init(
+        builder.Configuration["Twilio:AccountSid"],
+        builder.Configuration["Twilio:AuthToken"]);
+}
+else
+{
+    builder.Services.AddKeyedScoped<INotificationDispatcher, MockSmsDispatcher>(Finara.Domain.Enums.ConsentChannel.Sms);
+}
+
 builder.Services.AddScoped<IOfferDistributionService, OfferDistributionService>();
 builder.Services.AddScoped<INotificationLogService, NotificationLogService>();
 builder.Services.AddScoped<INextBestOfferService, NextBestOfferService>();

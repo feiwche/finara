@@ -30,6 +30,8 @@ public class CustomerService(
             customer.UpdateFinancialFlags(request.HasInvestmentAccount, request.HasInternationalTransfers);
         if (request.EducationLevel is not null)
             customer.UpdateEducationLevel(request.EducationLevel);
+        if (request.PhoneNumber is not null)
+            customer.UpdatePhoneNumber(request.PhoneNumber);
 
         dbContext.Customers.Add(customer);
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -104,6 +106,7 @@ public class CustomerService(
             var customer = Customer.Create(bankId, data.FirstName, data.LastName, data.Email, data.DateOfBirth);
             customer.UpdateFinancialFlags(data.HasInvestmentAccount, data.HasInternationalTransfers);
             customer.UpdateEducationLevel(data.EducationLevel);
+            customer.UpdatePhoneNumber(data.PhoneNumber);
             dbContext.Customers.Add(customer);
             customersCreated++;
 
@@ -128,7 +131,7 @@ public class CustomerService(
 
     private static CustomerSummary ToSummary(Customer customer) =>
         new(customer.Id, customer.FirstName, customer.LastName, customer.Email, customer.GetAge(), customer.CurrentPropensity,
-            customer.HasInvestmentAccount, customer.HasInternationalTransfers, customer.EducationLevel);
+            customer.HasInvestmentAccount, customer.HasInternationalTransfers, customer.EducationLevel, customer.PhoneNumber);
 
     private static TransactionSummary ToSummary(Transaction transaction) =>
         new(transaction.Id, transaction.CustomerId, transaction.Amount, transaction.Category,

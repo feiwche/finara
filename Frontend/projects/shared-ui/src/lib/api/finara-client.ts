@@ -2890,6 +2890,7 @@ export class CreateCustomerRequest implements ICreateCustomerRequest {
     hasInvestmentAccount?: boolean;
     hasInternationalTransfers?: boolean;
     educationLevel?: EducationLevel;
+    phoneNumber?: string | undefined;
 
     constructor(data?: ICreateCustomerRequest) {
         if (data) {
@@ -2909,6 +2910,7 @@ export class CreateCustomerRequest implements ICreateCustomerRequest {
             this.hasInvestmentAccount = _data["hasInvestmentAccount"];
             this.hasInternationalTransfers = _data["hasInternationalTransfers"];
             this.educationLevel = _data["educationLevel"];
+            this.phoneNumber = _data["phoneNumber"];
         }
     }
 
@@ -2928,6 +2930,7 @@ export class CreateCustomerRequest implements ICreateCustomerRequest {
         data["hasInvestmentAccount"] = this.hasInvestmentAccount;
         data["hasInternationalTransfers"] = this.hasInternationalTransfers;
         data["educationLevel"] = this.educationLevel;
+        data["phoneNumber"] = this.phoneNumber;
         return data;
     }
 }
@@ -2940,6 +2943,7 @@ export interface ICreateCustomerRequest {
     hasInvestmentAccount?: boolean;
     hasInternationalTransfers?: boolean;
     educationLevel?: EducationLevel;
+    phoneNumber?: string | undefined;
 }
 
 export class CustomerSummary implements ICustomerSummary {
@@ -2952,6 +2956,7 @@ export class CustomerSummary implements ICustomerSummary {
     hasInvestmentAccount?: boolean;
     hasInternationalTransfers?: boolean;
     educationLevel?: EducationLevel;
+    phoneNumber?: string | undefined;
 
     constructor(data?: ICustomerSummary) {
         if (data) {
@@ -2973,6 +2978,7 @@ export class CustomerSummary implements ICustomerSummary {
             this.hasInvestmentAccount = _data["hasInvestmentAccount"];
             this.hasInternationalTransfers = _data["hasInternationalTransfers"];
             this.educationLevel = _data["educationLevel"];
+            this.phoneNumber = _data["phoneNumber"];
         }
     }
 
@@ -2994,6 +3000,7 @@ export class CustomerSummary implements ICustomerSummary {
         data["hasInvestmentAccount"] = this.hasInvestmentAccount;
         data["hasInternationalTransfers"] = this.hasInternationalTransfers;
         data["educationLevel"] = this.educationLevel;
+        data["phoneNumber"] = this.phoneNumber;
         return data;
     }
 }
@@ -3008,6 +3015,7 @@ export interface ICustomerSummary {
     hasInvestmentAccount?: boolean;
     hasInternationalTransfers?: boolean;
     educationLevel?: EducationLevel;
+    phoneNumber?: string | undefined;
 }
 
 export class DistributeOfferRequest implements IDistributeOfferRequest {
