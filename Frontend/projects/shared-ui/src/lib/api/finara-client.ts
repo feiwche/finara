@@ -1138,6 +1138,139 @@ export class Client {
     }
 
     /**
+     * @return OK
+     */
+    consentsAll(customerId: string): Observable<ConsentSummary[]> {
+        let url_ = this.baseUrl + "/api/customers/{customerId}/consents";
+        if (customerId === undefined || customerId === null)
+            throw new globalThis.Error("The parameter 'customerId' must be defined.");
+        url_ = url_.replace("{customerId}", encodeURIComponent("" + customerId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processConsentsAll(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processConsentsAll(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<ConsentSummary[]>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<ConsentSummary[]>;
+        }));
+    }
+
+    protected processConsentsAll(response: HttpResponseBase): Observable<ConsentSummary[]> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(ConsentSummary.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return _observableOf(result200);
+            }));
+        } else if (status === 404) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    consents(customerId: string, body: UpdateConsentRequest): Observable<ConsentSummary> {
+        let url_ = this.baseUrl + "/api/customers/{customerId}/consents";
+        if (customerId === undefined || customerId === null)
+            throw new globalThis.Error("The parameter 'customerId' must be defined.");
+        url_ = url_.replace("{customerId}", encodeURIComponent("" + customerId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("put", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processConsents(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processConsents(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<ConsentSummary>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<ConsentSummary>;
+        }));
+    }
+
+    protected processConsents(response: HttpResponseBase): Observable<ConsentSummary> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ConsentSummary.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status === 404) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
      * @return Created
      */
     customers(body: CreateCustomerRequest): Observable<CustomerSummary> {
@@ -1491,6 +1624,84 @@ export class Client {
     }
 
     /**
+     * @param customerId (optional) 
+     * @param channel (optional) 
+     * @param fromUtc (optional) 
+     * @param toUtc (optional) 
+     * @return OK
+     */
+    notifications(customerId?: string | undefined, channel?: ConsentChannel | undefined, fromUtc?: Date | undefined, toUtc?: Date | undefined): Observable<NotificationLogSummary[]> {
+        let url_ = this.baseUrl + "/api/notifications?";
+        if (customerId === null)
+            throw new globalThis.Error("The parameter 'customerId' cannot be null.");
+        else if (customerId !== undefined)
+            url_ += "customerId=" + encodeURIComponent("" + customerId) + "&";
+        if (channel === null)
+            throw new globalThis.Error("The parameter 'channel' cannot be null.");
+        else if (channel !== undefined)
+            url_ += "channel=" + encodeURIComponent("" + channel) + "&";
+        if (fromUtc === null)
+            throw new globalThis.Error("The parameter 'fromUtc' cannot be null.");
+        else if (fromUtc !== undefined)
+            url_ += "fromUtc=" + encodeURIComponent(fromUtc ? "" + fromUtc.toISOString() : "") + "&";
+        if (toUtc === null)
+            throw new globalThis.Error("The parameter 'toUtc' cannot be null.");
+        else if (toUtc !== undefined)
+            url_ += "toUtc=" + encodeURIComponent(toUtc ? "" + toUtc.toISOString() : "") + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processNotifications(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processNotifications(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<NotificationLogSummary[]>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<NotificationLogSummary[]>;
+        }));
+    }
+
+    protected processNotifications(response: HttpResponseBase): Observable<NotificationLogSummary[]> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(NotificationLogSummary.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
      * @param maxOffers (optional) 
      * @return OK
      */
@@ -1735,6 +1946,74 @@ export class Client {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
             result200 = OfferSummary.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status === 404) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    distribute(customerId: string, offerId: string, body: DistributeOfferRequest): Observable<NotificationDispatchResult> {
+        let url_ = this.baseUrl + "/api/customers/{customerId}/offers/{offerId}/distribute";
+        if (customerId === undefined || customerId === null)
+            throw new globalThis.Error("The parameter 'customerId' must be defined.");
+        url_ = url_.replace("{customerId}", encodeURIComponent("" + customerId));
+        if (offerId === undefined || offerId === null)
+            throw new globalThis.Error("The parameter 'offerId' must be defined.");
+        url_ = url_.replace("{offerId}", encodeURIComponent("" + offerId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processDistribute(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processDistribute(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<NotificationDispatchResult>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<NotificationDispatchResult>;
+        }));
+    }
+
+    protected processDistribute(response: HttpResponseBase): Observable<NotificationDispatchResult> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = NotificationDispatchResult.fromJS(resultData200);
             return _observableOf(result200);
             }));
         } else if (status === 404) {
@@ -2092,6 +2371,9 @@ export enum AuditActionType {
     CampaignOfferDeclined = "CampaignOfferDeclined",
     CustomerCreated = "CustomerCreated",
     TransactionRecorded = "TransactionRecorded",
+    OfferDistributed = "OfferDistributed",
+    ConsentGranted = "ConsentGranted",
+    ConsentRevoked = "ConsentRevoked",
 }
 
 export class AuditLogSummary implements IAuditLogSummary {
@@ -2390,6 +2672,60 @@ export interface ICohortSummary {
     isOther?: boolean;
 }
 
+export enum ConsentChannel {
+    Sms = "Sms",
+    Email = "Email",
+    InAppBanking = "InAppBanking",
+}
+
+export class ConsentSummary implements IConsentSummary {
+    channel?: ConsentChannel;
+    isGranted?: boolean;
+    grantedAtUtc?: Date | undefined;
+    revokedAtUtc?: Date | undefined;
+
+    constructor(data?: IConsentSummary) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.channel = _data["channel"];
+            this.isGranted = _data["isGranted"];
+            this.grantedAtUtc = _data["grantedAtUtc"] ? new Date(_data["grantedAtUtc"].toString()) : undefined as any;
+            this.revokedAtUtc = _data["revokedAtUtc"] ? new Date(_data["revokedAtUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): ConsentSummary {
+        data = typeof data === 'object' ? data : {};
+        let result = new ConsentSummary();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["channel"] = this.channel;
+        data["isGranted"] = this.isGranted;
+        data["grantedAtUtc"] = this.grantedAtUtc ? this.grantedAtUtc.toISOString() : undefined as any;
+        data["revokedAtUtc"] = this.revokedAtUtc ? this.revokedAtUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IConsentSummary {
+    channel?: ConsentChannel;
+    isGranted?: boolean;
+    grantedAtUtc?: Date | undefined;
+    revokedAtUtc?: Date | undefined;
+}
+
 export class CreateAdminRequest implements ICreateAdminRequest {
     email?: string;
     password?: string;
@@ -2674,6 +3010,42 @@ export interface ICustomerSummary {
     educationLevel?: EducationLevel;
 }
 
+export class DistributeOfferRequest implements IDistributeOfferRequest {
+    channel?: ConsentChannel;
+
+    constructor(data?: IDistributeOfferRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.channel = _data["channel"];
+        }
+    }
+
+    static fromJS(data: any): DistributeOfferRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new DistributeOfferRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["channel"] = this.channel;
+        return data;
+    }
+}
+
+export interface IDistributeOfferRequest {
+    channel?: ConsentChannel;
+}
+
 export enum EducationLevel {
     Ilkogretim = "Ilkogretim",
     Lise = "Lise",
@@ -2836,6 +3208,114 @@ export class MockGenerationResult implements IMockGenerationResult {
 export interface IMockGenerationResult {
     customersCreated?: number;
     transactionsCreated?: number;
+}
+
+export class NotificationDispatchResult implements INotificationDispatchResult {
+    sent?: boolean;
+    skippedReason?: string | undefined;
+
+    constructor(data?: INotificationDispatchResult) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.sent = _data["sent"];
+            this.skippedReason = _data["skippedReason"];
+        }
+    }
+
+    static fromJS(data: any): NotificationDispatchResult {
+        data = typeof data === 'object' ? data : {};
+        let result = new NotificationDispatchResult();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["sent"] = this.sent;
+        data["skippedReason"] = this.skippedReason;
+        return data;
+    }
+}
+
+export interface INotificationDispatchResult {
+    sent?: boolean;
+    skippedReason?: string | undefined;
+}
+
+export class NotificationLogSummary implements INotificationLogSummary {
+    id?: string;
+    customerId?: string;
+    customerName?: string;
+    campaignOfferId?: string | undefined;
+    channel?: ConsentChannel;
+    message?: string;
+    sent?: boolean;
+    skippedReason?: string | undefined;
+    sentAtUtc?: Date;
+
+    constructor(data?: INotificationLogSummary) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.customerId = _data["customerId"];
+            this.customerName = _data["customerName"];
+            this.campaignOfferId = _data["campaignOfferId"];
+            this.channel = _data["channel"];
+            this.message = _data["message"];
+            this.sent = _data["sent"];
+            this.skippedReason = _data["skippedReason"];
+            this.sentAtUtc = _data["sentAtUtc"] ? new Date(_data["sentAtUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): NotificationLogSummary {
+        data = typeof data === 'object' ? data : {};
+        let result = new NotificationLogSummary();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["customerId"] = this.customerId;
+        data["customerName"] = this.customerName;
+        data["campaignOfferId"] = this.campaignOfferId;
+        data["channel"] = this.channel;
+        data["message"] = this.message;
+        data["sent"] = this.sent;
+        data["skippedReason"] = this.skippedReason;
+        data["sentAtUtc"] = this.sentAtUtc ? this.sentAtUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface INotificationLogSummary {
+    id?: string;
+    customerId?: string;
+    customerName?: string;
+    campaignOfferId?: string | undefined;
+    channel?: ConsentChannel;
+    message?: string;
+    sent?: boolean;
+    skippedReason?: string | undefined;
+    sentAtUtc?: Date;
 }
 
 export class OfferSummary implements IOfferSummary {
@@ -3316,6 +3796,46 @@ export interface ITransactionSummary {
     occurredAtUtc?: Date;
     currency?: string;
     isInternational?: boolean;
+}
+
+export class UpdateConsentRequest implements IUpdateConsentRequest {
+    channel?: ConsentChannel;
+    isGranted?: boolean;
+
+    constructor(data?: IUpdateConsentRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.channel = _data["channel"];
+            this.isGranted = _data["isGranted"];
+        }
+    }
+
+    static fromJS(data: any): UpdateConsentRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateConsentRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["channel"] = this.channel;
+        data["isGranted"] = this.isGranted;
+        return data;
+    }
+}
+
+export interface IUpdateConsentRequest {
+    channel?: ConsentChannel;
+    isGranted?: boolean;
 }
 
 export enum UserRole {

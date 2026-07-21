@@ -76,5 +76,16 @@ public static class SegmentationEndpoints
         })
         .Produces<OfferSummary>()
         .ProducesProblem(StatusCodes.Status404NotFound);
+
+        offers.MapPost("/{offerId:guid}/distribute", async (Guid customerId, Guid offerId, DistributeOfferRequest request, IOfferDistributionService service, CancellationToken ct) =>
+        {
+            var result = await service.DistributeOfferAsync(customerId, offerId, request, ct);
+            return result is null
+                ? Results.Problem(statusCode: StatusCodes.Status404NotFound, title: "Teklif bulunamadı",
+                    detail: $"'{offerId}' kimlikli teklif bu müşteri için bulunamadı.")
+                : Results.Ok(result);
+        })
+        .Produces<NotificationDispatchResult>()
+        .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }

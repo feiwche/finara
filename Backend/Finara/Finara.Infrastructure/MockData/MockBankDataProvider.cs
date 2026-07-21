@@ -71,7 +71,15 @@ public class MockBankDataProvider : IBankDataProvider
             DateOfBirth: DateTime.SpecifyKind(dateOfBirth, DateTimeKind.Utc),
             HasInvestmentAccount: _faker.Random.Bool(0.2f),
             HasInternationalTransfers: _faker.Random.Bool(0.15f),
-            EducationLevel: _faker.PickRandom(WeightedEducationLevelPool));
+            EducationLevel: _faker.PickRandom(WeightedEducationLevelPool),
+            // KVKK/İYS: gerçek dünyada rıza sorulmadan hiçbir kanal "var" sayılamaz —
+            // mock veri de bunu simüle ediyor, kanal başına bağımsız bir olasılıkla.
+            Consents: new Dictionary<ConsentChannel, bool>
+            {
+                [ConsentChannel.Sms] = _faker.Random.Bool(0.7f),
+                [ConsentChannel.Email] = _faker.Random.Bool(0.6f),
+                [ConsentChannel.InAppBanking] = _faker.Random.Bool(0.4f)
+            });
 
         return Task.FromResult(data);
     }

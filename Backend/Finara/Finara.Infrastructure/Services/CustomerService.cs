@@ -114,6 +114,9 @@ public class CustomerService(
                     bankId, customer.Id, t.Amount, t.Category, t.MerchantName, t.OccurredAtUtc, t.Currency, t.IsInternational));
                 transactionsCreated++;
             }
+
+            foreach (var (channel, isGranted) in data.Consents)
+                dbContext.CustomerConsents.Add(CustomerConsent.Create(bankId, customer.Id, channel, isGranted));
         }
 
         // Bulk üretimde satır başına audit kaydı tutulmuyor — bu bir geliştirme/test aracı,

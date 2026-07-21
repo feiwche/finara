@@ -139,7 +139,7 @@
             <p-tag [value]="offerResponseLabel(offer.response)" [severity]="offerResponseSeverity(offer.response)" />
           </td>
           <td>{{ offer.presentedAtUtc | date: 'yyyy-MM-dd' }}</td>
-          <td>
+          <td class="offer-actions">
             @if (offer.response === 'Pending') {
               <p-button
                 label="Kabul Et"
@@ -156,12 +156,64 @@
                 (onClick)="respondToOffer(offer, false)"
               />
             }
+            <p-button
+              label="SMS Gönder"
+              size="small"
+              severity="secondary"
+              icon="pi pi-mobile"
+              [loading]="distributingOfferId() === offer.id"
+              (onClick)="distributeOffer(offer, ConsentChannel.Sms)"
+            />
+            <p-button
+              label="E-posta Gönder"
+              size="small"
+              severity="secondary"
+              icon="pi pi-envelope"
+              [loading]="distributingOfferId() === offer.id"
+              (onClick)="distributeOffer(offer, ConsentChannel.Email)"
+            />
           </td>
         </tr>
       </ng-template>
       <ng-template pTemplate="emptymessage">
         <tr>
           <td colspan="5">Henüz teklif yok. "Teklif Üret" ile üretin (önce segment hesaplanmış ve aktif bir kampanya olmalı).</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-tabPanel>
+
+  <p-tabPanel header="Rıza">
+    <p class="consent-hint">
+      KVKK/İYS gereği, bir kanaldan bildirim gönderilebilmesi için müşterinin o kanal için açık rızası olmalı.
+    </p>
+    <p-table [value]="consents()" styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Kanal</th>
+          <th>Durum</th>
+          <th>Rıza Tarihi</th>
+          <th>Kaldırılma Tarihi</th>
+          <th></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-consent>
+        <tr>
+          <td>{{ consentChannelLabel(consent.channel) }}</td>
+          <td>
+            <p-tag [value]="consent.isGranted ? 'İzin Var' : 'İzin Yok'" [severity]="consent.isGranted ? 'success' : 'secondary'" />
+          </td>
+          <td>{{ consent.grantedAtUtc ? (consent.grantedAtUtc | date: 'yyyy-MM-dd HH:mm') : '—' }}</td>
+          <td>{{ consent.revokedAtUtc ? (consent.revokedAtUtc | date: 'yyyy-MM-dd HH:mm') : '—' }}</td>
+          <td>
+            <p-button
+              [label]="consent.isGranted ? 'Rızayı Kaldır' : 'Rıza Ver'"
+              size="small"
+              [severity]="consent.isGranted ? 'danger' : 'success'"
+              [loading]="consentBusy() === consent.channel"
+              (onClick)="toggleConsent(consent)"
+            />
+          </td>
         </tr>
       </ng-template>
     </p-table>

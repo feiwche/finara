@@ -1,0 +1,77 @@
+<div class="toolbar">
+  <h1>Bildirim Kaydı</h1>
+</div>
+
+<div class="filter-bar">
+  <div class="field">
+    <label>Kanal</label>
+    <p-select
+      [options]="channels"
+      optionLabel="label"
+      optionValue="value"
+      [(ngModel)]="channelFilter"
+      [showClear]="true"
+      placeholder="Tümü"
+      (onChange)="loadLogs()"
+      (onClear)="loadLogs()"
+    />
+  </div>
+  <div class="field">
+    <label>Başlangıç Tarihi</label>
+    <p-datepicker [(ngModel)]="fromUtc" dateFormat="yy-mm-dd" [showIcon]="true" [showButtonBar]="true" (onSelect)="loadLogs()" (onClearClick)="loadLogs()" />
+  </div>
+  <div class="field">
+    <label>Bitiş Tarihi</label>
+    <p-datepicker [(ngModel)]="toUtc" dateFormat="yy-mm-dd" [showIcon]="true" [showButtonBar]="true" (onSelect)="loadLogs()" (onClearClick)="loadLogs()" />
+  </div>
+  <p-button label="Filtreleri Temizle" severity="secondary" [outlined]="true" size="small" (onClick)="clearFilters(dt)" />
+</div>
+
+<p-table
+  [value]="logs()"
+  [loading]="loading()"
+  [rows]="20"
+  [paginator]="logs().length > 20"
+  [globalFilterFields]="['customerName']"
+  styleClass="p-datatable-sm"
+  #dt
+>
+  <ng-template pTemplate="caption">
+    <div class="toolbar">
+      <span></span>
+      <p-iconfield>
+        <p-inputicon styleClass="pi pi-search" />
+        <input #searchBox pInputText type="text" placeholder="Müşteri ara…" (input)="dt.filterGlobal($any($event.target).value, 'contains')" />
+      </p-iconfield>
+    </div>
+  </ng-template>
+  <ng-template pTemplate="header">
+    <tr>
+      <th>Tarih</th>
+      <th>Müşteri</th>
+      <th>Kanal</th>
+      <th>Durum</th>
+      <th>Mesaj</th>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="body" let-log>
+    <tr>
+      <td>{{ log.sentAtUtc | date: 'yyyy-MM-dd HH:mm' }}</td>
+      <td>{{ log.customerName ?? '—' }}</td>
+      <td>{{ consentChannelLabel(log.channel ?? '') }}</td>
+      <td>
+        @if (log.sent) {
+          <p-tag value="Gönderildi" severity="success" />
+        } @else {
+          <p-tag [value]="'Atlandı: ' + (log.skippedReason ?? '—')" severity="warn" />
+        }
+      </td>
+      <td>{{ log.message }}</td>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="emptymessage">
+    <tr>
+      <td colspan="5">Seçilen filtrelere uyan bir bildirim kaydı yok.</td>
+    </tr>
+  </ng-template>
+</p-table>

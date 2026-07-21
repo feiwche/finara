@@ -26,14 +26,19 @@ import {
   AiInsightRequest,
   AiInsightResult,
   Client,
+  ConsentChannel,
+  ConsentSummary,
   CustomerSummary,
+  DistributeOfferRequest,
   OfferSummary,
   RecordTransactionRequest,
   SegmentSummary,
   TRANSACTION_CATEGORY_OPTIONS,
   TransactionCategory,
   TransactionSummary,
+  UpdateConsentRequest,
   apiErrorStatus,
+  consentChannelLabel,
   describeApiError,
   offerResponseLabel,
   offerResponseSeverity,
@@ -93,6 +98,8 @@ export class CustomerDetailComponent implements OnInit {
   protected readonly offerResponseLabel = offerResponseLabel;
   protected readonly transactionCategoryLabel = transactionCategoryLabel;
   protected readonly spendingPropensityLabel = spendingPropensityLabel;
+  protected readonly consentChannelLabel = consentChannelLabel;
+  protected readonly ConsentChannel = ConsentChannel;
 
   protected categoryIcon(category: string): string {
     return CATEGORY_ICONS[category] ?? 'pi-tag';
@@ -119,6 +126,10 @@ export class CustomerDetailComponent implements OnInit {
   protected offers = signal<OfferSummary[]>([]);
   protected offersBusy = signal(false);
   protected respondingOfferId = signal<string | null>(null);
+  protected distributingOfferId = signal<string | null>(null);
+
+  protected consents = signal<ConsentSummary[]>([]);
+  protected consentBusy = signal<ConsentChannel | null>(null);
 
   protected aiQuestion = '';
   protected aiAnswer = signal<AiInsightResult | null>(null);
@@ -132,7 +143,7 @@ export class CustomerDetailComponent implements OnInit {
     // bir daha çalışmaz, sayfa eski müşterinin verisini göstermeye devam ederdi.
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       this.customerId = params.get('id') ?? '';
-      void Promise.all([this.loadCustomer(), this.loadSegment(), this.loadTransactions(), this.loadOffers()]);
+      void Promise.all([this.loadCustomer(), this.loadSegment(), this.loadTransactions(), this.loadOffers(), this.loadConsents()]);
     });
   }
 
@@ -253,6 +264,49 @@ export class CustomerDetailComponent implements OnInit {
       this.messageService.add({ severity: 'error', summary: 'İşlem başarısız', detail: describeApiError(err) });
     } finally {
       this.respondingOfferId.set(null);
+    }
+  }
+
+  private async loadConsents(): Promise<void> {
+    try {
+      this.consents.set(await firstValueFrom(this.client.consentsAll(this.customerId)));
+    } catch (err) {
+      this.messageService.add({ severity: 'error', summary: 'Rıza durumu yüklenemedi', detail: describeApiError(err) });
+    }
+  }
+
+  async toggleConsent(consent: ConsentSummary): Promise<void> {
+    this.consentBusy.set(consent.channel!);
+    try {
+      const updated = await firstValueFrom(
+        this.client.consents(this.customerId, new UpdateConsentRequest({ channel: consent.channel, isGranted: !consent.isGranted }))
+      );
+      this.consents.update(list => list.map(c => (c.channel === updated.channel ? updated : c)));
+      this.messageService.add({
+        severity: 'success',
+        summary: updated.isGranted ? 'Rıza verildi' : 'Rıza kaldırıldı',
+        detail: consentChannelLabel(updated.channel!)
+      });
+    } catch (err) {
+      this.messageService.add({ severity: 'error', summary: 'Rıza güncellenemedi', detail: describeApiError(err) });
+    } finally {
+      this.consentBusy.set(null);
+    }
+  }
+
+  async distributeOffer(offer: OfferSummary, channel: ConsentChannel): Promise<void> {
+    this.distributingOfferId.set(offer.id ?? null);
+    try {
+      const result = await firstValueFrom(this.client.distribute(this.customerId, offer.id!, new DistributeOfferRequest({ channel })));
+      this.messageService.add(
+        result.sent
+          ? { severity: 'success', summary: 'Bildirim gönderildi', detail: `${consentChannelLabel(channel)} — ${offer.campaignName}` }
+          : { severity: 'warn', summary: 'Bildirim atlandı', detail: result.skippedReason ?? undefined }
+      );
+    } catch (err) {
+      this.messageService.add({ severity: 'error', summary: 'Dağıtım başarısız', detail: describeApiError(err) });
+    } finally {
+      this.distributingOfferId.set(null);
     }
   }
 

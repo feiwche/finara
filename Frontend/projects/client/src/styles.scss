@@ -193,6 +193,18 @@ td.amount-col {
   }
 }
 
+.offer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.consent-hint {
+  color: var(--p-text-muted-color, #6b7280);
+  font-size: 0.9rem;
+  margin: 0 0 12px;
+}
+
 .ai-answer {
   margin-top: 12px;
   padding-top: 12px;

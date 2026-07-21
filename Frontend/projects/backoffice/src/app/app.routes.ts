@@ -38,6 +38,11 @@ export const routes: Routes = [
         path: 'cohorts',
         title: 'Finara BackOffice — Kohort Gezgini',
         loadComponent: () => import('./features/cohorts/cohort-explorer.component').then(m => m.CohortExplorerComponent)
+      },
+      {
+        path: 'notifications',
+        title: 'Finara BackOffice — Bildirim Kaydı',
+        loadComponent: () => import('./features/notifications/notification-log.component').then(m => m.NotificationLogComponent)
       }
     ]
   },

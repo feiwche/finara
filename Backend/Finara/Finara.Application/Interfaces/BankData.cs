@@ -12,7 +12,8 @@ public record CustomerData(
     DateTime DateOfBirth,
     bool HasInvestmentAccount,
     bool HasInternationalTransfers,
-    EducationLevel EducationLevel);
+    EducationLevel EducationLevel,
+    IReadOnlyDictionary<ConsentChannel, bool> Consents);
 
 public record TransactionData(
     decimal Amount,

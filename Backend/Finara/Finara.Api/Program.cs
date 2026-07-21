@@ -48,6 +48,18 @@ builder.Services.AddScoped<IBankService, BankService>();
 builder.Services.AddScoped<ICampaignService, CampaignService>();
 builder.Services.AddScoped<ISegmentationService, SegmentationService>();
 builder.Services.AddScoped<ICohortService, CohortService>();
+
+// Faz 8.4 — IConsentGate (dar, sadece kontrol) ve IConsentService (Grant/Revoke) aynı
+// sınıf tarafından implemente ediliyor, ama dispatcher'lar sadece IConsentGate'i
+// enjekte ediyor (en az yetki ilkesi). Kanal başına dispatcher, BankDataProviderType
+// ile aynı keyed-service deseniyle kayıtlı (bkz. yukarıdaki Faz 8.2 notu).
+builder.Services.AddScoped<ConsentService>();
+builder.Services.AddScoped<IConsentService>(sp => sp.GetRequiredService<ConsentService>());
+builder.Services.AddScoped<IConsentGate>(sp => sp.GetRequiredService<ConsentService>());
+builder.Services.AddKeyedScoped<INotificationDispatcher, MockSmsDispatcher>(Finara.Domain.Enums.ConsentChannel.Sms);
+builder.Services.AddKeyedScoped<INotificationDispatcher, MockEmailDispatcher>(Finara.Domain.Enums.ConsentChannel.Email);
+builder.Services.AddScoped<IOfferDistributionService, OfferDistributionService>();
+builder.Services.AddScoped<INotificationLogService, NotificationLogService>();
 builder.Services.AddScoped<INextBestOfferService, NextBestOfferService>();
 
 // Bulut LLM API'si (ChatGPT/Claude) değil, kullanıcının kendi makinesinde
@@ -225,6 +237,8 @@ app.MapAdminUserEndpoints();
 app.MapBankEndpoints();
 app.MapCohortEndpoints();
 app.MapSegmentationEndpoints();
+app.MapConsentEndpoints();
+app.MapNotificationEndpoints();
 app.MapAiEndpoints();
 // Denetimde bulundu: diğer her endpoint korunuyorken bu ikisi unutulmuştu — MCP
 // üzerinden auth'suz olarak herhangi bir müşterinin verisi çekilebiliyordu.

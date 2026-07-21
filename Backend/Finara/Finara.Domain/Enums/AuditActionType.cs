@@ -13,5 +13,8 @@ public enum AuditActionType
     CampaignOfferAccepted,
     CampaignOfferDeclined,
     CustomerCreated,
-    TransactionRecorded
+    TransactionRecorded,
+    OfferDistributed,
+    ConsentGranted,
+    ConsentRevoked
 }

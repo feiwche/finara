@@ -1,4 +1,4 @@
-import { AgeBracket, AuditActionType, EducationLevel, SpendingPropensity, TransactionCategory, UserRole } from '../api/finara-client';
+import { AgeBracket, AuditActionType, ConsentChannel, EducationLevel, SpendingPropensity, TransactionCategory, UserRole } from '../api/finara-client';
 
 // Backend enum'ları (İngilizce, API sözleşmesinin parçası) ile arayüzde gösterilen
 // metin birbirinden ayrılıyor — [(ngModel)]/API çağrıları hep İngilizce değeri kullanır,
@@ -49,7 +49,16 @@ const AUDIT_ACTION_TYPE_LABELS: Record<string, string> = {
   CampaignOfferAccepted: 'Teklif Kabul Edildi',
   CampaignOfferDeclined: 'Teklif Reddedildi',
   CustomerCreated: 'Müşteri Oluşturuldu',
-  TransactionRecorded: 'İşlem Kaydedildi'
+  TransactionRecorded: 'İşlem Kaydedildi',
+  OfferDistributed: 'Teklif Dağıtıldı',
+  ConsentGranted: 'Rıza Verildi',
+  ConsentRevoked: 'Rıza Kaldırıldı'
+};
+
+const CONSENT_CHANNEL_LABELS: Record<string, string> = {
+  Sms: 'SMS',
+  Email: 'E-posta',
+  InAppBanking: 'Bankacılık Uygulaması İçi'
 };
 
 const EDUCATION_LEVEL_LABELS: Record<string, string> = {
@@ -100,6 +109,10 @@ export function ageBracketLabel(bracket: string): string {
   return AGE_BRACKET_LABELS[bracket] ?? bracket;
 }
 
+export function consentChannelLabel(channel: string): string {
+  return CONSENT_CHANNEL_LABELS[channel] ?? channel;
+}
+
 // p-select gibi dropdown'lar için: değer İngilizce enum olarak kalır (API'ye o gönderilir),
 // kullanıcıya sadece label gösterilir (optionLabel="label" optionValue="value" ile).
 export const TRANSACTION_CATEGORY_OPTIONS = Object.values(TransactionCategory).map(value => ({
@@ -129,5 +142,10 @@ export const EDUCATION_LEVEL_OPTIONS = Object.values(EducationLevel).map(value =
 
 export const AGE_BRACKET_OPTIONS = Object.values(AgeBracket).map(value => ({
   label: ageBracketLabel(value),
+  value
+}));
+
+export const CONSENT_CHANNEL_OPTIONS = Object.values(ConsentChannel).map(value => ({
+  label: consentChannelLabel(value),
   value
 }));
