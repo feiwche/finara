@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 
 import { CardModule } from 'primeng/card';
@@ -14,12 +15,14 @@ import {
 
 @Component({
     selector: 'app-dashboard',
-    imports: [CardModule, ChartModule],
+    imports: [CardModule, ChartModule, DatePipe],
     templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent implements OnInit {
   private readonly client = inject(Client);
   private readonly messageService = inject(MessageService);
+
+  protected readonly today = new Date();
 
   protected loading = signal(false);
   protected totalCustomers = signal(0);

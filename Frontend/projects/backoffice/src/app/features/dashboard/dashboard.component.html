@@ -1,20 +1,37 @@
-<div class="toolbar">
+<div class="dashboard-hero">
+  <i class="pi pi-chart-line dashboard-hero-ghost-icon"></i>
+  <span class="dashboard-hero-eyebrow">BackOffice</span>
   <h1>Genel Bakış</h1>
+  <p class="dashboard-hero-sub">{{ today | date: 'd MMMM y, EEEE' }}</p>
 </div>
 
 <div class="dashboard-kpi-grid">
-  <p-card styleClass="panel">
-    <div class="kpi-label">Toplam Müşteri</div>
+  <p-card styleClass="panel kpi-card">
+    <i class="pi pi-users kpi-card-ghost-icon"></i>
+    <div class="kpi-card-head">
+      <span class="kpi-label">Toplam Müşteri</span>
+      <span class="kpi-icon-chip"><i class="pi pi-users"></i></span>
+    </div>
     <div class="kpi-value">{{ totalCustomers() }}</div>
   </p-card>
 
-  <p-card styleClass="panel">
-    <div class="kpi-label">Aktif Kampanya</div>
+  <p-card styleClass="panel kpi-card">
+    <i class="pi pi-megaphone kpi-card-ghost-icon"></i>
+    <div class="kpi-card-head">
+      <span class="kpi-label">Aktif Kampanya</span>
+      <span class="kpi-icon-chip"><i class="pi pi-megaphone"></i></span>
+    </div>
     <div class="kpi-value">{{ activeCampaigns() }}</div>
   </p-card>
 
-  <p-card styleClass="panel">
-    <div class="kpi-label">Son 30 Gün — Teklif Kabul/Red</div>
+  <p-card styleClass="panel kpi-card kpi-card--accent">
+    <i class="pi pi-percentage kpi-card-ghost-icon"></i>
+    <div class="kpi-card-head">
+      <span class="kpi-label">Son 30 Gün — Teklif Kabul/Red</span>
+      <span class="kpi-icon-chip kpi-icon-chip--ring" [style.--ring-pct]="offerAcceptRate ?? 0">
+        <i class="pi pi-percentage"></i>
+      </span>
+    </div>
     @if (offerTotal > 0) {
       <div class="kpi-value">%{{ offerAcceptRate }}</div>
       <div class="kpi-sublabel">{{ offerAccepted() }} kabul / {{ offerDeclined() }} red</div>
@@ -29,6 +46,10 @@
   <div class="chart-container">
     @if (chartData()) {
       <p-chart type="doughnut" [data]="chartData()" [options]="chartOptions" />
+      <div class="chart-center-label">
+        <div class="chart-center-value">{{ totalCustomers() }}</div>
+        <div class="chart-center-caption">Müşteri</div>
+      </div>
     }
   </div>
 </p-card>

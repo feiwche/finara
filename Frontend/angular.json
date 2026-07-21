@@ -103,6 +103,7 @@
               }
             ],
             "styles": [
+              "node_modules/primeicons/primeicons.css",
               "projects/client/src/styles.scss"
             ],
             "scripts": []
@@ -139,6 +140,7 @@
               }
             ],
             "styles": [
+              "node_modules/primeicons/primeicons.css",
               "projects/backoffice/src/styles.scss"
             ],
             "scripts": [],
@@ -209,6 +211,7 @@
               }
             ],
             "styles": [
+              "node_modules/primeicons/primeicons.css",
               "projects/backoffice/src/styles.scss"
             ],
             "scripts": []

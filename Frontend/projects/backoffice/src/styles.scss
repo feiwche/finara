@@ -1,5 +1,38 @@
 /* You can add global styles to this file, and also import other style files */
 
+// ============================================================
+// Finara marka tipografisi (self-hosted — bkz. shared-ui/finara-preset.ts
+// için renk/border-radius tarafı). Fraunces: başlık/KPI rakam yüzü (sıcak,
+// karakterli serif). IBM Plex Sans: gövde/arayüz yüzü. IBM Plex Mono: tablo
+// rakamları/ID/kod yüzü. Font dosyaları public/fonts/'ta — Google Fonts
+// CDN'ine çalışma zamanı bağımlılığı yok, Türkçe karakterler için latin +
+// latin-ext alt kümeleri birlikte tutuluyor.
+// ============================================================
+@font-face { font-family: 'Fraunces'; font-style: normal; font-weight: 500; font-display: swap; src: url('/fonts/Fraunces-500-normal-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Fraunces'; font-style: normal; font-weight: 500; font-display: swap; src: url('/fonts/Fraunces-500-normal-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Fraunces'; font-style: normal; font-weight: 600; font-display: swap; src: url('/fonts/Fraunces-600-normal-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Fraunces'; font-style: normal; font-weight: 600; font-display: swap; src: url('/fonts/Fraunces-600-normal-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Fraunces'; font-style: normal; font-weight: 700; font-display: swap; src: url('/fonts/Fraunces-700-normal-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Fraunces'; font-style: normal; font-weight: 700; font-display: swap; src: url('/fonts/Fraunces-700-normal-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/IBM-Plex-Mono-400-normal-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/IBM-Plex-Mono-400-normal-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 500; font-display: swap; src: url('/fonts/IBM-Plex-Mono-500-normal-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 500; font-display: swap; src: url('/fonts/IBM-Plex-Mono-500-normal-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/IBM-Plex-Sans-400-normal-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/IBM-Plex-Sans-400-normal-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 500; font-display: swap; src: url('/fonts/IBM-Plex-Sans-500-normal-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 500; font-display: swap; src: url('/fonts/IBM-Plex-Sans-500-normal-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 600; font-display: swap; src: url('/fonts/IBM-Plex-Sans-600-normal-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 600; font-display: swap; src: url('/fonts/IBM-Plex-Sans-600-normal-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 700; font-display: swap; src: url('/fonts/IBM-Plex-Sans-700-normal-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 700; font-display: swap; src: url('/fonts/IBM-Plex-Sans-700-normal-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+:root {
+  --font-body: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Menlo, monospace;
+}
+
 // Bilinçli açık tema kilidi — client'takiyle aynı gerekçe: body'ye arka plan set
 // edilmezse tarayıcı/OS koyu modu tercih ettiğinde siyah arka plan üzerinde beyaz
 // PrimeNG kartları (tasarlanmamış bir görünüm) oluşuyordu.
@@ -10,14 +43,79 @@
 html, body {
   height: 100%;
   margin: 0;
-  background: #f4f6f9;
-  color: #1f2937;
+  background: var(--p-surface-50, #F6F8F7);
+  color: var(--p-text-color, #2C3532);
+  font-family: var(--font-body);
 }
 
+// Sayfanın altında sabit, çok hafif iki ambient "leke" — düz tek renkli zemin
+// yerine ince bir derinlik hissi. İçerik z-index ile bunun üzerinde kalıyor.
+body {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(700px circle at 8% -5%, rgba(34, 126, 103, 0.10), transparent 60%),
+      radial-gradient(600px circle at 100% 15%, rgba(184, 117, 44, 0.07), transparent 55%);
+  }
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  color: var(--p-primary-950, #081E19);
+  margin: 0;
+}
+
+.p-card-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+// Dolgulu butonlar hafifçe "ışık alıyor" — tıklanabilirlik hissini güçlendiren
+// ince bir kalkış/gölge mikro-etkileşimi (bkz. finara-preset.ts'teki gradyan dolgu).
+.p-button:not(.p-button-text):not(.p-button-outlined):not(.p-button-link) {
+  box-shadow: 0 6px 16px -6px rgba(8, 30, 25, 0.32);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+
+  &:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px -6px rgba(8, 30, 25, 0.4);
+  }
+
+  &:not(:disabled):active {
+    transform: translateY(0);
+  }
+}
+
+// Nav çubuğu artık koyu pine gradyanlı (bkz. finara-preset.ts components.menubar) —
+// aşağıdaki renkler o koyu zemine göre ayarlandı (açık zeminin ters çevrilmiş hali
+// değil, ayrıca elle tasarlandı).
 .app-shell-title {
-  font-weight: 700;
-  font-size: 1.2rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.35rem;
+  letter-spacing: -0.01em;
   padding: 0 1rem;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+
+  .p-tag {
+    font-family: var(--font-body);
+    background: var(--p-amber-500, #B8752C) !important;
+    color: #1F130A !important;
+    font-weight: 600;
+  }
 }
 
 .app-shell-nav {
@@ -30,20 +128,20 @@ html, body {
     align-items: center;
     gap: 6px;
     padding: 0.5rem 0.9rem;
-    border-radius: 6px;
-    color: var(--p-text-muted-color, #6b7280);
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.62);
     text-decoration: none;
     font-size: 0.95rem;
     transition: background-color 0.15s, color 0.15s;
 
     &:hover {
-      background: var(--p-surface-100, #f3f4f6);
-      color: var(--p-text-color, #1f2937);
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
     }
 
     &.active {
-      background: var(--p-primary-50, #eef2ff);
-      color: var(--p-primary-color, #4f46e5);
+      background: rgba(255, 255, 255, 0.14);
+      color: var(--p-amber-300, #EACC9E);
       font-weight: 600;
     }
   }
@@ -54,6 +152,20 @@ html, body {
   align-items: center;
   gap: 0.75rem;
   padding-right: 0.5rem;
+
+  span {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.9rem;
+  }
+
+  .p-button {
+    color: rgba(255, 255, 255, 0.75);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+    }
+  }
 }
 
 .app-shell-content {
@@ -148,37 +260,266 @@ html, body {
   color: var(--p-text-muted-color, #6b7280);
 }
 
+// Dashboard'ın "vitrin" karşılama şeridi — koyu pine gradyanı + iki soluk ambient
+// leke, sayfanın geri kalanındaki düz-açık zeminle güçlü bir kontrast oluşturuyor.
+// Nav çubuğuyla aynı koyu aile, ama ayrı bir gradyan açısıyla tekrarı önlüyor.
+.dashboard-hero {
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 4px;
+  padding: 2rem 2.25rem;
+  border-radius: var(--p-content-border-radius, 14px);
+  background: linear-gradient(155deg, #0D2A23 0%, #1B6553 100%);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(460px circle at 88% -25%, rgba(184, 117, 44, 0.45), transparent 62%),
+      radial-gradient(380px circle at -5% 125%, rgba(255, 255, 255, 0.1), transparent 55%);
+    pointer-events: none;
+  }
+}
+
+.dashboard-hero-ghost-icon {
+  --p-icon-size: 11rem;
+  position: absolute;
+  top: -2.2rem;
+  right: 1.5rem;
+  color: rgba(255, 255, 255, 0.08);
+  transform: rotate(-8deg);
+  pointer-events: none;
+}
+
+.dashboard-hero-eyebrow {
+  position: relative;
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--p-amber-300, #EACC9E);
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-hero h1 {
+  position: relative;
+  color: #ffffff;
+  font-size: 2.1rem;
+}
+
+.dashboard-hero-sub {
+  position: relative;
+  margin: 0.4rem 0 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.95rem;
+  text-transform: capitalize;
+}
+
 .dashboard-kpi-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  align-items: stretch;
+  gap: 20px;
 
   @media (max-width: 800px) {
     grid-template-columns: 1fr;
   }
+
+  // <p-card> host etiketi grid'in doğrudan çocuğu — bazı tarayıcılarda özel
+  // elementler (custom elements) grid stretch'i içerideki gerçek karta doğru
+  // düzgün aktarmıyor (üçüncü kart daha çok satır içerdiğinde diğerlerinden
+  // kısa/uzun kalabiliyordu). Host'u da flex yapıp yüksekliği elle 100%
+  // zorlamak, hangi kartın en çok içerik taşıdığından bağımsız olarak
+  // hepsini aynı satırda eşit yükseklikte tutuyor.
+  > p-card {
+    display: flex;
+  }
+}
+
+.kpi-card-head {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.kpi-icon-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--p-primary-50, #EEF7F4);
+  color: var(--p-primary-600, #1B6553);
+  box-shadow: 0 4px 10px -4px rgba(8, 30, 25, 0.35);
+  position: relative;
+  z-index: 1;
+
+  i {
+    font-size: 1.05rem;
+  }
+}
+
+// Amber KPI'daki ikon çipi, gerçek "teklif kabul oranı" verisini bir ilerleme
+// halkasına dönüştürüyor — conic-gradient + radial-gradient mask ile saf CSS,
+// (--ring-pct component'ten [style] binding'iyle geliyor).
+.kpi-icon-chip--ring::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  z-index: -1;
+  background: conic-gradient(
+    var(--p-amber-500, #B8752C) calc(var(--ring-pct, 0) * 1%),
+    var(--p-amber-100, #F5E8D0) 0
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+}
+
+// KPI kartları — hafif gradyanlı zemin + derin gölge + köşede devasa, çok soluk bir
+// "hayalet ikon" (bkz. .kpi-card-ghost-icon) — düz beyaz kartlara göre çok daha
+// dokulu/derin, ama veriyi bastırmayacak kadar sessiz.
+@keyframes kpi-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.kpi-card {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  background: linear-gradient(160deg, #ffffff 0%, var(--p-primary-50, #EEF7F4) 145%);
+  box-shadow: 0 2px 6px 0 rgba(8, 30, 25, 0.05), 0 18px 36px -14px rgba(8, 30, 25, 0.2);
+
+  @media (prefers-reduced-motion: no-preference) {
+    animation: kpi-card-in 0.45s ease both;
+  }
+}
+
+.dashboard-kpi-grid > p-card {
+  &:nth-child(2) .kpi-card {
+    animation-delay: 0.06s;
+  }
+
+  &:nth-child(3) .kpi-card {
+    animation-delay: 0.12s;
+  }
+}
+
+.kpi-card-ghost-icon {
+  // PrimeNG'in kendi ".pi { font-size: var(--p-icon-size) }" kuralı bizimkiyle aynı
+  // özgüllükte ama sayfaya sonradan enjekte edildiği için kazanıyordu — font-size'ı
+  // doğrudan set etmek yerine okuduğu değişkeni burada override ediyoruz.
+  --p-icon-size: 6.5rem;
+  position: absolute;
+  top: -22px;
+  right: -18px;
+  color: var(--p-primary-100, #D7ECE5);
+  opacity: 0.55;
+  pointer-events: none;
+  transform: rotate(-10deg);
+  z-index: 0;
+}
+
+// Üçüncü KPI'ı (teklif kabul/red oranı) bilinçli olarak amber vurgusuyla ayırıyoruz —
+// en aksiyona-dönük rakam bu, gözün önce oraya gitmesi isteniyor (bkz. finara-preset.ts'teki
+// "amber" paleti — markanın tek bir yerde harcanan cüretkarlığı).
+.kpi-card--accent {
+  background: linear-gradient(160deg, #ffffff 0%, var(--p-amber-50, #FBF6ED) 145%);
+
+  .kpi-icon-chip {
+    background: var(--p-amber-50, #FBF6ED);
+    color: var(--p-amber-600, #955D22);
+  }
+
+  .kpi-card-ghost-icon {
+    color: var(--p-amber-100, #F5E8D0);
+  }
+
+  .kpi-value {
+    color: var(--p-amber-600, #955D22);
+  }
 }
 
 .kpi-label {
-  font-size: 0.85rem;
-  color: var(--p-text-muted-color, #6b7280);
-  margin-bottom: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--p-text-muted-color, #6C7B74);
 }
 
 .kpi-value {
-  font-size: 2rem;
+  position: relative;
+  font-family: var(--font-display);
+  font-size: 2.75rem;
   font-weight: 700;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+  color: var(--p-primary-950, #081E19);
+  margin-top: 14px;
 }
 
 .kpi-sublabel {
-  font-size: 0.8rem;
-  color: var(--p-text-muted-color, #6b7280);
-  margin-top: 2px;
+  position: relative;
+  font-size: 0.85rem;
+  color: var(--p-text-muted-color, #6C7B74);
+  margin-top: 6px;
 }
 
 .chart-container {
+  position: relative;
   height: 280px;
   max-width: 420px;
   margin: 0 auto;
+}
+
+// Donut'ın ortasındaki boşluk artık boş değil — toplam müşteri sayısı, KPI
+// kartlarıyla aynı Fraunces dilini konuşarak grafiğin de bir "rakam" anlatması
+// sağlanıyor (Chart.js'in kendi eklentisi olmadan, salt CSS konumlandırmayla).
+.chart-center-label {
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.chart-center-value {
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--p-primary-950, #081E19);
+  line-height: 1;
+}
+
+.chart-center-caption {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--p-text-muted-color, #6C7B74);
+  margin-top: 4px;
+}
+
+.panel {
+  border: 1px solid var(--p-content-border-color, #DCE3E0);
 }
 
 .panel .p-card-body {
