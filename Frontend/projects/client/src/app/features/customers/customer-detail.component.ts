@@ -10,6 +10,7 @@ import { TabViewModule } from 'primeng/tabview';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
+import { ChartModule } from 'primeng/chart';
 import { MessageModule } from 'primeng/message';
 import { TagModule } from 'primeng/tag';
 import { InputTextModule } from 'primeng/inputtext';
@@ -47,6 +48,14 @@ import {
   transactionCategoryLabel
 } from '@finara/shared-ui';
 
+// Dashboard'daki eğilim dağılımı donut'uyla aynı renk sözleşmesi (bkz.
+// backoffice/dashboard.component.ts) — NeedsEngagement/Neutral/HighlyResponsive.
+const PROPENSITY_POINT_COLORS: Record<string, string> = {
+  NeedsEngagement: '#f59e0b',
+  Neutral: '#60a5fa',
+  HighlyResponsive: '#22c55e'
+};
+
 const CATEGORY_ICONS: Record<string, string> = {
   Groceries: 'pi-shopping-cart',
   Fuel: 'pi-bolt',
@@ -72,6 +81,7 @@ const CATEGORY_ICONS: Record<string, string> = {
         TableModule,
         ButtonModule,
         CardModule,
+        ChartModule,
         MessageModule,
         TagModule,
         InputTextModule,
@@ -116,6 +126,17 @@ export class CustomerDetailComponent implements OnInit {
   protected segment = signal<SegmentSummary | null>(null);
   protected segmentMessage = signal<string | null>(null);
 
+  protected segmentHistoryChartData = signal<unknown>(null);
+  protected readonly segmentHistoryChartOptions = {
+    plugins: { legend: { display: false } },
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: { grid: { display: false } },
+      y: { min: 3, max: 15, ticks: { precision: 0 } }
+    }
+  };
+
   protected transactions = signal<TransactionSummary[]>([]);
   protected categories = TRANSACTION_CATEGORY_OPTIONS;
   protected newTransaction = { amount: 0, category: TransactionCategory.Groceries, merchantName: '', occurredAtUtc: null as Date | null };
@@ -142,7 +163,14 @@ export class CustomerDetailComponent implements OnInit {
     // bir daha çalışmaz, sayfa eski müşterinin verisini göstermeye devam ederdi.
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       this.customerId = params.get('id') ?? '';
-      void Promise.all([this.loadCustomer(), this.loadSegment(), this.loadTransactions(), this.loadOffers(), this.loadConsents()]);
+      void Promise.all([
+        this.loadCustomer(),
+        this.loadSegment(),
+        this.loadSegmentHistory(),
+        this.loadTransactions(),
+        this.loadOffers(),
+        this.loadConsents()
+      ]);
     });
   }
 
@@ -169,6 +197,41 @@ export class CustomerDetailComponent implements OnInit {
           : describeApiError(err)
       );
     }
+  }
+
+  // Segment tablosunda deaktive edilenler dahil müşterinin TÜM geçmiş hesaplama
+  // kayıtları tutuluyor (bkz. Segment.IsActive) — bu grafik bunu kullanıyor, tek
+  // aktif segmenti döndüren loadSegment()'ten ayrı bir uç (GET .../segment/history).
+  private async loadSegmentHistory(): Promise<void> {
+    try {
+      const history = await firstValueFrom(this.client.history(this.customerId));
+      this.segmentHistoryChartData.set(
+        history.length === 0
+          ? null
+          : {
+              labels: history.map(h => this.formatShortDate(h.calculatedAtUtc!)),
+              datasets: [
+                {
+                  label: 'Toplam RFM Skoru',
+                  data: history.map(h => h.totalScore),
+                  borderColor: '#175243',
+                  backgroundColor: 'rgba(23, 82, 67, 0.12)',
+                  tension: 0.35,
+                  fill: true,
+                  pointBackgroundColor: history.map(h => PROPENSITY_POINT_COLORS[h.propensity!] ?? '#175243'),
+                  pointRadius: 5,
+                  pointHoverRadius: 7
+                }
+              ]
+            }
+      );
+    } catch (err) {
+      this.messageService.add({ severity: 'error', summary: 'Segment geçmişi yüklenemedi', detail: describeApiError(err) });
+    }
+  }
+
+  private formatShortDate(value: Date | string): string {
+    return new Date(value).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: '2-digit' });
   }
 
   private async loadTransactions(): Promise<void> {

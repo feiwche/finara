@@ -146,4 +146,23 @@ public class SegmentationService(FinaraDbContext dbContext, IAuditLogRepository 
                 segment.CustomerId, segment.RecencyScore, segment.FrequencyScore, segment.MonetaryScore,
                 segment.GetTotalScore(), segment.Propensity, segment.DominantCategory, segment.CalculatedAtUtc);
     }
+
+    public async Task<IReadOnlyList<SegmentSummary>?> GetSegmentHistoryAsync(Guid customerId, CancellationToken cancellationToken = default)
+    {
+        var customer = await dbContext.Customers.AsNoTracking().FirstOrDefaultAsync(c => c.Id == customerId, cancellationToken);
+        if (customer is null || (!currentUser.IsSuperAdmin && customer.BankId != currentUser.BankId))
+            return null;
+
+        var history = await dbContext.Segments
+            .AsNoTracking()
+            .Where(s => s.CustomerId == customerId)
+            .OrderBy(s => s.CalculatedAtUtc)
+            .ToListAsync(cancellationToken);
+
+        return history
+            .Select(s => new SegmentSummary(
+                s.CustomerId, s.RecencyScore, s.FrequencyScore, s.MonetaryScore,
+                s.GetTotalScore(), s.Propensity, s.DominantCategory, s.CalculatedAtUtc))
+            .ToList();
+    }
 }

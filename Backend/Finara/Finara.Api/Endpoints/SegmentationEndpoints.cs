@@ -29,6 +29,20 @@ public static class SegmentationEndpoints
         .Produces<SegmentSummary>()
         .ProducesProblem(StatusCodes.Status404NotFound);
 
+        app.MapGet("/api/customers/{customerId:guid}/segment/history", async (Guid customerId, ISegmentationService service, CancellationToken ct) =>
+        {
+            var history = await service.GetSegmentHistoryAsync(customerId, ct);
+            return history is null
+                ? Results.Problem(statusCode: StatusCodes.Status404NotFound, title: "Müşteri bulunamadı",
+                    detail: $"'{customerId}' kimlikli müşteri bulunamadı.")
+                : Results.Ok(history);
+        })
+        .WithTags("Segmentation")
+        .RequireRateLimiting(RateLimitPolicies.Global)
+        .RequireAuthorization()
+        .Produces<IReadOnlyList<SegmentSummary>>()
+        .ProducesProblem(StatusCodes.Status404NotFound);
+
         var offers = app.MapGroup("/api/customers/{customerId:guid}/offers").WithTags("Offers")
             .RequireRateLimiting(RateLimitPolicies.Global)
             .RequireAuthorization();

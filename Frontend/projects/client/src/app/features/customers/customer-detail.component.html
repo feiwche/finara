@@ -44,6 +44,20 @@
     } @else if (segmentMessage()) {
       <p-message severity="info" [text]="segmentMessage()!" />
     }
+
+    @if (segmentHistoryChartData(); as chartData) {
+      <p-card header="Segment Geçmişi" styleClass="panel">
+        <div class="segment-history-chart">
+          <p-chart type="line" [data]="chartData" [options]="segmentHistoryChartOptions" height="220px" />
+        </div>
+        <p class="ai-hint">
+          Nokta rengi eğilimi gösterir —
+          <span class="legend-dot" style="background: #f59e0b"></span> Teşvik Gerekli,
+          <span class="legend-dot" style="background: #60a5fa"></span> Nötr,
+          <span class="legend-dot" style="background: #22c55e"></span> Harcamaya Yatkın.
+        </p>
+      </p-card>
+    }
   </p-tabPanel>
 
   <p-tabPanel header="İşlemler">
