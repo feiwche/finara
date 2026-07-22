@@ -23,6 +23,21 @@ public static class CustomerEndpoints
             Results.Ok(await service.GetCustomersAsync(ct)))
             .Produces<IReadOnlyList<CustomerSummary>>();
 
+        customers.MapPost("/import", async (IFormFile file, ICustomerService service, CancellationToken ct) =>
+        {
+            const long maxCsvSizeBytes = 5 * 1024 * 1024;
+            if (file.Length > maxCsvSizeBytes)
+                return Results.Problem(statusCode: StatusCodes.Status413PayloadTooLarge, title: "Dosya çok büyük",
+                    detail: $"CSV dosyası izin verilen {maxCsvSizeBytes / 1024 / 1024} MB sınırını aşıyor.");
+
+            await using var stream = file.OpenReadStream();
+            var result = await service.ImportCustomersAsync(stream, ct);
+            return Results.Ok(result);
+        })
+        .DisableAntiforgery()
+        .Accepts<IFormFile>("multipart/form-data")
+        .Produces<CustomerImportResult>();
+
         customers.MapPost("/{customerId:guid}/transactions", async (Guid customerId, RecordTransactionRequest request, ICustomerService service, CancellationToken ct) =>
         {
             var summary = await service.RecordTransactionAsync(customerId, request, ct);

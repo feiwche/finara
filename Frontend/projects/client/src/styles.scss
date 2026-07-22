@@ -337,6 +337,29 @@ h1, h2, h3 {
   margin-bottom: 4px;
 }
 
+.import-error-table-wrap {
+  max-height: 260px;
+  overflow-y: auto;
+  margin-top: 12px;
+}
+
+.import-error-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+
+  th, td {
+    text-align: left;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--p-content-border-color, #e5e7eb);
+  }
+
+  th {
+    color: var(--p-text-muted-color, #6b7280);
+    font-weight: 600;
+  }
+}
+
 .field-checkbox {
   display: flex;
   align-items: center;

@@ -45,3 +45,7 @@ public record TransactionSummary(
     bool IsInternational);
 
 public record MockGenerationResult(int CustomersCreated, int TransactionsCreated);
+
+public record CustomerImportRowError(int Row, string Message);
+
+public record CustomerImportResult(int TotalRows, int SuccessCount, IReadOnlyList<CustomerImportRowError> Errors);

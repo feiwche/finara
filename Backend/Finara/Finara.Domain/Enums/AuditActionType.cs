@@ -20,5 +20,6 @@ public enum AuditActionType
     // Sona eklendi (mevcut kayıtlı int değerlerin anlamını kaydırmamak için) —
     // yönetici hesabı işlemleri hiçbir müşteriyle ilgili değil, bkz. AuditLog.CustomerId.
     AdminCreated,
-    AdminDeactivated
+    AdminDeactivated,
+    CustomerBulkImported
 }

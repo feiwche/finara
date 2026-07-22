@@ -54,7 +54,8 @@ const AUDIT_ACTION_TYPE_LABELS: Record<string, string> = {
   ConsentGranted: 'Rıza Verildi',
   ConsentRevoked: 'Rıza Kaldırıldı',
   AdminCreated: 'Yönetici Oluşturuldu',
-  AdminDeactivated: 'Yönetici Pasifleştirildi'
+  AdminDeactivated: 'Yönetici Pasifleştirildi',
+  CustomerBulkImported: 'Müşteri Toplu İçe Aktarıldı'
 };
 
 const CONSENT_CHANNEL_LABELS: Record<string, string> = {

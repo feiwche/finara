@@ -1,6 +1,16 @@
 <div class="toolbar">
   <h1>Müşteriler</h1>
   <div class="toolbar-actions">
+    <p-button label="Şablon İndir" icon="pi pi-file" severity="secondary" [text]="true" (onClick)="downloadImportTemplate()" />
+    <input #importFileInput type="file" accept=".csv" hidden (change)="onImportFileSelected($event)" />
+    <p-button
+      label="İçe Aktar"
+      icon="pi pi-upload"
+      severity="secondary"
+      [outlined]="true"
+      [loading]="importBusy()"
+      (onClick)="importFileInput.click()"
+    />
     <p-button label="Dışa Aktar" icon="pi pi-download" severity="secondary" [outlined]="true" (onClick)="dt.exportCSV()" />
     <p-button label="Yeni Müşteri" icon="pi pi-plus" (onClick)="openCreateDialog()" />
   </div>
@@ -144,4 +154,33 @@
     <p-message severity="error" [text]="createError()!" />
   }
   <p-button label="Oluştur" [loading]="createBusy()" (onClick)="createCustomer()" />
+</p-dialog>
+
+<p-dialog header="İçe Aktarma Sonucu" [(visible)]="importResultDialogVisible" [modal]="true" [style]="{ width: '520px' }">
+  @if (importResult(); as result) {
+    <p-message
+      [severity]="(result.errors?.length ?? 0) === 0 ? 'success' : 'warn'"
+      [text]="result.successCount + ' / ' + result.totalRows + ' satır başarıyla içe aktarıldı.'"
+    />
+    @if (result.errors && result.errors.length > 0) {
+      <div class="import-error-table-wrap">
+        <table class="import-error-table">
+          <thead>
+            <tr>
+              <th>Satır</th>
+              <th>Hata</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (error of result.errors; track error.row) {
+              <tr>
+                <td>{{ error.row }}</td>
+                <td>{{ error.message }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
 </p-dialog>

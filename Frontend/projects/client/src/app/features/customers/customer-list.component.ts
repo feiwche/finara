@@ -19,6 +19,7 @@ import { MessageService } from 'primeng/api';
 import {
   Client,
   CreateCustomerRequest,
+  CustomerImportResult,
   CustomerSummary,
   describeApiError,
   educationLevelLabel,
@@ -179,5 +180,42 @@ export class CustomerListComponent implements OnInit {
 
   openDetail(customer: CustomerSummary): void {
     this.router.navigate(['/customers', customer.id]);
+  }
+
+  protected importBusy = signal(false);
+  protected importResultDialogVisible = signal(false);
+  protected importResult = signal<CustomerImportResult | null>(null);
+
+  async onImportFileSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+
+    this.importBusy.set(true);
+    try {
+      const result = await firstValueFrom(this.client.import({ data: file, fileName: file.name }));
+      this.importResult.set(result);
+      this.importResultDialogVisible.set(true);
+      if ((result.successCount ?? 0) > 0) {
+        await this.loadCustomers();
+      }
+    } catch (err) {
+      this.messageService.add({ severity: 'error', summary: 'İçe aktarma başarısız', detail: describeApiError(err) });
+    } finally {
+      this.importBusy.set(false);
+    }
+  }
+
+  downloadImportTemplate(): void {
+    const header = 'Ad,Soyad,E-posta,Doğum Tarihi,Telefon,Eğitim Durumu,Yatırım Hesabı Var,Yurtdışı Transfer Var';
+    const example = 'Ayşe,Yılmaz,ayse.yilmaz@example.com,1990-05-12,+905551234567,Lisans,Evet,Hayır';
+    const blob = new Blob([`${header}\n${example}\n`], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'musteri-ice-aktarma-sablonu.csv';
+    link.click();
+    URL.revokeObjectURL(url);
   }
 }

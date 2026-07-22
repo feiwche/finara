@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text;
 using Finara.Application.Contracts;
 using Finara.Application.Interfaces;
 using Finara.Domain.Entities;
@@ -127,6 +129,185 @@ public class CustomerService(
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return new MockGenerationResult(customersCreated, transactionsCreated);
+    }
+
+    // Beklenen CSV başlıkları (Türkçe, sıra önemsiz — NormalizeHeader ile eşleştiriliyor):
+    // Ad, Soyad, E-posta, Doğum Tarihi zorunlu; Telefon, Eğitim Durumu, Yatırım Hesabı Var,
+    // Yurtdışı Transfer Var opsiyonel.
+    public async Task<CustomerImportResult> ImportCustomersAsync(Stream csvStream, CancellationToken cancellationToken = default)
+    {
+        var bankId = currentUser.ResolveBankIdForWrite();
+        using var reader = new StreamReader(csvStream);
+        var headerLine = await reader.ReadLineAsync(cancellationToken);
+        if (string.IsNullOrWhiteSpace(headerLine))
+            throw new ArgumentException("CSV dosyası boş.");
+
+        var headers = ParseCsvLine(headerLine).Select(NormalizeHeader).ToList();
+        var columnIndex = new Dictionary<string, int>();
+        for (var i = 0; i < headers.Count; i++)
+            columnIndex[headers[i]] = i;
+
+        var requiredColumns = new[] { "AD", "SOYAD", "EPOSTA", "DOGUMTARIHI" };
+        var missing = requiredColumns.Where(c => !columnIndex.ContainsKey(c)).ToList();
+        if (missing.Count > 0)
+            throw new ArgumentException(
+                $"CSV başlığında zorunlu sütun(lar) eksik: {string.Join(", ", missing)}. " +
+                "Beklenen sütunlar: Ad, Soyad, E-posta, Doğum Tarihi, Telefon, Eğitim Durumu, Yatırım Hesabı Var, Yurtdışı Transfer Var.");
+
+        var existingEmails = (await dbContext.Customers
+            .Where(c => c.BankId == bankId)
+            .Select(c => c.Email)
+            .ToListAsync(cancellationToken)).ToHashSet();
+        var seenInFile = new HashSet<string>();
+        var errors = new List<CustomerImportRowError>();
+        var imported = new List<Customer>();
+
+        var rowNumber = 1; // 1 = başlık satırı
+        string? line;
+        while ((line = await reader.ReadLineAsync(cancellationToken)) is not null)
+        {
+            rowNumber++;
+            if (string.IsNullOrWhiteSpace(line))
+                continue;
+
+            var fields = ParseCsvLine(line);
+            string Get(string column) =>
+                columnIndex.TryGetValue(column, out var idx) && idx < fields.Count ? fields[idx].Trim() : string.Empty;
+
+            try
+            {
+                var email = Get("EPOSTA");
+                var normalizedEmail = email.Trim().ToLowerInvariant();
+                if (existingEmails.Contains(normalizedEmail) || !seenInFile.Add(normalizedEmail))
+                    throw new InvalidOperationException($"'{email}' e-posta adresiyle kayıtlı bir müşteri zaten var.");
+
+                var dobRaw = Get("DOGUMTARIHI");
+                if (!DateTime.TryParse(dobRaw, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dob))
+                    throw new ArgumentException($"Geçersiz doğum tarihi formatı: '{dobRaw}' (beklenen: yyyy-aa-gg).");
+
+                var customer = Customer.Create(bankId, Get("AD"), Get("SOYAD"), email, dob);
+
+                var hasInvestment = ParseBool(Get("YATIRIMHESABIVAR"));
+                var hasInternational = ParseBool(Get("YURTDISITRANSFERVAR"));
+                if (hasInvestment || hasInternational)
+                    customer.UpdateFinancialFlags(hasInvestment, hasInternational);
+
+                var educationRaw = Get("EGITIMDURUMU");
+                if (!string.IsNullOrWhiteSpace(educationRaw))
+                {
+                    var educationLevel = ParseEducationLevel(educationRaw)
+                        ?? throw new ArgumentException($"Geçersiz eğitim durumu: '{educationRaw}'.");
+                    customer.UpdateEducationLevel(educationLevel);
+                }
+
+                var phone = Get("TELEFON");
+                if (!string.IsNullOrWhiteSpace(phone))
+                    customer.UpdatePhoneNumber(phone);
+
+                imported.Add(customer);
+            }
+            catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or FormatException)
+            {
+                errors.Add(new CustomerImportRowError(rowNumber, ex.Message));
+            }
+        }
+
+        if (imported.Count > 0)
+        {
+            dbContext.Customers.AddRange(imported);
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            await auditLogRepository.InsertAsync(
+                AuditLog.Create(bankId, null, AuditActionType.CustomerBulkImported,
+                    $"{imported.Count} müşteri CSV ile içe aktarıldı ({errors.Count} satır hatalı)."),
+                cancellationToken);
+        }
+
+        return new CustomerImportResult(imported.Count + errors.Count, imported.Count, errors);
+    }
+
+    private static bool ParseBool(string value) =>
+        value.Trim().ToLowerInvariant() is "evet" or "var" or "true" or "1";
+
+    private static EducationLevel? ParseEducationLevel(string value)
+    {
+        var normalized = NormalizeHeader(value);
+        foreach (var level in Enum.GetValues<EducationLevel>())
+        {
+            if (NormalizeHeader(level.ToString()) == normalized)
+                return level;
+        }
+        return null;
+    }
+
+    // Türkçe karakterleri (İ/ı/ş/ğ/ü/ö/ç) ASCII karşılıklarına indirip büyük harfe çevirir,
+    // harf/rakam dışındaki her şeyi (boşluk, '-') atar — CSV başlıkları ve eğitim durumu
+    // değerleri kullanıcı elle girdiği için (aksanlı/aksansız, boşluklu/boşluksuz) esnek eşleşmeli.
+    private static string NormalizeHeader(string value)
+    {
+        var sb = new StringBuilder();
+        foreach (var c in value.Trim())
+        {
+            var mapped = c switch
+            {
+                'ı' or 'İ' or 'i' or 'I' => 'I',
+                'ş' or 'Ş' => 'S',
+                'ğ' or 'Ğ' => 'G',
+                'ü' or 'Ü' => 'U',
+                'ö' or 'Ö' => 'O',
+                'ç' or 'Ç' => 'C',
+                _ => char.ToUpperInvariant(c)
+            };
+            if (char.IsLetterOrDigit(mapped))
+                sb.Append(mapped);
+        }
+        return sb.ToString();
+    }
+
+    private static List<string> ParseCsvLine(string line)
+    {
+        var fields = new List<string>();
+        var sb = new StringBuilder();
+        var inQuotes = false;
+        for (var i = 0; i < line.Length; i++)
+        {
+            var c = line[i];
+            if (inQuotes)
+            {
+                if (c == '"')
+                {
+                    if (i + 1 < line.Length && line[i + 1] == '"')
+                    {
+                        sb.Append('"');
+                        i++;
+                    }
+                    else
+                    {
+                        inQuotes = false;
+                    }
+                }
+                else
+                {
+                    sb.Append(c);
+                }
+            }
+            else if (c == '"')
+            {
+                inQuotes = true;
+            }
+            else if (c == ',')
+            {
+                fields.Add(sb.ToString());
+                sb.Clear();
+            }
+            else
+            {
+                sb.Append(c);
+            }
+        }
+
+        fields.Add(sb.ToString());
+        return fields;
     }
 
     private static CustomerSummary ToSummary(Customer customer) =>

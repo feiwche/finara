@@ -21,7 +21,11 @@ public class PayloadGuardMiddleware(RequestDelegate next, IOptions<PayloadGuardO
 
     public async Task InvokeAsync(HttpContext context)
     {
-        if (HasBody(context.Request))
+        // multipart/form-data (dosya yükleme) burada atlanıyor: gövde ikili dosya içeriği taşıyor,
+        // tamamını string'e okuyup kontrol karakteri taraması yapmak hem anlamsız hem yanlış pozitif
+        // üretir. Boyut/tip doğrulaması bu tür uçlarda endpoint'in kendisinde yapılıyor
+        // (bkz. CustomerEndpoints "/import").
+        if (HasBody(context.Request) && !context.Request.HasFormContentType)
         {
             if (context.Request.ContentLength is { } contentLength && contentLength > options.Value.MaxBodySizeBytes)
             {

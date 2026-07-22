@@ -1445,6 +1445,65 @@ export class Client {
     }
 
     /**
+     * @param file (optional) 
+     * @return OK
+     */
+    import(file?: FileParameter | undefined): Observable<CustomerImportResult> {
+        let url_ = this.baseUrl + "/api/customers/import";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = new FormData();
+        if (file === null || file === undefined)
+            throw new globalThis.Error("The parameter 'file' cannot be null.");
+        else
+            content_.append("file", file.data, file.fileName ? file.fileName : "file");
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processImport(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processImport(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<CustomerImportResult>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<CustomerImportResult>;
+        }));
+    }
+
+    protected processImport(response: HttpResponseBase): Observable<CustomerImportResult> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CustomerImportResult.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
      * @return Created
      */
     transactions(customerId: string, body: RecordTransactionRequest): Observable<TransactionSummary> {
@@ -2563,6 +2622,7 @@ export enum AuditActionType {
     ConsentRevoked = "ConsentRevoked",
     AdminCreated = "AdminCreated",
     AdminDeactivated = "AdminDeactivated",
+    CustomerBulkImported = "CustomerBulkImported",
 }
 
 export class AuditLogSummary implements IAuditLogSummary {
@@ -3142,6 +3202,98 @@ export interface ICreateCustomerRequest {
     hasInternationalTransfers?: boolean;
     educationLevel?: EducationLevel;
     phoneNumber?: string | undefined;
+}
+
+export class CustomerImportResult implements ICustomerImportResult {
+    totalRows?: number;
+    successCount?: number;
+    errors?: CustomerImportRowError[];
+
+    constructor(data?: ICustomerImportResult) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.totalRows = _data["totalRows"];
+            this.successCount = _data["successCount"];
+            if (Array.isArray(_data["errors"])) {
+                this.errors = [] as any;
+                for (let item of _data["errors"])
+                    this.errors!.push(CustomerImportRowError.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): CustomerImportResult {
+        data = typeof data === 'object' ? data : {};
+        let result = new CustomerImportResult();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["totalRows"] = this.totalRows;
+        data["successCount"] = this.successCount;
+        if (Array.isArray(this.errors)) {
+            data["errors"] = [];
+            for (let item of this.errors)
+                data["errors"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface ICustomerImportResult {
+    totalRows?: number;
+    successCount?: number;
+    errors?: CustomerImportRowError[];
+}
+
+export class CustomerImportRowError implements ICustomerImportRowError {
+    row?: number;
+    message?: string;
+
+    constructor(data?: ICustomerImportRowError) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.row = _data["row"];
+            this.message = _data["message"];
+        }
+    }
+
+    static fromJS(data: any): CustomerImportRowError {
+        data = typeof data === 'object' ? data : {};
+        let result = new CustomerImportRowError();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["row"] = this.row;
+        data["message"] = this.message;
+        return data;
+    }
+}
+
+export interface ICustomerImportRowError {
+    row?: number;
+    message?: string;
 }
 
 export class CustomerSummary implements ICustomerSummary {
@@ -4131,6 +4283,11 @@ export interface IUpdateConsentRequest {
 export enum UserRole {
     SuperAdmin = "SuperAdmin",
     BankAdmin = "BankAdmin",
+}
+
+export interface FileParameter {
+    data: any;
+    fileName: string;
 }
 
 export class ApiException extends Error {
