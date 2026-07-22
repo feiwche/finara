@@ -18,6 +18,7 @@ public class FinaraDbContext : DbContext
     public DbSet<CampaignOffer> CampaignOffers => Set<CampaignOffer>();
     public DbSet<User> Users => Set<User>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<AiInteractionLog> AiInteractionLogs => Set<AiInteractionLog>();
     public DbSet<CustomerConsent> CustomerConsents => Set<CustomerConsent>();
     public DbSet<NotificationLog> NotificationLogs => Set<NotificationLog>();

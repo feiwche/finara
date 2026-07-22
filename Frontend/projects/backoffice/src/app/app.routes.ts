@@ -9,6 +9,16 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/login.component').then(m => m.LoginComponent)
   },
   {
+    path: 'forgot-password',
+    title: 'Finara BackOffice — Şifremi Unuttum',
+    loadComponent: () => import('./features/auth/forgot-password.component').then(m => m.ForgotPasswordComponent)
+  },
+  {
+    path: 'reset-password',
+    title: 'Finara BackOffice — Şifre Sıfırla',
+    loadComponent: () => import('./features/auth/reset-password.component').then(m => m.ResetPasswordComponent)
+  },
+  {
     path: '',
     component: AppShellComponent,
     canActivate: [authGuard],

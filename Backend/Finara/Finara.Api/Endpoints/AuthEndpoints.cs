@@ -33,5 +33,20 @@ public static class AuthEndpoints
             return Results.NoContent();
         })
         .Produces(StatusCodes.Status204NoContent);
+
+        auth.MapPost("/forgot-password", async (ForgotPasswordRequest request, IAuthService service, CancellationToken ct) =>
+        {
+            await service.ForgotPasswordAsync(request, ct);
+            // Hesap var/yok bilgisi sızdırılmıyor — sonuç ne olursa olsun aynı jenerik yanıt.
+            return Results.Ok(new ForgotPasswordResult("Bu e-posta adresine kayıtlı bir hesap varsa, şifre sıfırlama bağlantısı gönderildi."));
+        })
+        .Produces<ForgotPasswordResult>();
+
+        auth.MapPost("/reset-password", async (ResetPasswordRequest request, IAuthService service, CancellationToken ct) =>
+        {
+            await service.ResetPasswordAsync(request, ct);
+            return Results.NoContent();
+        })
+        .Produces(StatusCodes.Status204NoContent);
     }
 }

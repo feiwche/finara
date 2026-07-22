@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
@@ -12,7 +12,7 @@ import { AuthService, describeApiError } from '@finara/shared-ui';
 
 @Component({
     selector: 'app-login',
-    imports: [FormsModule, InputTextModule, PasswordModule, ButtonModule, CardModule, MessageModule],
+    imports: [FormsModule, RouterLink, InputTextModule, PasswordModule, ButtonModule, CardModule, MessageModule],
     templateUrl: './login.component.html'
 })
 export class LoginComponent implements OnInit {

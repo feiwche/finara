@@ -50,6 +50,15 @@ public class User : BaseEntity
         MarkUpdated();
     }
 
+    public void SetPasswordHash(string newPasswordHash)
+    {
+        if (string.IsNullOrWhiteSpace(newPasswordHash))
+            throw new ArgumentException("Şifre hash'i boş olamaz.", nameof(newPasswordHash));
+
+        PasswordHash = newPasswordHash;
+        MarkUpdated();
+    }
+
     private static bool IsValidEmail(string email)
     {
         if (string.IsNullOrWhiteSpace(email)) return false;

@@ -14,8 +14,13 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Finara.Infrastructure.Services;
 
-public class AuthService(FinaraDbContext dbContext, IConfiguration configuration) : IAuthService
+public class AuthService(FinaraDbContext dbContext, IConfiguration configuration, IAdminEmailSender emailSender) : IAuthService
 {
+    // client (4200) ve backoffice (4300) aynı User hesaplarıyla ayrı origin'lerden giriş
+    // yapıyor — CORS'taki izinli origin listesiyle aynı (bkz. Program.cs AddCors), sıfırlama
+    // bağlantısının keyfi bir adrese yönlendirilmesini (open redirect/e-posta enjeksiyonu)
+    // önlemek için burada da doğrulanıyor.
+    private static readonly string[] AllowedResetUrlBases = ["http://localhost:4200", "http://localhost:4300"];
     public async Task RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
     {
         PasswordPolicy.Validate(request.Password);
@@ -71,6 +76,54 @@ public class AuthService(FinaraDbContext dbContext, IConfiguration configuration
             return; // zaten geçersiz/iptal edilmiş — sessizce no-op (idempotent logout)
 
         existing.Revoke();
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken cancellationToken = default)
+    {
+        if (!AllowedResetUrlBases.Contains(request.ResetUrlBase, StringComparer.OrdinalIgnoreCase))
+            throw new ArgumentException("Geçersiz yönlendirme adresi.", nameof(request.ResetUrlBase));
+
+        var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+        var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail, cancellationToken);
+
+        // Hesap yoksa/pasifse sessizce dönülüyor — endpoint her durumda aynı jenerik
+        // mesajı gösterir, böylece bir e-postanın sistemde kayıtlı olup olmadığı
+        // (hesap varlığı oracle'ı) dışarı sızmaz.
+        if (user is null || !user.IsActive)
+            return;
+
+        var rawToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+        var resetToken = PasswordResetToken.Create(user.Id, RefreshTokenHasher.Hash(rawToken), DateTime.UtcNow.AddMinutes(30));
+        dbContext.PasswordResetTokens.Add(resetToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        var resetUrl = $"{request.ResetUrlBase}/reset-password?token={Uri.EscapeDataString(rawToken)}";
+        await emailSender.SendPasswordResetEmailAsync(user.Email, resetUrl, cancellationToken);
+    }
+
+    public async Task ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken = default)
+    {
+        PasswordPolicy.Validate(request.NewPassword);
+
+        var tokenHash = RefreshTokenHasher.Hash(request.Token);
+        var resetToken = await dbContext.PasswordResetTokens.FirstOrDefaultAsync(t => t.TokenHash == tokenHash, cancellationToken);
+        if (resetToken is null || !resetToken.IsActive)
+            throw new UnauthorizedAccessException("Geçersiz veya süresi dolmuş sıfırlama bağlantısı.");
+
+        var user = await dbContext.Users.FirstAsync(u => u.Id == resetToken.UserId, cancellationToken);
+        user.SetPasswordHash(PasswordHasher.Hash(request.NewPassword));
+        resetToken.MarkUsed();
+
+        // Şifre sıfırlandığında tüm oturumlar da iptal edilmeli — token'ı ele geçiren biri
+        // varsa (asıl sıfırlama nedeni bu olabilir), sıfırlama sonrası her yerden yeniden
+        // giriş zorunlu kılınıyor.
+        var activeRefreshTokens = await dbContext.RefreshTokens
+            .Where(t => t.UserId == user.Id && t.RevokedAtUtc == null)
+            .ToListAsync(cancellationToken);
+        foreach (var refreshToken in activeRefreshTokens)
+            refreshToken.Revoke();
+
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 

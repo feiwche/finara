@@ -12,5 +12,8 @@
       <p-message severity="error" [text]="error()!" />
     }
     <p-button label="Giriş yap" [loading]="busy()" (onClick)="login()" />
+    <div class="auth-back-link">
+      <a routerLink="/forgot-password">Şifremi unuttum</a>
+    </div>
   </p-card>
 </div>

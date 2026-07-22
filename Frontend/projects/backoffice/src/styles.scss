@@ -254,6 +254,15 @@ h1, h2, h3 {
   max-width: 360px;
 }
 
+.auth-back-link {
+  margin-top: 12px;
+  font-size: 0.85rem;
+
+  a {
+    color: var(--p-primary-color, #175243);
+  }
+}
+
 // Kampanya yaşam döngüsü aksiyon butonları — durum bazlı birden fazla buton yan yana.
 .action-buttons {
   display: flex;

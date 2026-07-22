@@ -77,9 +77,15 @@ builder.Services.Configure<TwilioOptions>(builder.Configuration.GetSection("Twil
 
 var emailProvider = builder.Configuration["Notifications:Email:Provider"] ?? "Mock";
 if (string.Equals(emailProvider, "Smtp", StringComparison.OrdinalIgnoreCase))
+{
     builder.Services.AddKeyedScoped<INotificationDispatcher, SmtpEmailDispatcher>(Finara.Domain.Enums.ConsentChannel.Email);
+    builder.Services.AddScoped<IAdminEmailSender, SmtpAdminEmailSender>();
+}
 else
+{
     builder.Services.AddKeyedScoped<INotificationDispatcher, MockEmailDispatcher>(Finara.Domain.Enums.ConsentChannel.Email);
+    builder.Services.AddScoped<IAdminEmailSender, MockAdminEmailSender>();
+}
 
 var smsProvider = builder.Configuration["Notifications:Sms:Provider"] ?? "Mock";
 if (string.Equals(smsProvider, "Twilio", StringComparison.OrdinalIgnoreCase))
