@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
 import { TableModule } from 'primeng/table';
@@ -27,6 +27,9 @@ export class CohortExplorerComponent implements OnInit {
 
   protected cohorts = signal<CohortSummary[]>([]);
   protected loading = signal(false);
+
+  protected readonly totalCustomerCount = computed(() => this.cohorts().reduce((sum, c) => sum + (c.customerCount ?? 0), 0));
+  protected readonly otherGroupCount = computed(() => this.cohorts().filter(c => c.isOther).length);
 
   protected readonly ageBracketLabel = ageBracketLabel;
   protected readonly educationLevelLabel = educationLevelLabel;

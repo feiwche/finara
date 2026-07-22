@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 
@@ -31,6 +31,9 @@ export class BankManagementComponent implements OnInit {
   protected banks = signal<BankSummary[]>([]);
   protected loading = signal(false);
   protected busyId = signal<string | null>(null);
+
+  protected readonly activeCount = computed(() => this.banks().filter(b => b.isActive).length);
+  protected readonly inactiveCount = computed(() => this.banks().filter(b => !b.isActive).length);
 
   protected dialogVisible = signal(false);
   protected createBusy = signal(false);

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
@@ -40,6 +40,9 @@ export class AdminAccountsComponent implements OnInit {
   protected banks = signal<BankSummary[]>([]);
   protected loading = signal(false);
   protected busyId = signal<string | null>(null);
+
+  protected readonly activeCount = computed(() => this.admins().filter(a => a.isActive).length);
+  protected readonly inactiveCount = computed(() => this.admins().filter(a => !a.isActive).length);
 
   protected readonly roleOptions = USER_ROLE_OPTIONS;
 

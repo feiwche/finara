@@ -1,6 +1,32 @@
 <div class="toolbar">
   <h1>Banka Yönetimi</h1>
-  <p-button label="Yeni Banka" icon="pi pi-building" (onClick)="openCreateDialog()" />
+  <div class="toolbar-actions">
+    <p-button label="Yeni Banka" icon="pi pi-building" (onClick)="openCreateDialog()" />
+  </div>
+</div>
+
+<div class="stat-strip">
+  <div class="stat-chip">
+    <span class="stat-chip-icon"><i class="pi pi-building"></i></span>
+    <div>
+      <div class="stat-chip-value">{{ banks().length }}</div>
+      <div class="stat-chip-label">TOPLAM BANKA</div>
+    </div>
+  </div>
+  <div class="stat-chip stat-chip--accent">
+    <span class="stat-chip-icon"><i class="pi pi-check-circle"></i></span>
+    <div>
+      <div class="stat-chip-value">{{ activeCount() }}</div>
+      <div class="stat-chip-label">AKTİF</div>
+    </div>
+  </div>
+  <div class="stat-chip">
+    <span class="stat-chip-icon"><i class="pi pi-ban"></i></span>
+    <div>
+      <div class="stat-chip-value">{{ inactiveCount() }}</div>
+      <div class="stat-chip-label">PASİF</div>
+    </div>
+  </div>
 </div>
 
 <p-table [value]="banks()" [loading]="loading()" [rows]="20" [paginator]="banks().length > 20" styleClass="p-datatable-sm">
