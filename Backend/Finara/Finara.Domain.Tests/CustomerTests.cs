@@ -158,4 +158,33 @@ public class CustomerTests
 
         act.Should().Throw<ArgumentException>().WithParameterName("phoneNumber");
     }
+
+    [Fact]
+    public void Erase_KimlikBelirleyicileriAnonimlestirirVeIsaretler()
+    {
+        var customer = Domain.Entities.Customer.Create(ValidBankId, "Ayşe", "Yılmaz", "ayse@example.com", ValidBirthDate);
+        customer.UpdatePhoneNumber("+905551234567");
+        customer.UpdateEducationLevel(EducationLevel.Lisans);
+
+        customer.Erase();
+
+        customer.FirstName.Should().Be("Silinmiş");
+        customer.LastName.Should().Be("Müşteri");
+        customer.Email.Should().Contain("erased-").And.Contain("@erased.finara.internal");
+        customer.PhoneNumber.Should().BeNull();
+        customer.EducationLevel.Should().BeNull();
+        customer.IsErased.Should().BeTrue();
+        customer.ErasedAtUtc.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Erase_ZatenAnonimlestirilmisMusteride_InvalidOperationExceptionFirlatir()
+    {
+        var customer = Domain.Entities.Customer.Create(ValidBankId, "Ali", "Veli", "ali@example.com", ValidBirthDate);
+        customer.Erase();
+
+        var act = () => customer.Erase();
+
+        act.Should().Throw<InvalidOperationException>();
+    }
 }

@@ -38,6 +38,17 @@ public static class CustomerEndpoints
         .Accepts<IFormFile>("multipart/form-data")
         .Produces<CustomerImportResult>();
 
+        customers.MapPost("/{customerId:guid}/erase", async (Guid customerId, ICustomerService service, CancellationToken ct) =>
+        {
+            var summary = await service.EraseCustomerAsync(customerId, ct);
+            return summary is null
+                ? Results.Problem(statusCode: StatusCodes.Status404NotFound, title: "Müşteri bulunamadı",
+                    detail: $"'{customerId}' kimlikli müşteri bulunamadı.")
+                : Results.Ok(summary);
+        })
+        .Produces<CustomerSummary>()
+        .ProducesProblem(StatusCodes.Status404NotFound);
+
         customers.MapPost("/{customerId:guid}/transactions", async (Guid customerId, RecordTransactionRequest request, ICustomerService service, CancellationToken ct) =>
         {
             var summary = await service.RecordTransactionAsync(customerId, request, ct);

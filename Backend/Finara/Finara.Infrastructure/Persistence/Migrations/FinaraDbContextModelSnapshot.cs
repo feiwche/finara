@@ -220,6 +220,9 @@ namespace Finara.Infrastructure.Persistence.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
+                    b.Property<DateTime?>("ErasedAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -229,6 +232,9 @@ namespace Finara.Infrastructure.Persistence.Migrations
                         .HasColumnType("bit");
 
                     b.Property<bool>("HasInvestmentAccount")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsErased")
                         .HasColumnType("bit");
 
                     b.Property<string>("LastName")

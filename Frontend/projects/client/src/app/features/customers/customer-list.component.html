@@ -78,6 +78,9 @@
         <div class="detail-header">
           <span class="avatar-circle">{{ initials(customer) }}</span>
           {{ customer.firstName }} {{ customer.lastName }}
+          @if (customer.isErased) {
+            <p-tag value="Anonimleştirildi" severity="secondary" />
+          }
         </div>
       </td>
       <td>{{ customer.email }}</td>

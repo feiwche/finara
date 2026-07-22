@@ -151,6 +151,8 @@ export class CustomerDetailComponent implements OnInit {
   protected consents = signal<ConsentSummary[]>([]);
   protected consentBusy = signal<ConsentChannel | null>(null);
 
+  protected eraseBusy = signal(false);
+
   protected aiQuestion = '';
   protected aiAnswer = signal<AiInsightResult | null>(null);
   protected aiBusy = signal(false);
@@ -326,6 +328,35 @@ export class CustomerDetailComponent implements OnInit {
       this.messageService.add({ severity: 'error', summary: 'İşlem başarısız', detail: describeApiError(err) });
     } finally {
       this.respondingOfferId.set(null);
+    }
+  }
+
+  eraseCustomer(): void {
+    const c = this.customer();
+    if (!c) return;
+    // Geri döndürülemez ve doğrudan kimlik belirleyicileri kalıcı olarak siliyor —
+    // reddetme aksiyonundakiyle aynı desen (bkz. respondToOffer), burada daha güçlü bir uyarı metniyle.
+    this.confirmationService.confirm({
+      header: 'KVKK Unutulma Hakkını Kullan',
+      message: `"${c.firstName} ${c.lastName}" adlı müşterinin adı, e-postası ve telefonu kalıcı olarak anonimleştirilecek. Bu işlem GERİ ALINAMAZ. Devam edilsin mi?`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Anonimleştir',
+      rejectLabel: 'Vazgeç',
+      acceptButtonProps: { severity: 'danger' },
+      accept: () => void this.executeErase()
+    });
+  }
+
+  private async executeErase(): Promise<void> {
+    this.eraseBusy.set(true);
+    try {
+      const updated = await firstValueFrom(this.client.erase(this.customerId));
+      this.customer.set(updated);
+      this.messageService.add({ severity: 'success', summary: 'Müşteri anonimleştirildi', detail: 'Veriler KVKK unutulma hakkı kapsamında kalıcı olarak silindi.' });
+    } catch (err) {
+      this.messageService.add({ severity: 'error', summary: 'Anonimleştirme başarısız', detail: describeApiError(err) });
+    } finally {
+      this.eraseBusy.set(false);
     }
   }
 

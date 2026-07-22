@@ -1610,6 +1610,67 @@ export class Client {
     }
 
     /**
+     * @return OK
+     */
+    erase(customerId: string): Observable<CustomerSummary> {
+        let url_ = this.baseUrl + "/api/customers/{customerId}/erase";
+        if (customerId === undefined || customerId === null)
+            throw new globalThis.Error("The parameter 'customerId' must be defined.");
+        url_ = url_.replace("{customerId}", encodeURIComponent("" + customerId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processErase(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processErase(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<CustomerSummary>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<CustomerSummary>;
+        }));
+    }
+
+    protected processErase(response: HttpResponseBase): Observable<CustomerSummary> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CustomerSummary.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status === 404) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
      * @return Created
      */
     transactions(customerId: string, body: RecordTransactionRequest): Observable<TransactionSummary> {
@@ -2797,6 +2858,7 @@ export enum AuditActionType {
     AdminCreated = "AdminCreated",
     AdminDeactivated = "AdminDeactivated",
     CustomerBulkImported = "CustomerBulkImported",
+    CustomerErased = "CustomerErased",
 }
 
 export class AuditLogSummary implements IAuditLogSummary {
@@ -3481,6 +3543,7 @@ export class CustomerSummary implements ICustomerSummary {
     hasInternationalTransfers?: boolean;
     educationLevel?: EducationLevel;
     phoneNumber?: string | undefined;
+    isErased?: boolean;
 
     constructor(data?: ICustomerSummary) {
         if (data) {
@@ -3503,6 +3566,7 @@ export class CustomerSummary implements ICustomerSummary {
             this.hasInternationalTransfers = _data["hasInternationalTransfers"];
             this.educationLevel = _data["educationLevel"];
             this.phoneNumber = _data["phoneNumber"];
+            this.isErased = _data["isErased"];
         }
     }
 
@@ -3525,6 +3589,7 @@ export class CustomerSummary implements ICustomerSummary {
         data["hasInternationalTransfers"] = this.hasInternationalTransfers;
         data["educationLevel"] = this.educationLevel;
         data["phoneNumber"] = this.phoneNumber;
+        data["isErased"] = this.isErased;
         return data;
     }
 }
@@ -3540,6 +3605,7 @@ export interface ICustomerSummary {
     hasInternationalTransfers?: boolean;
     educationLevel?: EducationLevel;
     phoneNumber?: string | undefined;
+    isErased?: boolean;
 }
 
 export class DailyCustomerGrowthPoint implements IDailyCustomerGrowthPoint {

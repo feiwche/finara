@@ -63,6 +63,9 @@ public class CustomerService(
         if (customer is null || (!currentUser.IsSuperAdmin && customer.BankId != currentUser.BankId))
             return null;
 
+        if (customer.IsErased)
+            throw new InvalidOperationException("Bu müşteri KVKK unutulma hakkı kapsamında anonimleştirilmiş, yeni işlem eklenemez.");
+
         var transaction = Transaction.Create(
             customer.BankId, customerId, request.Amount, request.Category, request.MerchantName,
             request.OccurredAtUtc, request.Currency, request.IsInternational);
@@ -129,6 +132,33 @@ public class CustomerService(
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return new MockGenerationResult(customersCreated, transactionsCreated);
+    }
+
+    public async Task<CustomerSummary?> EraseCustomerAsync(Guid customerId, CancellationToken cancellationToken = default)
+    {
+        var customer = await dbContext.Customers.FirstOrDefaultAsync(c => c.Id == customerId, cancellationToken);
+        if (customer is null || (!currentUser.IsSuperAdmin && customer.BankId != currentUser.BankId))
+            return null;
+
+        customer.Erase();
+
+        // Artık ulaşılamayan/anonim bir kişiye "rıza" kavramsal olarak anlamsız —
+        // kalan tüm kanal rızaları da kaldırılıyor ki teklif dağıtımı consent-gate
+        // üzerinden zaten sessizce atlansın (bkz. IConsentGate — ayrı bir guard eklemeye gerek kalmadı).
+        var activeConsents = await dbContext.CustomerConsents
+            .Where(c => c.CustomerId == customerId && c.IsGranted)
+            .ToListAsync(cancellationToken);
+        foreach (var consent in activeConsents)
+            consent.Revoke();
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        await auditLogRepository.InsertAsync(
+            AuditLog.Create(customer.BankId, customer.Id, AuditActionType.CustomerErased,
+                "Müşteri verileri KVKK unutulma hakkı kapsamında anonimleştirildi."),
+            cancellationToken);
+
+        return ToSummary(customer);
     }
 
     // Beklenen CSV başlıkları (Türkçe, sıra önemsiz — NormalizeHeader ile eşleştiriliyor):
@@ -312,7 +342,8 @@ public class CustomerService(
 
     private static CustomerSummary ToSummary(Customer customer) =>
         new(customer.Id, customer.FirstName, customer.LastName, customer.Email, customer.GetAge(), customer.CurrentPropensity,
-            customer.HasInvestmentAccount, customer.HasInternationalTransfers, customer.EducationLevel, customer.PhoneNumber);
+            customer.HasInvestmentAccount, customer.HasInternationalTransfers, customer.EducationLevel, customer.PhoneNumber,
+            customer.IsErased);
 
     private static TransactionSummary ToSummary(Transaction transaction) =>
         new(transaction.Id, transaction.CustomerId, transaction.Amount, transaction.Category,

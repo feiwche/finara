@@ -32,7 +32,8 @@ public record CustomerSummary(
     bool HasInvestmentAccount,
     bool HasInternationalTransfers,
     EducationLevel? EducationLevel,
-    string? PhoneNumber);
+    string? PhoneNumber,
+    bool IsErased);
 
 public record TransactionSummary(
     Guid Id,

@@ -22,6 +22,12 @@ public class Customer : BaseEntity
     public string? PhoneNumber { get; private set; }
     public SpendingPropensity CurrentPropensity { get; private set; } = SpendingPropensity.Neutral;
 
+    // KVKK/GDPR "unutulma hakkı" — satır silinmiyor (Transaction/Segment/CampaignOffer gibi
+    // Cascade FK'li geçmiş kayıtların referans bütünlüğü ve denetlenebilirlik için müşteri
+    // yaşamaya devam etmeli), sadece doğrudan kimlik belirleyiciler (Erase() içinde) siliniyor.
+    public bool IsErased { get; private set; }
+    public DateTime? ErasedAtUtc { get; private set; }
+
     private readonly List<Transaction> _transactions = new();
     public IReadOnlyCollection<Transaction> Transactions => _transactions.AsReadOnly();
 
@@ -83,6 +89,23 @@ public class Customer : BaseEntity
             throw new ArgumentException("Geçersiz telefon numarası formatı — E.164 bekleniyor (ör. +905551234567).", nameof(phoneNumber));
 
         PhoneNumber = string.IsNullOrWhiteSpace(phoneNumber) ? null : phoneNumber.Trim();
+        MarkUpdated();
+    }
+
+    public void Erase()
+    {
+        if (IsErased)
+            throw new InvalidOperationException("Müşteri zaten anonimleştirilmiş.");
+
+        // Email için (BankId, Email) benzersizlik kısıtı hâlâ geçerli — kendi Id'sini
+        // kullanmak başka bir anonimleştirilmiş müşteriyle çakışmayı imkansız kılıyor.
+        FirstName = "Silinmiş";
+        LastName = "Müşteri";
+        Email = $"erased-{Id:N}@erased.finara.internal";
+        PhoneNumber = null;
+        EducationLevel = null;
+        IsErased = true;
+        ErasedAtUtc = DateTime.UtcNow;
         MarkUpdated();
     }
 

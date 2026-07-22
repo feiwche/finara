@@ -16,10 +16,29 @@
 <p-tabView>
   <p-tabPanel header="Profil">
     @if (customer(); as c) {
+      @if (c.isErased) {
+        <p-message
+          severity="warn"
+          text="Bu müşterinin verileri KVKK unutulma hakkı kapsamında anonimleştirilmiştir — ad, e-posta ve telefon kalıcı olarak silindi."
+          styleClass="panel"
+        />
+      }
       <p-card styleClass="panel">
         <div><strong>E-posta:</strong> {{ c.email }}</div>
         <div><strong>Yaş:</strong> {{ c.age }}</div>
         <div><strong>Genel eğilim:</strong> {{ spendingPropensityLabel(c.propensity!) }}</div>
+        @if (!c.isErased) {
+          <p-button
+            label="KVKK Unutulma Hakkını Kullan"
+            icon="pi pi-trash"
+            severity="danger"
+            [outlined]="true"
+            size="small"
+            styleClass="erase-button"
+            [loading]="eraseBusy()"
+            (onClick)="eraseCustomer()"
+          />
+        }
       </p-card>
     }
 

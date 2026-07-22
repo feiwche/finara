@@ -15,4 +15,8 @@ public interface ICustomerService
     Task<MockGenerationResult> GenerateMockDataAsync(GenerateMockDataRequest request, CancellationToken cancellationToken = default);
 
     Task<CustomerImportResult> ImportCustomersAsync(Stream csvStream, CancellationToken cancellationToken = default);
+
+    // KVKK/GDPR unutulma hakkı — müşteri bulunamazsa/başka bankadaysa null (404).
+    // Zaten anonimleştirilmişse InvalidOperationException (400) fırlatır.
+    Task<CustomerSummary?> EraseCustomerAsync(Guid customerId, CancellationToken cancellationToken = default);
 }

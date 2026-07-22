@@ -21,5 +21,6 @@ public enum AuditActionType
     // yönetici hesabı işlemleri hiçbir müşteriyle ilgili değil, bkz. AuditLog.CustomerId.
     AdminCreated,
     AdminDeactivated,
-    CustomerBulkImported
+    CustomerBulkImported,
+    CustomerErased
 }
