@@ -6,6 +6,7 @@ using Finara.Api.Endpoints;
 using Finara.Api.ExceptionHandling;
 using Finara.Api.Middleware;
 using Finara.Api.RateLimiting;
+using Finara.Api.Realtime;
 using Finara.Api.Security;
 using Finara.Application.Interfaces;
 using Finara.Infrastructure.MockData;
@@ -137,9 +138,25 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true,
             ClockSkew = TimeSpan.FromSeconds(30)
         };
+        // SignalR WebSocket bağlantıları Authorization header'ı taşıyamıyor — tarayıcı
+        // istemcisi (accessTokenFactory) token'ı query string'e koyuyor, sadece hub
+        // path'i için buradan okunuyor (diğer tüm REST endpoint'ler hâlâ header bekliyor).
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                if (!string.IsNullOrEmpty(accessToken) && context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+                    context.Token = accessToken;
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddAuthorization();
+
+builder.Services.AddSignalR();
+builder.Services.AddScoped<IRealtimeNotifier, SignalRRealtimeNotifier>();
 
 // Angular dev server'ları buradan erişebilsin diye: client (4200) ve BackOffice (4300).
 // Faz 8'de gerçek origin'ler appsettings üzerinden yapılandırılabilir hale getirilecek.
@@ -148,7 +165,9 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontendApps", policy =>
         policy.WithOrigins("http://localhost:4200", "http://localhost:4300")
               .AllowAnyHeader()
-              .AllowAnyMethod());
+              .AllowAnyMethod()
+              // SignalR'ın negotiate/WebSocket el sıkışması için gerekli.
+              .AllowCredentials());
 });
 
 // Enum'lar JSON'da okunabilir string olarak taşınsın ("Groceries"), ham int olarak değil —
@@ -279,5 +298,7 @@ app.MapAiEndpoints();
 app.MapMcp("/mcp")
     .RequireAuthorization()
     .RequireRateLimiting(RateLimitPolicies.Global);
+
+app.MapHub<NotificationsHub>("/hubs/notifications").RequireAuthorization();
 
 app.Run();

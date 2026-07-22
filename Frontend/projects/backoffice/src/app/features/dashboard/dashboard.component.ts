@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 
@@ -9,6 +10,7 @@ import { MessageService } from 'primeng/api';
 import {
   AuditActionType,
   Client,
+  RealtimeService,
   SPENDING_PROPENSITY_OPTIONS,
   describeApiError
 } from '@finara/shared-ui';
@@ -21,6 +23,8 @@ import {
 export class DashboardComponent implements OnInit {
   private readonly client = inject(Client);
   private readonly messageService = inject(MessageService);
+  private readonly realtimeService = inject(RealtimeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly today = new Date();
 
@@ -47,6 +51,12 @@ export class DashboardComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     await this.loadDashboard();
+
+    // Başka bir sekmede/kullanıcı tarafından bir kampanya aktifleştirilince/duraklatılınca
+    // "Aktif Kampanya" KPI'ı elle yenilemeye gerek kalmadan güncellensin diye.
+    this.realtimeService.campaignUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      void this.loadDashboard();
+    });
   }
 
   // Henüz toplu bir istatistik ucu yok (bkz. plan notu — v1'de erken optimizasyon

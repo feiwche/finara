@@ -1,4 +1,5 @@
-import { Component, ElementRef, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
@@ -18,6 +19,7 @@ import {
   Client,
   ConsentChannel,
   NotificationLogSummary,
+  RealtimeService,
   consentChannelLabel,
   describeApiError,
   toUtcDateOnlyIso
@@ -42,6 +44,8 @@ import {
 export class NotificationLogComponent implements OnInit {
   private readonly client = inject(Client);
   private readonly messageService = inject(MessageService);
+  private readonly realtimeService = inject(RealtimeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   // Audit Log ekranındaki aynı desen (bkz. audit-log.component.ts) — #searchBox
   // p-table'ın "caption" ng-template'i içinde tanımlı olduğu için dışarıdan erişim
@@ -60,6 +64,17 @@ export class NotificationLogComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     await this.loadLogs();
+
+    // Başka bir sekmede/kullanıcı tarafından bir teklif dağıtıldığında, listeyi elle
+    // yenilemeye gerek kalmadan burada da görünsün diye (mevcut filtreler korunarak).
+    this.realtimeService.offerDistributed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(log => {
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Yeni bildirim',
+        detail: `${consentChannelLabel(log.channel!)} · ${log.customerName}`
+      });
+      void this.loadLogs();
+    });
   }
 
   async loadLogs(): Promise<void> {

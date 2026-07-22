@@ -12,7 +12,8 @@ public class OfferDistributionService(
     FinaraDbContext dbContext,
     IAuditLogRepository auditLogRepository,
     ICurrentUserContext currentUser,
-    IServiceProvider serviceProvider)
+    IServiceProvider serviceProvider,
+    IRealtimeNotifier realtimeNotifier)
     : IOfferDistributionService
 {
     public async Task<NotificationDispatchResult?> DistributeOfferAsync(
@@ -52,6 +53,30 @@ public class OfferDistributionService(
         await auditLogRepository.InsertAsync(
             AuditLog.Create(offer.BankId, offer.CustomerId, AuditActionType.OfferDistributed, detail),
             cancellationToken);
+
+        // Gerçek zamanlı yayın — dispatcher'ın (Mock/Smtp/Twilio) az önce yazdığı satırı
+        // geri okuyup yayınlıyoruz (InAppBanking için de aynı sorgu çalışır, o satırı
+        // yukarıda kendimiz eklemiştik) — dört dispatcher'ın da değiştirilmesine gerek
+        // kalmadan tek bir noktadan gerçek DB kaydıyla birebir eşleşen bir olay üretiyor.
+        var freshLog = await dbContext.NotificationLogs.AsNoTracking()
+            .Where(n => n.CustomerId == customerId && n.Channel == request.Channel && n.CampaignOfferId == offer.Id)
+            .OrderByDescending(n => n.SentAtUtc)
+            .FirstOrDefaultAsync(cancellationToken);
+        if (freshLog is not null)
+        {
+            var customer = await dbContext.Customers.AsNoTracking()
+                .Where(c => c.Id == customerId)
+                .Select(c => new { c.FirstName, c.LastName })
+                .FirstOrDefaultAsync(cancellationToken);
+            var customerName = customer is null ? "Müşteri" : $"{customer.FirstName} {customer.LastName}";
+
+            await realtimeNotifier.NotifyOfferDistributedAsync(
+                offer.BankId,
+                new NotificationLogSummary(
+                    freshLog.Id, customerId, customerName, offer.Id,
+                    request.Channel, message, result.Sent, result.SkippedReason, freshLog.SentAtUtc),
+                cancellationToken);
+        }
 
         return result;
     }

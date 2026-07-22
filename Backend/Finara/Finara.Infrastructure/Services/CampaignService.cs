@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Finara.Infrastructure.Services;
 
-public class CampaignService(FinaraDbContext dbContext, ICurrentUserContext currentUser) : ICampaignService
+public class CampaignService(FinaraDbContext dbContext, ICurrentUserContext currentUser, IRealtimeNotifier realtimeNotifier) : ICampaignService
 {
     public async Task<CampaignSummary> CreateCampaignAsync(CreateCampaignRequest request, CancellationToken cancellationToken = default)
     {
@@ -54,7 +54,11 @@ public class CampaignService(FinaraDbContext dbContext, ICurrentUserContext curr
         transition(campaign);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return ToSummary(campaign);
+        var summary = ToSummary(campaign);
+        // Gerçek zamanlı yayın — açık olan diğer BackOffice/client sekmeleri (aynı banka +
+        // SuperAdmin'ler) listelerini elle yenilemeden bu geçişi anında görsün diye.
+        await realtimeNotifier.NotifyCampaignUpdatedAsync(campaign.BankId, summary, cancellationToken);
+        return summary;
     }
 
     public async Task<IReadOnlyList<CampaignSummary>> GetCampaignsAsync(CancellationToken cancellationToken = default)

@@ -1,4 +1,5 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
@@ -19,6 +20,7 @@ import {
   CampaignSummary,
   Client,
   CreateCampaignRequest,
+  RealtimeService,
   SPENDING_PROPENSITY_OPTIONS,
   SpendingPropensity,
   TRANSACTION_CATEGORY_OPTIONS,
@@ -52,6 +54,8 @@ import {
 export class CampaignListComponent implements OnInit {
   private readonly client = inject(Client);
   private readonly messageService = inject(MessageService);
+  private readonly realtimeService = inject(RealtimeService);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected campaigns = signal<CampaignSummary[]>([]);
   protected loading = signal(false);
@@ -80,6 +84,17 @@ export class CampaignListComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     await this.loadCampaigns();
+
+    // Başka bir sekmede/kullanıcı tarafından bir kampanyanın durumu değiştirilince
+    // listeyi elle yenilemeye gerek kalmadan burada da görünsün diye.
+    this.realtimeService.campaignUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(campaign => {
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Kampanya güncellendi',
+        detail: `${campaign.name} artık ${campaignStatusLabel(campaign.status ?? '')}`
+      });
+      void this.loadCampaigns();
+    });
   }
 
   async loadCampaigns(): Promise<void> {

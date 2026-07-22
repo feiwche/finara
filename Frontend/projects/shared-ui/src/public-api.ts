@@ -14,3 +14,5 @@ export * from './lib/auth/auth.guard';
 export * from './lib/auth/auth.interceptor';
 
 export * from './lib/config/provide-finara-ui';
+
+export * from './lib/realtime/realtime.service';
