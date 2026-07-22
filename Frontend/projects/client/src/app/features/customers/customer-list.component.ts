@@ -21,6 +21,7 @@ import {
   CreateCustomerRequest,
   CustomerSummary,
   describeApiError,
+  educationLevelLabel,
   EDUCATION_LEVEL_OPTIONS,
   EducationLevel,
   propensitySeverity,
@@ -69,6 +70,31 @@ export class CustomerListComponent implements OnInit {
   protected initials(customer: CustomerSummary): string {
     return `${customer.firstName?.[0] ?? ''}${customer.lastName?.[0] ?? ''}`.toUpperCase();
   }
+
+  // p-table'ın yerleşik exportCSV()'i — [columns] gerçek CustomerSummary alanlarına
+  // işaret ediyor, [exportFunction] enum değerlerini ham İngilizce yerine Türkçe
+  // etikete çeviriyor (bkz. UI Türkçe kuralı — dışa aktarılan dosya da istisna değil).
+  protected readonly exportColumns = [
+    { field: 'firstName', header: 'Ad' },
+    { field: 'lastName', header: 'Soyad' },
+    { field: 'email', header: 'E-posta' },
+    { field: 'phoneNumber', header: 'Telefon' },
+    { field: 'age', header: 'Yaş' },
+    { field: 'propensity', header: 'Eğilim' },
+    { field: 'educationLevel', header: 'Eğitim Durumu' }
+  ];
+
+  protected exportFn = (event: { data: unknown; field: string }): string => {
+    if (event.data == null) return '';
+    switch (event.field) {
+      case 'propensity':
+        return spendingPropensityLabel(event.data as string);
+      case 'educationLevel':
+        return educationLevelLabel(event.data as string);
+      default:
+        return String(event.data);
+    }
+  };
 
   protected dialogVisible = signal(false);
   protected createBusy = signal(false);

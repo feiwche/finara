@@ -41,6 +41,20 @@ export class DashboardComponent implements OnInit {
     maintainAspectRatio: false
   };
 
+  // Anlık KPI'ları tamamlayan zaman-bazlı trendler (Adım 3 — raporlama) — yeni
+  // /api/reports/* uçlarından, AuditLogs'tan hesaplanıyor (bkz. ReportService).
+  protected offerTrendChartData = signal<unknown>(null);
+  protected customerGrowthChartData = signal<unknown>(null);
+  protected readonly trendChartOptions = {
+    plugins: { legend: { position: 'bottom' } },
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: { grid: { display: false } },
+      y: { beginAtZero: true, ticks: { precision: 0 } }
+    }
+  };
+
   protected get offerTotal(): number {
     return this.offerAccepted() + this.offerDeclined();
   }
@@ -70,11 +84,13 @@ export class DashboardComponent implements OnInit {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-      const [customers, campaigns, accepted, declined] = await Promise.all([
+      const [customers, campaigns, accepted, declined, offerTrend, customerGrowth] = await Promise.all([
         firstValueFrom(this.client.customersAll()),
         firstValueFrom(this.client.campaignsAll()),
         firstValueFrom(this.client.auditLogs(undefined, AuditActionType.CampaignOfferAccepted, thirtyDaysAgo, undefined)),
-        firstValueFrom(this.client.auditLogs(undefined, AuditActionType.CampaignOfferDeclined, thirtyDaysAgo, undefined))
+        firstValueFrom(this.client.auditLogs(undefined, AuditActionType.CampaignOfferDeclined, thirtyDaysAgo, undefined)),
+        firstValueFrom(this.client.offerTrend(30)),
+        firstValueFrom(this.client.customerGrowth(30))
       ]);
 
       this.totalCustomers.set(customers.length);
@@ -99,10 +115,52 @@ export class DashboardComponent implements OnInit {
           }
         ]
       });
+
+      const dayLabels = offerTrend.map(p => this.formatShortDate(p.date!));
+      this.offerTrendChartData.set({
+        labels: dayLabels,
+        datasets: [
+          {
+            label: 'Kabul',
+            data: offerTrend.map(p => p.accepted),
+            borderColor: '#227E67',
+            backgroundColor: 'rgba(34, 126, 103, 0.12)',
+            tension: 0.35,
+            fill: true
+          },
+          {
+            label: 'Red',
+            data: offerTrend.map(p => p.declined),
+            borderColor: '#B8752C',
+            backgroundColor: 'rgba(184, 117, 44, 0.12)',
+            tension: 0.35,
+            fill: true
+          }
+        ]
+      });
+
+      this.customerGrowthChartData.set({
+        labels: customerGrowth.map(p => this.formatShortDate(p.date!)),
+        datasets: [
+          {
+            label: 'Yeni Müşteri',
+            data: customerGrowth.map(p => p.newCustomers),
+            borderColor: '#175243',
+            backgroundColor: 'rgba(23, 82, 67, 0.12)',
+            tension: 0.35,
+            fill: true
+          }
+        ]
+      });
     } catch (err) {
       this.messageService.add({ severity: 'error', summary: 'Panel yüklenemedi', detail: describeApiError(err) });
     } finally {
       this.loading.set(false);
     }
+  }
+
+  private formatShortDate(value: Date | string): string {
+    const date = new Date(value);
+    return date.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' });
   }
 }

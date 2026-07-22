@@ -1,6 +1,9 @@
 <div class="toolbar">
   <h1>Müşteriler</h1>
-  <p-button label="Yeni Müşteri" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+  <div class="toolbar-actions">
+    <p-button label="Dışa Aktar" icon="pi pi-download" severity="secondary" [outlined]="true" (onClick)="dt.exportCSV()" />
+    <p-button label="Yeni Müşteri" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+  </div>
 </div>
 
 <div class="stat-strip">
@@ -34,6 +37,9 @@
   [rows]="20"
   [paginator]="customers().length > 20"
   [globalFilterFields]="['firstName', 'lastName', 'email']"
+  [columns]="exportColumns"
+  [exportFunction]="exportFn"
+  exportFilename="musteriler"
   styleClass="p-datatable-sm"
 >
   <ng-template pTemplate="caption">

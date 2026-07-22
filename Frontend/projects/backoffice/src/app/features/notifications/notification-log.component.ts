@@ -100,4 +100,30 @@ export class NotificationLogComponent implements OnInit {
     table.filterGlobal('', 'contains');
     this.loadLogs();
   }
+
+  // p-table'ın yerleşik exportCSV()'i için — kanal ham İngilizce yerine Türkçe
+  // etikete, "sent" boolean'ı okunur bir duruma çevriliyor. exportFunction sadece
+  // {data, field} alıyor (satırın tamamına erişim yok), bu yüzden "Durum" ve
+  // "Atlanma Sebebi" tek bir birleşik metin yerine ayrı sütunlar olarak tutuldu.
+  protected readonly exportColumns = [
+    { field: 'sentAtUtc', header: 'Tarih' },
+    { field: 'customerName', header: 'Müşteri' },
+    { field: 'channel', header: 'Kanal' },
+    { field: 'sent', header: 'Durum' },
+    { field: 'skippedReason', header: 'Atlanma Sebebi' },
+    { field: 'message', header: 'Mesaj' }
+  ];
+
+  protected exportFn = (event: { data: unknown; field: string }): string => {
+    switch (event.field) {
+      case 'channel':
+        return event.data == null ? '' : consentChannelLabel(event.data as string);
+      case 'sentAtUtc':
+        return event.data == null ? '' : new Date(event.data as string).toLocaleString('tr-TR');
+      case 'sent':
+        return event.data ? 'Gönderildi' : 'Atlandı';
+      default:
+        return event.data == null ? '' : String(event.data);
+    }
+  };
 }

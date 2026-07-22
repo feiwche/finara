@@ -1,5 +1,6 @@
 <div class="toolbar">
   <h1>Bildirim Kaydı</h1>
+  <p-button label="Dışa Aktar" icon="pi pi-download" severity="secondary" [outlined]="true" (onClick)="dt.exportCSV()" />
 </div>
 
 <div class="filter-bar">
@@ -33,6 +34,9 @@
   [rows]="20"
   [paginator]="logs().length > 20"
   [globalFilterFields]="['customerName']"
+  [columns]="exportColumns"
+  [exportFunction]="exportFn"
+  exportFilename="bildirim-kaydi"
   styleClass="p-datatable-sm"
   #dt
 >

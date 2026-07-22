@@ -27,6 +27,7 @@ builder.Services.AddDbContext<FinaraDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+builder.Services.AddScoped<IReportService, ReportService>();
 
 // Faz 8.1 — multi-tenancy. HttpContextAccessor'ı gerektiren tek yer burası; CurrentUserContext
 // Api katmanında yaşıyor (Infrastructure "plain" SDK projesi, ASP.NET Core paylaşılan
@@ -292,6 +293,7 @@ app.MapCohortEndpoints();
 app.MapSegmentationEndpoints();
 app.MapConsentEndpoints();
 app.MapNotificationEndpoints();
+app.MapReportEndpoints();
 app.MapAiEndpoints();
 // Denetimde bulundu: diğer her endpoint korunuyorken bu ikisi unutulmuştu — MCP
 // üzerinden auth'suz olarak herhangi bir müşterinin verisi çekilebiliyordu.

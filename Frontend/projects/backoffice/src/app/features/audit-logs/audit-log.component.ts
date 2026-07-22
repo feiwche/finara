@@ -96,4 +96,25 @@ export class AuditLogComponent implements OnInit {
 
   protected readonly actionTypeLabel = auditActionTypeLabel;
   protected readonly actionTypeSeverity = auditActionTypeSeverity;
+
+  // p-table'ın yerleşik exportCSV()'i için — aksiyon tipi ham İngilizce yerine
+  // Türkçe etikete, tarih okunur bir formata çevriliyor.
+  protected readonly exportColumns = [
+    { field: 'occurredAtUtc', header: 'Tarih' },
+    { field: 'customerName', header: 'Müşteri' },
+    { field: 'actionType', header: 'Aksiyon' },
+    { field: 'details', header: 'Detay' }
+  ];
+
+  protected exportFn = (event: { data: unknown; field: string }): string => {
+    if (event.data == null) return '';
+    switch (event.field) {
+      case 'actionType':
+        return auditActionTypeLabel(event.data as string);
+      case 'occurredAtUtc':
+        return new Date(event.data as string).toLocaleString('tr-TR');
+      default:
+        return String(event.data);
+    }
+  };
 }

@@ -1,6 +1,9 @@
 <div class="toolbar">
   <h1>Kampanyalar</h1>
-  <p-button label="Yeni Kampanya" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+  <div class="toolbar-actions">
+    <p-button label="Dışa Aktar" icon="pi pi-download" severity="secondary" [outlined]="true" (onClick)="dt.exportCSV()" />
+    <p-button label="Yeni Kampanya" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+  </div>
 </div>
 
 <div class="stat-strip">
@@ -27,7 +30,17 @@
   </div>
 </div>
 
-<p-table [value]="campaigns()" [loading]="loading()" [rows]="20" [paginator]="campaigns().length > 20" styleClass="p-datatable-sm">
+<p-table
+  #dt
+  [value]="campaigns()"
+  [loading]="loading()"
+  [rows]="20"
+  [paginator]="campaigns().length > 20"
+  [columns]="exportColumns"
+  [exportFunction]="exportFn"
+  exportFilename="kampanyalar"
+  styleClass="p-datatable-sm"
+>
   <ng-template pTemplate="header">
     <tr>
       <th>Ad</th>

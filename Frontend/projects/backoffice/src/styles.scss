@@ -184,6 +184,12 @@ h1, h2, h3 {
   gap: 12px;
 }
 
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .filter-bar {
   display: flex;
   flex-wrap: wrap;
@@ -574,6 +580,30 @@ h1, h2, h3 {
   height: 280px;
   max-width: 420px;
   margin: 0 auto;
+}
+
+// Dashboard'ın alt bölümü — solda eğilim dağılımı (donut), sağda iki üst üste
+// zaman-bazlı trend grafiği (Adım 3 — raporlama). Dar ekranlarda tek sütuna düşer.
+.dashboard-chart-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: stretch;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dashboard-trend-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.trend-chart-container {
+  position: relative;
+  height: 160px;
 }
 
 // Donut'ın ortasındaki boşluk artık boş değil — toplam müşteri sayısı, KPI

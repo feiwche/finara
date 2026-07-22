@@ -206,4 +206,32 @@ export class CampaignManagementComponent implements OnInit {
   protected readonly statusLabel = campaignStatusLabel;
   protected readonly categoryLabel = transactionCategoryLabel;
   protected readonly propensityLabel = spendingPropensityLabel;
+
+  // p-table'ın yerleşik exportCSV()'i için — enum değerleri ham İngilizce yerine
+  // Türkçe etikete çevriliyor (bkz. client/campaign-list.component.ts'teki aynı desen).
+  protected readonly exportColumns = [
+    { field: 'name', header: 'Ad' },
+    { field: 'status', header: 'Durum' },
+    { field: 'targetCategory', header: 'Hedef Kategori' },
+    { field: 'targetPropensity', header: 'Hedef Eğilim' },
+    { field: 'startDateUtc', header: 'Başlangıç' },
+    { field: 'endDateUtc', header: 'Bitiş' }
+  ];
+
+  protected exportFn = (event: { data: unknown; field: string }): string => {
+    if (event.data == null) return '';
+    switch (event.field) {
+      case 'status':
+        return campaignStatusLabel(event.data as string);
+      case 'targetCategory':
+        return transactionCategoryLabel(event.data as string);
+      case 'targetPropensity':
+        return spendingPropensityLabel(event.data as string);
+      case 'startDateUtc':
+      case 'endDateUtc':
+        return new Date(event.data as string).toLocaleDateString('tr-TR');
+      default:
+        return String(event.data);
+    }
+  };
 }

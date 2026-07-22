@@ -2093,6 +2093,132 @@ export class Client {
     }
 
     /**
+     * @param days (optional) 
+     * @return OK
+     */
+    offerTrend(days?: number | undefined): Observable<DailyOfferTrendPoint[]> {
+        let url_ = this.baseUrl + "/api/reports/offer-trend?";
+        if (days === null)
+            throw new globalThis.Error("The parameter 'days' cannot be null.");
+        else if (days !== undefined)
+            url_ += "days=" + encodeURIComponent("" + days) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processOfferTrend(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processOfferTrend(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<DailyOfferTrendPoint[]>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<DailyOfferTrendPoint[]>;
+        }));
+    }
+
+    protected processOfferTrend(response: HttpResponseBase): Observable<DailyOfferTrendPoint[]> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(DailyOfferTrendPoint.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @param days (optional) 
+     * @return OK
+     */
+    customerGrowth(days?: number | undefined): Observable<DailyCustomerGrowthPoint[]> {
+        let url_ = this.baseUrl + "/api/reports/customer-growth?";
+        if (days === null)
+            throw new globalThis.Error("The parameter 'days' cannot be null.");
+        else if (days !== undefined)
+            url_ += "days=" + encodeURIComponent("" + days) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processCustomerGrowth(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processCustomerGrowth(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<DailyCustomerGrowthPoint[]>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<DailyCustomerGrowthPoint[]>;
+        }));
+    }
+
+    protected processCustomerGrowth(response: HttpResponseBase): Observable<DailyCustomerGrowthPoint[]> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(DailyCustomerGrowthPoint.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
      * @return OK
      */
     recalculate(): Observable<RecalculateSegmentsResult> {
@@ -3086,6 +3212,90 @@ export interface ICustomerSummary {
     hasInternationalTransfers?: boolean;
     educationLevel?: EducationLevel;
     phoneNumber?: string | undefined;
+}
+
+export class DailyCustomerGrowthPoint implements IDailyCustomerGrowthPoint {
+    date?: Date;
+    newCustomers?: number;
+
+    constructor(data?: IDailyCustomerGrowthPoint) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.date = _data["date"] ? new Date(_data["date"].toString()) : undefined as any;
+            this.newCustomers = _data["newCustomers"];
+        }
+    }
+
+    static fromJS(data: any): DailyCustomerGrowthPoint {
+        data = typeof data === 'object' ? data : {};
+        let result = new DailyCustomerGrowthPoint();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["date"] = this.date ? this.date.toISOString() : undefined as any;
+        data["newCustomers"] = this.newCustomers;
+        return data;
+    }
+}
+
+export interface IDailyCustomerGrowthPoint {
+    date?: Date;
+    newCustomers?: number;
+}
+
+export class DailyOfferTrendPoint implements IDailyOfferTrendPoint {
+    date?: Date;
+    accepted?: number;
+    declined?: number;
+
+    constructor(data?: IDailyOfferTrendPoint) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.date = _data["date"] ? new Date(_data["date"].toString()) : undefined as any;
+            this.accepted = _data["accepted"];
+            this.declined = _data["declined"];
+        }
+    }
+
+    static fromJS(data: any): DailyOfferTrendPoint {
+        data = typeof data === 'object' ? data : {};
+        let result = new DailyOfferTrendPoint();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["date"] = this.date ? this.date.toISOString() : undefined as any;
+        data["accepted"] = this.accepted;
+        data["declined"] = this.declined;
+        return data;
+    }
+}
+
+export interface IDailyOfferTrendPoint {
+    date?: Date;
+    accepted?: number;
+    declined?: number;
 }
 
 export class DistributeOfferRequest implements IDistributeOfferRequest {

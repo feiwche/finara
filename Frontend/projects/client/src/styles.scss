@@ -176,6 +176,12 @@ h1, h2, h3 {
   gap: 12px;
 }
 
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
