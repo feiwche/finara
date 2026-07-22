@@ -23,6 +23,17 @@ public static class CustomerEndpoints
             Results.Ok(await service.GetCustomersAsync(ct)))
             .Produces<IReadOnlyList<CustomerSummary>>();
 
+        // Dashboard/segment/teklif hedefleme gibi "tüm müşteriler" gerektiren tüketiciler
+        // hâlâ yukarıdaki "/" ucunu kullanıyor (bilinçli olarak dokunulmadı) — bu, Müşteriler
+        // ekranının kendi liste tablosu için ayrı, sunucu taraflı sayfalanan bir uç.
+        customers.MapGet("/paged", async (int? page, int? pageSize, string? search, ICustomerService service, CancellationToken ct) =>
+            Results.Ok(await service.GetCustomersPagedAsync(page ?? 1, pageSize ?? 20, search, ct)))
+            .Produces<PagedResult<CustomerSummary>>();
+
+        customers.MapGet("/stats", async (ICustomerService service, CancellationToken ct) =>
+            Results.Ok(await service.GetCustomerStatsAsync(ct)))
+            .Produces<CustomerStats>();
+
         customers.MapPost("/import", async (IFormFile file, ICustomerService service, CancellationToken ct) =>
         {
             const long maxCsvSizeBytes = 5 * 1024 * 1024;

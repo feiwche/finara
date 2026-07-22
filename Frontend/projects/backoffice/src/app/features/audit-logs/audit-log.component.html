@@ -13,27 +13,29 @@
       [(ngModel)]="actionTypeFilter"
       [showClear]="true"
       placeholder="Tümü"
-      (onChange)="loadLogs()"
-      (onClear)="loadLogs()"
+      (onChange)="onFilterChange()"
+      (onClear)="onFilterChange()"
     />
   </div>
   <div class="field">
     <label>Başlangıç Tarihi</label>
-    <p-datepicker [(ngModel)]="fromUtc" dateFormat="yy-mm-dd" [showIcon]="true" [showButtonBar]="true" (onSelect)="loadLogs()" (onClearClick)="loadLogs()" />
+    <p-datepicker [(ngModel)]="fromUtc" dateFormat="yy-mm-dd" [showIcon]="true" [showButtonBar]="true" (onSelect)="onFilterChange()" (onClearClick)="onFilterChange()" />
   </div>
   <div class="field">
     <label>Bitiş Tarihi</label>
-    <p-datepicker [(ngModel)]="toUtc" dateFormat="yy-mm-dd" [showIcon]="true" [showButtonBar]="true" (onSelect)="loadLogs()" (onClearClick)="loadLogs()" />
+    <p-datepicker [(ngModel)]="toUtc" dateFormat="yy-mm-dd" [showIcon]="true" [showButtonBar]="true" (onSelect)="onFilterChange()" (onClearClick)="onFilterChange()" />
   </div>
-  <p-button label="Filtreleri Temizle" severity="secondary" [outlined]="true" size="small" (onClick)="clearFilters(dt)" />
+  <p-button label="Filtreleri Temizle" severity="secondary" [outlined]="true" size="small" (onClick)="clearFilters()" />
 </div>
 
 <p-table
   [value]="logs()"
   [loading]="loading()"
-  [rows]="20"
-  [paginator]="logs().length > 20"
-  [globalFilterFields]="['customerName']"
+  [lazy]="true"
+  (onLazyLoad)="loadLogs($event)"
+  [totalRecords]="totalRecords()"
+  [rows]="pageSize"
+  [paginator]="true"
   [columns]="exportColumns"
   [exportFunction]="exportFn"
   exportFilename="denetim-kaydi"
@@ -45,7 +47,7 @@
       <span></span>
       <p-iconfield>
         <p-inputicon styleClass="pi pi-search" />
-        <input #searchBox pInputText type="text" placeholder="Müşteri ara…" (input)="dt.filterGlobal($any($event.target).value, 'contains')" />
+        <input pInputText type="text" placeholder="Müşteri ara…" [(ngModel)]="searchTerm" (input)="onSearchInput()" />
       </p-iconfield>
     </div>
   </ng-template>

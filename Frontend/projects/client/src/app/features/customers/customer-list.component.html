@@ -20,21 +20,21 @@
   <div class="stat-chip">
     <span class="stat-chip-icon"><i class="pi pi-users"></i></span>
     <div>
-      <div class="stat-chip-value">{{ customers().length }}</div>
+      <div class="stat-chip-value">{{ stats()?.totalCustomers ?? 0 }}</div>
       <div class="stat-chip-label">TOPLAM MÜŞTERİ</div>
     </div>
   </div>
   <div class="stat-chip stat-chip--accent">
     <span class="stat-chip-icon"><i class="pi pi-arrow-up-right"></i></span>
     <div>
-      <div class="stat-chip-value">{{ highlyResponsiveCount() }}</div>
+      <div class="stat-chip-value">{{ stats()?.highlyResponsiveCount ?? 0 }}</div>
       <div class="stat-chip-label">HARCAMAYA YATKIN</div>
     </div>
   </div>
   <div class="stat-chip">
     <span class="stat-chip-icon"><i class="pi pi-exclamation-circle"></i></span>
     <div>
-      <div class="stat-chip-value">{{ needsEngagementCount() }}</div>
+      <div class="stat-chip-value">{{ stats()?.needsEngagementCount ?? 0 }}</div>
       <div class="stat-chip-label">TEŞVİK GEREKLİ</div>
     </div>
   </div>
@@ -44,9 +44,11 @@
   #dt
   [value]="customers()"
   [loading]="loading()"
-  [rows]="20"
-  [paginator]="customers().length > 20"
-  [globalFilterFields]="['firstName', 'lastName', 'email']"
+  [lazy]="true"
+  (onLazyLoad)="loadCustomers($event)"
+  [totalRecords]="totalRecords()"
+  [rows]="pageSize"
+  [paginator]="true"
   [columns]="exportColumns"
   [exportFunction]="exportFn"
   exportFilename="musteriler"
@@ -60,15 +62,15 @@
         type="text"
         placeholder="Ad, soyad veya e-posta ara…"
         [(ngModel)]="searchTerm"
-        (input)="dt.filterGlobal(searchTerm, 'contains')"
+        (input)="onSearchInput()"
       />
     </p-iconfield>
   </ng-template>
   <ng-template pTemplate="header">
     <tr>
-      <th pSortableColumn="firstName">Ad Soyad <p-sortIcon field="firstName" /></th>
+      <th>Ad Soyad</th>
       <th>E-posta</th>
-      <th pSortableColumn="age">Yaş <p-sortIcon field="age" /></th>
+      <th>Yaş</th>
       <th>Eğilim</th>
     </tr>
   </ng-template>

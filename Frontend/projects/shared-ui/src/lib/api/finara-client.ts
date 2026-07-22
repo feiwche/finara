@@ -398,6 +398,92 @@ export class Client {
     }
 
     /**
+     * @param customerId (optional) 
+     * @param actionType (optional) 
+     * @param fromUtc (optional) 
+     * @param toUtc (optional) 
+     * @param search (optional) 
+     * @param page (optional) 
+     * @param pageSize (optional) 
+     * @return OK
+     */
+    paged(customerId?: string | undefined, actionType?: AuditActionType | undefined, fromUtc?: Date | undefined, toUtc?: Date | undefined, search?: string | undefined, page?: number | undefined, pageSize?: number | undefined): Observable<AuditLogSummaryPagedResult> {
+        let url_ = this.baseUrl + "/api/audit-logs/paged?";
+        if (customerId === null)
+            throw new globalThis.Error("The parameter 'customerId' cannot be null.");
+        else if (customerId !== undefined)
+            url_ += "customerId=" + encodeURIComponent("" + customerId) + "&";
+        if (actionType === null)
+            throw new globalThis.Error("The parameter 'actionType' cannot be null.");
+        else if (actionType !== undefined)
+            url_ += "actionType=" + encodeURIComponent("" + actionType) + "&";
+        if (fromUtc === null)
+            throw new globalThis.Error("The parameter 'fromUtc' cannot be null.");
+        else if (fromUtc !== undefined)
+            url_ += "fromUtc=" + encodeURIComponent(fromUtc ? "" + fromUtc.toISOString() : "") + "&";
+        if (toUtc === null)
+            throw new globalThis.Error("The parameter 'toUtc' cannot be null.");
+        else if (toUtc !== undefined)
+            url_ += "toUtc=" + encodeURIComponent(toUtc ? "" + toUtc.toISOString() : "") + "&";
+        if (search === null)
+            throw new globalThis.Error("The parameter 'search' cannot be null.");
+        else if (search !== undefined)
+            url_ += "search=" + encodeURIComponent("" + search) + "&";
+        if (page === null)
+            throw new globalThis.Error("The parameter 'page' cannot be null.");
+        else if (page !== undefined)
+            url_ += "page=" + encodeURIComponent("" + page) + "&";
+        if (pageSize === null)
+            throw new globalThis.Error("The parameter 'pageSize' cannot be null.");
+        else if (pageSize !== undefined)
+            url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processPaged(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processPaged(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<AuditLogSummaryPagedResult>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<AuditLogSummaryPagedResult>;
+        }));
+    }
+
+    protected processPaged(response: HttpResponseBase): Observable<AuditLogSummaryPagedResult> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AuditLogSummaryPagedResult.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
      * @return Created
      */
     register(body: RegisterRequest): Observable<void> {
@@ -1540,6 +1626,123 @@ export class Client {
             else {
                 result200 = null as any;
             }
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @param page (optional) 
+     * @param pageSize (optional) 
+     * @param search (optional) 
+     * @return OK
+     */
+    paged2(page?: number | undefined, pageSize?: number | undefined, search?: string | undefined): Observable<CustomerSummaryPagedResult> {
+        let url_ = this.baseUrl + "/api/customers/paged?";
+        if (page === null)
+            throw new globalThis.Error("The parameter 'page' cannot be null.");
+        else if (page !== undefined)
+            url_ += "page=" + encodeURIComponent("" + page) + "&";
+        if (pageSize === null)
+            throw new globalThis.Error("The parameter 'pageSize' cannot be null.");
+        else if (pageSize !== undefined)
+            url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
+        if (search === null)
+            throw new globalThis.Error("The parameter 'search' cannot be null.");
+        else if (search !== undefined)
+            url_ += "search=" + encodeURIComponent("" + search) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processPaged2(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processPaged2(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<CustomerSummaryPagedResult>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<CustomerSummaryPagedResult>;
+        }));
+    }
+
+    protected processPaged2(response: HttpResponseBase): Observable<CustomerSummaryPagedResult> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CustomerSummaryPagedResult.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    stats(): Observable<CustomerStats> {
+        let url_ = this.baseUrl + "/api/customers/stats";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processStats(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processStats(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<CustomerStats>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<CustomerStats>;
+        }));
+    }
+
+    protected processStats(response: HttpResponseBase): Observable<CustomerStats> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CustomerStats.fromJS(resultData200);
             return _observableOf(result200);
             }));
         } else if (status !== 200 && status !== 204) {
@@ -2921,6 +3124,62 @@ export interface IAuditLogSummary {
     occurredAtUtc?: Date;
 }
 
+export class AuditLogSummaryPagedResult implements IAuditLogSummaryPagedResult {
+    items?: AuditLogSummary[];
+    totalCount?: number;
+    page?: number;
+    pageSize?: number;
+
+    constructor(data?: IAuditLogSummaryPagedResult) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            if (Array.isArray(_data["items"])) {
+                this.items = [] as any;
+                for (let item of _data["items"])
+                    this.items!.push(AuditLogSummary.fromJS(item));
+            }
+            this.totalCount = _data["totalCount"];
+            this.page = _data["page"];
+            this.pageSize = _data["pageSize"];
+        }
+    }
+
+    static fromJS(data: any): AuditLogSummaryPagedResult {
+        data = typeof data === 'object' ? data : {};
+        let result = new AuditLogSummaryPagedResult();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (Array.isArray(this.items)) {
+            data["items"] = [];
+            for (let item of this.items)
+                data["items"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["totalCount"] = this.totalCount;
+        data["page"] = this.page;
+        data["pageSize"] = this.pageSize;
+        return data;
+    }
+}
+
+export interface IAuditLogSummaryPagedResult {
+    items?: AuditLogSummary[];
+    totalCount?: number;
+    page?: number;
+    pageSize?: number;
+}
+
 export class AuthResult implements IAuthResult {
     accessToken?: string;
     accessTokenExpiresAtUtc?: Date;
@@ -3532,6 +3791,50 @@ export interface ICustomerImportRowError {
     message?: string;
 }
 
+export class CustomerStats implements ICustomerStats {
+    totalCustomers?: number;
+    highlyResponsiveCount?: number;
+    needsEngagementCount?: number;
+
+    constructor(data?: ICustomerStats) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.totalCustomers = _data["totalCustomers"];
+            this.highlyResponsiveCount = _data["highlyResponsiveCount"];
+            this.needsEngagementCount = _data["needsEngagementCount"];
+        }
+    }
+
+    static fromJS(data: any): CustomerStats {
+        data = typeof data === 'object' ? data : {};
+        let result = new CustomerStats();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["totalCustomers"] = this.totalCustomers;
+        data["highlyResponsiveCount"] = this.highlyResponsiveCount;
+        data["needsEngagementCount"] = this.needsEngagementCount;
+        return data;
+    }
+}
+
+export interface ICustomerStats {
+    totalCustomers?: number;
+    highlyResponsiveCount?: number;
+    needsEngagementCount?: number;
+}
+
 export class CustomerSummary implements ICustomerSummary {
     id?: string;
     firstName?: string;
@@ -3606,6 +3909,62 @@ export interface ICustomerSummary {
     educationLevel?: EducationLevel;
     phoneNumber?: string | undefined;
     isErased?: boolean;
+}
+
+export class CustomerSummaryPagedResult implements ICustomerSummaryPagedResult {
+    items?: CustomerSummary[];
+    totalCount?: number;
+    page?: number;
+    pageSize?: number;
+
+    constructor(data?: ICustomerSummaryPagedResult) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            if (Array.isArray(_data["items"])) {
+                this.items = [] as any;
+                for (let item of _data["items"])
+                    this.items!.push(CustomerSummary.fromJS(item));
+            }
+            this.totalCount = _data["totalCount"];
+            this.page = _data["page"];
+            this.pageSize = _data["pageSize"];
+        }
+    }
+
+    static fromJS(data: any): CustomerSummaryPagedResult {
+        data = typeof data === 'object' ? data : {};
+        let result = new CustomerSummaryPagedResult();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (Array.isArray(this.items)) {
+            data["items"] = [];
+            for (let item of this.items)
+                data["items"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["totalCount"] = this.totalCount;
+        data["page"] = this.page;
+        data["pageSize"] = this.pageSize;
+        return data;
+    }
+}
+
+export interface ICustomerSummaryPagedResult {
+    items?: CustomerSummary[];
+    totalCount?: number;
+    page?: number;
+    pageSize?: number;
 }
 
 export class DailyCustomerGrowthPoint implements IDailyCustomerGrowthPoint {

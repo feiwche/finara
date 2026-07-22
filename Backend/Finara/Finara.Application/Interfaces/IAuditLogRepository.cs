@@ -12,4 +12,8 @@ public interface IAuditLogRepository
     // BackOffice Denetim Kaydı ekranı için — müşteri adı Customers ile join edilerek
     // döndürülüyor, filtreler opsiyonel (hepsi null ise tüm kayıtlar).
     Task<IReadOnlyList<AuditLogSummary>> GetAllAsync(AuditLogFilter filter, CancellationToken cancellationToken = default);
+
+    // GetAllAsync'in sunucu taraflı sayfalanan karşılığı — Dashboard hâlâ GetAllAsync'i
+    // (tam liste, sadece .Count() için) kullandığından o metoda dokunulmadı, bu ayrı bir uç.
+    Task<PagedResult<AuditLogSummary>> GetPagedAsync(AuditLogFilter filter, string? search, int page, int pageSize, CancellationToken cancellationToken = default);
 }

@@ -1,9 +1,9 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
-import { TableModule } from 'primeng/table';
+import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
@@ -20,6 +20,7 @@ import {
   Client,
   CreateCustomerRequest,
   CustomerImportResult,
+  CustomerStats,
   CustomerSummary,
   describeApiError,
   educationLevelLabel,
@@ -57,16 +58,20 @@ export class CustomerListComponent implements OnInit {
   protected readonly spendingPropensityLabel = spendingPropensityLabel;
   protected readonly educationLevelOptions = EDUCATION_LEVEL_OPTIONS;
 
+  protected readonly pageSize = 20;
+
   protected customers = signal<CustomerSummary[]>([]);
+  protected totalRecords = signal(0);
   protected loading = signal(false);
   protected searchTerm = '';
 
-  protected readonly highlyResponsiveCount = computed(
-    () => this.customers().filter(c => c.propensity === 'HighlyResponsive').length
-  );
-  protected readonly needsEngagementCount = computed(
-    () => this.customers().filter(c => c.propensity === 'NeedsEngagement').length
-  );
+  // KPI şeridi artık sunucu taraflı sayfalanan tabloya (tek sayfa) bakarak
+  // hesaplanamaz — ayrı, tüm (bank-scoped) müşteriler üzerinden hesaplanan
+  // hafif bir uçtan (bkz. GET /api/customers/stats) geliyor.
+  protected stats = signal<CustomerStats | null>(null);
+
+  private lastLazyEvent: TableLazyLoadEvent = { first: 0, rows: this.pageSize };
+  private searchDebounceHandle: ReturnType<typeof setTimeout> | null = null;
 
   protected initials(customer: CustomerSummary): string {
     return `${customer.firstName?.[0] ?? ''}${customer.lastName?.[0] ?? ''}`.toUpperCase();
@@ -115,18 +120,50 @@ export class CustomerListComponent implements OnInit {
   };
 
   async ngOnInit(): Promise<void> {
-    await this.loadCustomers();
+    // Tablo satırlarını yüklemek burada YAPILMIYOR — [lazy]="true" + p-table, ilk
+    // render'da kendiliğinden (onLazyLoad) tetikliyor. Burada sadece tablodan bağımsız
+    // KPI şeridi yükleniyor.
+    await this.loadStats();
   }
 
-  async loadCustomers(): Promise<void> {
+  async loadStats(): Promise<void> {
+    try {
+      this.stats.set(await firstValueFrom(this.client.stats()));
+    } catch (err) {
+      this.messageService.add({ severity: 'error', summary: 'Özet bilgiler yüklenemedi', detail: describeApiError(err) });
+    }
+  }
+
+  async loadCustomers(event?: TableLazyLoadEvent): Promise<void> {
+    if (event) this.lastLazyEvent = event;
+
     this.loading.set(true);
     try {
-      this.customers.set(await firstValueFrom(this.client.customersAll()));
+      const first = this.lastLazyEvent.first ?? 0;
+      const page = Math.floor(first / this.pageSize) + 1;
+      const result = await firstValueFrom(this.client.paged2(page, this.pageSize, this.searchTerm || undefined));
+      this.customers.set(result.items ?? []);
+      this.totalRecords.set(result.totalCount ?? 0);
     } catch (err) {
       this.messageService.add({ severity: 'error', summary: 'Müşteriler yüklenemedi', detail: describeApiError(err) });
     } finally {
       this.loading.set(false);
     }
+  }
+
+  // Arama kutusu artık sunucu taraflı — her tuş vuruşunda istek atmamak için debounce'lu,
+  // aramaya başlarken sayfa 1'e sıfırlanıyor (aksi halde ör. 3. sayfadayken arama yapılırsa
+  // "sonuç yok" gibi görünürdü, o sayfada eski/eşleşmeyen veri kalırdı).
+  onSearchInput(): void {
+    if (this.searchDebounceHandle) clearTimeout(this.searchDebounceHandle);
+    this.searchDebounceHandle = setTimeout(() => {
+      this.lastLazyEvent = { ...this.lastLazyEvent, first: 0 };
+      void this.loadCustomers();
+    }, 300);
+  }
+
+  private async reload(): Promise<void> {
+    await Promise.all([this.loadCustomers(), this.loadStats()]);
   }
 
   openCreateDialog(): void {
@@ -170,7 +207,7 @@ export class CustomerListComponent implements OnInit {
       );
       this.dialogVisible.set(false);
       this.messageService.add({ severity: 'success', summary: 'Müşteri oluşturuldu', detail: `${this.newCustomer.firstName} ${this.newCustomer.lastName}` });
-      await this.loadCustomers();
+      await this.reload();
     } catch (err) {
       this.createError.set(describeApiError(err));
     } finally {
@@ -198,7 +235,7 @@ export class CustomerListComponent implements OnInit {
       this.importResult.set(result);
       this.importResultDialogVisible.set(true);
       if ((result.successCount ?? 0) > 0) {
-        await this.loadCustomers();
+        await this.reload();
       }
     } catch (err) {
       this.messageService.add({ severity: 'error', summary: 'İçe aktarma başarısız', detail: describeApiError(err) });

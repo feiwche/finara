@@ -85,4 +85,59 @@ public class AuditLogRepository : IAuditLogRepository
         // düzeltmenin kapsamına girmiyor, burada elle uygulanmalı).
         return rows.Select(r => r with { OccurredAtUtc = DateTime.SpecifyKind(r.OccurredAtUtc, DateTimeKind.Utc) }).ToList();
     }
+
+    public async Task<PagedResult<AuditLogSummary>> GetPagedAsync(
+        AuditLogFilter filter, string? search, int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        page = Math.Max(page, 1);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
+        // COUNT ve veri sorgusu aynı WHERE koşulunu paylaşıyor — Dapper'da parametrik SQL
+        // string interpolation ile birleştirilirken sabit (kullanıcı girdisi içermeyen) bir
+        // metin parçası olduğu için SQL injection riski yok, sadece tekrarı önlüyor.
+        const string whereClause = """
+            WHERE (@BankId IS NULL OR a.BankId = @BankId)
+              AND (@CustomerId IS NULL OR a.CustomerId = @CustomerId)
+              AND (@ActionType IS NULL OR a.ActionType = @ActionType)
+              AND (@FromUtc IS NULL OR a.OccurredAtUtc >= @FromUtc)
+              AND (@ToUtc IS NULL OR a.OccurredAtUtc <= @ToUtc)
+              AND (@Search IS NULL OR NULLIF(CONCAT(c.FirstName, N' ', c.LastName), N' ') LIKE @Search)
+            """;
+
+        var countSql = $"""
+            SELECT COUNT(*)
+            FROM AuditLogs a
+            LEFT JOIN Customers c ON c.Id = a.CustomerId
+            {whereClause};
+            """;
+
+        var dataSql = $"""
+            SELECT a.Id, a.CustomerId, NULLIF(CONCAT(c.FirstName, N' ', c.LastName), N' ') AS CustomerName,
+                   a.ActionType, a.Details, a.PerformedByUserId, a.OccurredAtUtc
+            FROM AuditLogs a
+            LEFT JOIN Customers c ON c.Id = a.CustomerId
+            {whereClause}
+            ORDER BY a.OccurredAtUtc DESC
+            OFFSET @Skip ROWS FETCH NEXT @PageSize ROWS ONLY;
+            """;
+
+        var parameters = new
+        {
+            BankId = _currentUser.IsSuperAdmin ? (Guid?)null : _currentUser.BankId,
+            filter.CustomerId,
+            ActionType = (int?)filter.ActionType,
+            filter.FromUtc,
+            filter.ToUtc,
+            Search = string.IsNullOrWhiteSpace(search) ? null : $"%{search.Trim()}%",
+            Skip = (page - 1) * pageSize,
+            PageSize = pageSize
+        };
+
+        await using var connection = new SqlConnection(_connectionString);
+        var totalCount = await connection.ExecuteScalarAsync<int>(new CommandDefinition(countSql, parameters, cancellationToken: cancellationToken));
+        var rows = await connection.QueryAsync<AuditLogSummary>(new CommandDefinition(dataSql, parameters, cancellationToken: cancellationToken));
+        var items = rows.Select(r => r with { OccurredAtUtc = DateTime.SpecifyKind(r.OccurredAtUtc, DateTimeKind.Utc) }).ToList();
+
+        return new PagedResult<AuditLogSummary>(items, totalCount, page, pageSize);
+    }
 }

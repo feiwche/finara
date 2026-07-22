@@ -50,3 +50,8 @@ public record MockGenerationResult(int CustomersCreated, int TransactionsCreated
 public record CustomerImportRowError(int Row, string Message);
 
 public record CustomerImportResult(int TotalRows, int SuccessCount, IReadOnlyList<CustomerImportRowError> Errors);
+
+// Müşteri listesi sunucu tarafında sayfalandığı için (bkz. GetCustomersPagedAsync), o
+// ekrandaki KPI şeridi artık tek bir sayfadaki müşterilerden hesaplanamıyor — bu ayrı,
+// tüm (bank-scoped) müşteriler üzerinden hesaplanan hafif bir agregasyon uç noktası.
+public record CustomerStats(int TotalCustomers, int HighlyResponsiveCount, int NeedsEngagementCount);

@@ -55,6 +55,51 @@ public class CustomerService(
         return customers.Select(ToSummary).ToList();
     }
 
+    public async Task<PagedResult<CustomerSummary>> GetCustomersPagedAsync(int page, int pageSize, string? search, CancellationToken cancellationToken = default)
+    {
+        page = Math.Max(page, 1);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
+        var query = dbContext.Customers.AsNoTracking().AsQueryable();
+        if (!currentUser.IsSuperAdmin)
+            query = query.Where(c => c.BankId == currentUser.BankId);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var pattern = $"%{search.Trim()}%";
+            query = query.Where(c =>
+                EF.Functions.Like(c.FirstName, pattern) ||
+                EF.Functions.Like(c.LastName, pattern) ||
+                EF.Functions.Like(c.Email, pattern));
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        // Sayfalama SQL Server'da OFFSET/FETCH'e çevrildiği için deterministik bir sıralama
+        // şart — sıralama olmadan aynı filtre iki farklı sayfa isteğinde farklı satır
+        // sırası döndürebilir (bazı sayfalarda tekrar/atlama), OrderBy bunu garanti ediyor.
+        var customers = await query
+            .OrderBy(c => c.LastName).ThenBy(c => c.FirstName)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return new PagedResult<CustomerSummary>(customers.Select(ToSummary).ToList(), totalCount, page, pageSize);
+    }
+
+    public async Task<CustomerStats> GetCustomerStatsAsync(CancellationToken cancellationToken = default)
+    {
+        var query = dbContext.Customers.AsNoTracking().AsQueryable();
+        if (!currentUser.IsSuperAdmin)
+            query = query.Where(c => c.BankId == currentUser.BankId);
+
+        var total = await query.CountAsync(cancellationToken);
+        var highlyResponsive = await query.CountAsync(c => c.CurrentPropensity == SpendingPropensity.HighlyResponsive, cancellationToken);
+        var needsEngagement = await query.CountAsync(c => c.CurrentPropensity == SpendingPropensity.NeedsEngagement, cancellationToken);
+
+        return new CustomerStats(total, highlyResponsive, needsEngagement);
+    }
+
     public async Task<TransactionSummary?> RecordTransactionAsync(Guid customerId, RecordTransactionRequest request, CancellationToken cancellationToken = default)
     {
         var customer = await dbContext.Customers.FirstOrDefaultAsync(c => c.Id == customerId, cancellationToken);

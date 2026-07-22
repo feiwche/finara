@@ -1,9 +1,9 @@
-import { Component, ElementRef, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 
-import { Table, TableModule } from 'primeng/table';
+import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
@@ -44,27 +44,32 @@ export class AuditLogComponent implements OnInit {
   private readonly client = inject(Client);
   private readonly messageService = inject(MessageService);
 
-  // #searchBox p-table'ın "caption" ng-template'i içinde tanımlı — Angular'ın embedded
-  // view kapsam kuralı yüzünden template reference variable olarak dışarıdan (ör. filtre
-  // barındaki butondan) erişilemiyor, bu yüzden ViewChild ile alınıyor.
-  @ViewChild('searchBox') private searchBoxRef?: ElementRef<HTMLInputElement>;
+  protected readonly pageSize = 20;
 
   protected logs = signal<AuditLogSummary[]>([]);
+  protected totalRecords = signal(0);
   protected loading = signal(false);
 
   protected actionTypes = AUDIT_ACTION_TYPE_OPTIONS;
   protected actionTypeFilter: AuditActionType | null = null;
   protected fromUtc: Date | null = null;
   protected toUtc: Date | null = null;
+  protected searchTerm = '';
+
+  private lastLazyEvent: TableLazyLoadEvent = { first: 0, rows: this.pageSize };
+  private searchDebounceHandle: ReturnType<typeof setTimeout> | null = null;
 
   async ngOnInit(): Promise<void> {
-    await this.loadLogs();
+    // Tablo satırları burada değil — [lazy]="true" p-table, ilk render'da (onLazyLoad)
+    // ile kendiliğinden tetikliyor.
   }
 
-  // Müşteri filtresi sunucuya gitmiyor — p-table'ın kendi global filter'ı (arama kutusu)
-  // zaten yüklenmiş sonuçlar üzerinde CustomerName'e göre süzüyor, ayrı bir müşteri
-  // seçici bileşeni gerekmiyor (customer-list'teki arama deseniyle aynı).
-  async loadLogs(): Promise<void> {
+  // Müşteri adı araması artık sunucuya gidiyor (bkz. GET /api/audit-logs/paged?search=) —
+  // önceden p-table'ın client-side global filter'ıydı, sayfalamayla birlikte bu artık
+  // sadece görünen sayfada arama yapardı (yanlış/eksik sonuç).
+  async loadLogs(event?: TableLazyLoadEvent): Promise<void> {
+    if (event) this.lastLazyEvent = event;
+
     this.loading.set(true);
     try {
       const from = this.fromUtc ? new Date(toUtcDateOnlyIso(this.fromUtc)) : undefined;
@@ -74,7 +79,13 @@ export class AuditLogComponent implements OnInit {
       const to = this.toUtc
         ? new Date(Date.UTC(this.toUtc.getFullYear(), this.toUtc.getMonth(), this.toUtc.getDate(), 23, 59, 59, 999))
         : undefined;
-      this.logs.set(await firstValueFrom(this.client.auditLogs(undefined, this.actionTypeFilter ?? undefined, from, to)));
+      const first = this.lastLazyEvent.first ?? 0;
+      const page = Math.floor(first / this.pageSize) + 1;
+      const result = await firstValueFrom(
+        this.client.paged(undefined, this.actionTypeFilter ?? undefined, from, to, this.searchTerm || undefined, page, this.pageSize)
+      );
+      this.logs.set(result.items ?? []);
+      this.totalRecords.set(result.totalCount ?? 0);
     } catch (err) {
       this.messageService.add({ severity: 'error', summary: 'Denetim kayıtları yüklenemedi', detail: describeApiError(err) });
     } finally {
@@ -82,16 +93,29 @@ export class AuditLogComponent implements OnInit {
     }
   }
 
-  // Müşteri arama kutusu ngModel'e bağlı değil (p-table'ın global filter deseni bu
-  // şekilde kuruldu) — bu yüzden "Filtreleri Temizle" tablonun/input'un kendisine
-  // referansla erişip görsel değeri ve filtre durumunu birlikte sıfırlıyor.
-  clearFilters(table: Table): void {
+  private resetToFirstPage(): void {
+    this.lastLazyEvent = { ...this.lastLazyEvent, first: 0 };
+  }
+
+  onFilterChange(): void {
+    this.resetToFirstPage();
+    void this.loadLogs();
+  }
+
+  onSearchInput(): void {
+    if (this.searchDebounceHandle) clearTimeout(this.searchDebounceHandle);
+    this.searchDebounceHandle = setTimeout(() => {
+      this.resetToFirstPage();
+      void this.loadLogs();
+    }, 300);
+  }
+
+  clearFilters(): void {
     this.actionTypeFilter = null;
     this.fromUtc = null;
     this.toUtc = null;
-    if (this.searchBoxRef) this.searchBoxRef.nativeElement.value = '';
-    table.filterGlobal('', 'contains');
-    this.loadLogs();
+    this.searchTerm = '';
+    this.onFilterChange();
   }
 
   protected readonly actionTypeLabel = auditActionTypeLabel;
