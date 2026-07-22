@@ -1,5 +1,6 @@
 using Finara.Application.Contracts;
 using Finara.Application.Interfaces;
+using Finara.Domain.Common;
 using Finara.Domain.Entities;
 using Finara.Domain.Enums;
 using Finara.Infrastructure.Persistence;
@@ -8,7 +9,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Finara.Infrastructure.Services;
 
-public class AdminUserService(FinaraDbContext dbContext, ICurrentUserContext currentUser) : IAdminUserService
+public class AdminUserService(
+    FinaraDbContext dbContext,
+    ICurrentUserContext currentUser,
+    IAuditLogRepository auditLogRepository)
+    : IAdminUserService
 {
     public async Task<IReadOnlyList<AdminUserSummary>> GetAdminsAsync(CancellationToken cancellationToken = default)
     {
@@ -58,6 +63,17 @@ public class AdminUserService(FinaraDbContext dbContext, ICurrentUserContext cur
         dbContext.Users.Add(user);
         await dbContext.SaveChangesAsync(cancellationToken);
 
+        // CustomerId=null — bu olay hiçbir müşteriyle ilgili değil (bkz. AuditLog.CustomerId
+        // XML yorumu). Kaydın BankId'si YENİ kullanıcının bankasına damgalanıyor (currentUser'ın
+        // değil) — bir SuperAdmin başka bir banka için BankAdmin oluşturursa, o bankanın kendi
+        // Denetim Kaydı'nda görünmesi gerekiyor. Hedef de SuperAdmin ise (bankId=null) bağlı
+        // olunacak banka yok, DefaultBank'a düşülüyor (CurrentUserContext.ResolveBankIdForWrite
+        // ile aynı kural, ama currentUser değil YENİ kullanıcı için uygulanıyor).
+        await auditLogRepository.InsertAsync(
+            AuditLog.Create(bankId ?? DefaultBank.Id, null, AuditActionType.AdminCreated,
+                $"{user.Email} ({(role == UserRole.SuperAdmin ? "SuperAdmin" : "BankAdmin")})"),
+            cancellationToken);
+
         return ToSummary(user);
     }
 
@@ -74,6 +90,10 @@ public class AdminUserService(FinaraDbContext dbContext, ICurrentUserContext cur
 
         user.Deactivate();
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        await auditLogRepository.InsertAsync(
+            AuditLog.Create(user.BankId ?? DefaultBank.Id, null, AuditActionType.AdminDeactivated, user.Email),
+            cancellationToken);
 
         return ToSummary(user);
     }

@@ -10,7 +10,10 @@ public class AuditLog
 {
     public Guid Id { get; init; }
     public Guid BankId { get; init; }
-    public Guid CustomerId { get; init; }
+    // Nullable — her denetim olayı bir müşteriyle ilgili değil (ör. yönetici hesabı
+    // oluşturma/pasifleştirme). Bir müşteriyle ilgiliyse Guid.Empty DEĞİL, gerçek bir
+    // kimlik olmalı (aşağıdaki doğrulama).
+    public Guid? CustomerId { get; init; }
     public AuditActionType ActionType { get; init; }
     public string? Details { get; init; }
     public Guid? PerformedByUserId { get; init; }
@@ -18,7 +21,7 @@ public class AuditLog
 
     public static AuditLog Create(
         Guid bankId,
-        Guid customerId,
+        Guid? customerId,
         AuditActionType actionType,
         string? details = null,
         Guid? performedByUserId = null)

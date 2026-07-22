@@ -51,6 +51,10 @@ export function auditActionTypeSeverity(actionType: string): TagSeverity {
       return 'warn';
     case 'CustomerCreated':
       return 'info';
+    case 'AdminCreated':
+      return 'info';
+    case 'AdminDeactivated':
+      return 'danger';
     default:
       return 'secondary';
   }

@@ -10,7 +10,7 @@ public record AuditLogFilter(
 
 public record AuditLogSummary(
     Guid Id,
-    Guid CustomerId,
+    Guid? CustomerId,
     string? CustomerName,
     AuditActionType ActionType,
     string? Details,

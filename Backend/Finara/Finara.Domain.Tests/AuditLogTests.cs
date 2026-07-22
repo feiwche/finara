@@ -39,6 +39,17 @@ public class AuditLogTests
     }
 
     [Fact]
+    public void Create_MusteriIdSizOlaylarIcinNullKabulEder()
+    {
+        // Yönetici hesabı oluşturma/pasifleştirme gibi bir müşteriyle ilgisi olmayan
+        // denetim olayları için CustomerId=null geçerli, Guid.Empty değil.
+        var log = Domain.Entities.AuditLog.Create(ValidBankId, null, AuditActionType.AdminCreated, "yeni@finara.dev");
+
+        log.CustomerId.Should().BeNull();
+        log.ActionType.Should().Be(AuditActionType.AdminCreated);
+    }
+
+    [Fact]
     public void Create_PerformedByUserIdVerilebilir()
     {
         var userId = Guid.NewGuid();

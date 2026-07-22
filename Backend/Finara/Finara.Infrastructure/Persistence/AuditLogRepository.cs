@@ -52,8 +52,11 @@ public class AuditLogRepository : IAuditLogRepository
     {
         // SuperAdmin tüm bankaları görür (BankId parametresi NULL geçilir, WHERE koşulu
         // devre dışı kalır) — BankAdmin için @BankId sabitlenir.
+        // CONCAT, NULL'ları boş dizeye çevirdiği için müşterisiz olaylarda (ör. yönetici
+        // hesabı işlemleri, CustomerId NULL) tek bir boşluk karakteri dönerdi — NULLIF ile
+        // bu durumda gerçekten NULL dönüyor, frontend'in "?? '—'" düşüşü doğru tetiklensin diye.
         const string sql = """
-            SELECT a.Id, a.CustomerId, CONCAT(c.FirstName, N' ', c.LastName) AS CustomerName,
+            SELECT a.Id, a.CustomerId, NULLIF(CONCAT(c.FirstName, N' ', c.LastName), N' ') AS CustomerName,
                    a.ActionType, a.Details, a.PerformedByUserId, a.OccurredAtUtc
             FROM AuditLogs a
             LEFT JOIN Customers c ON c.Id = a.CustomerId

@@ -2561,11 +2561,13 @@ export enum AuditActionType {
     OfferDistributed = "OfferDistributed",
     ConsentGranted = "ConsentGranted",
     ConsentRevoked = "ConsentRevoked",
+    AdminCreated = "AdminCreated",
+    AdminDeactivated = "AdminDeactivated",
 }
 
 export class AuditLogSummary implements IAuditLogSummary {
     id?: string;
-    customerId?: string;
+    customerId?: string | undefined;
     customerName?: string | undefined;
     actionType?: AuditActionType;
     details?: string | undefined;
@@ -2615,7 +2617,7 @@ export class AuditLogSummary implements IAuditLogSummary {
 
 export interface IAuditLogSummary {
     id?: string;
-    customerId?: string;
+    customerId?: string | undefined;
     customerName?: string | undefined;
     actionType?: AuditActionType;
     details?: string | undefined;

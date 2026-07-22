@@ -52,7 +52,9 @@ const AUDIT_ACTION_TYPE_LABELS: Record<string, string> = {
   TransactionRecorded: 'İşlem Kaydedildi',
   OfferDistributed: 'Teklif Dağıtıldı',
   ConsentGranted: 'Rıza Verildi',
-  ConsentRevoked: 'Rıza Kaldırıldı'
+  ConsentRevoked: 'Rıza Kaldırıldı',
+  AdminCreated: 'Yönetici Oluşturuldu',
+  AdminDeactivated: 'Yönetici Pasifleştirildi'
 };
 
 const CONSENT_CHANNEL_LABELS: Record<string, string> = {
