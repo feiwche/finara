@@ -33,11 +33,18 @@
   --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Menlo, monospace;
 }
 
-// Bilinçli açık tema kilidi — client'takiyle aynı gerekçe: body'ye arka plan set
-// edilmezse tarayıcı/OS koyu modu tercih ettiğinde siyah arka plan üzerinde beyaz
-// PrimeNG kartları (tasarlanmamış bir görünüm) oluşuyordu.
+// Client'takiyle aynı gerekçe/geçmiş — artık '.app-dark' sınıfına göre koşullu
+// (bkz. client styles.scss'teki aynı bloğun yorumu).
 :root {
   color-scheme: light;
+}
+
+:root.app-dark {
+  color-scheme: dark;
+
+  // Client styles.scss'teki aynı bloğun birebir aynı gerekçesi — bkz. o yorum.
+  --p-primary-950: var(--p-primary-100);
+  --p-primary-900: var(--p-primary-200);
 }
 
 html, body {
@@ -508,6 +515,16 @@ h1, h2, h3 {
   background: linear-gradient(160deg, #ffffff 0%, var(--p-primary-50, #EEF7F4) 145%);
   box-shadow: 0 2px 6px 0 rgba(8, 30, 25, 0.05), 0 18px 36px -14px rgba(8, 30, 25, 0.2);
 
+  // Açık moddaki #ffffff→primary-50 gradyanı karanlıkta parlak bir kart olarak kalırdı
+  // (fallback'li var() değil, sabit hex) — koyu zeminle uyumlu bir çift-surface gradyanına
+  // çevriliyor.
+  // finara-preset.ts'teki "dark.surface" TERS çevrilmiş (0 en koyu, 950 en açık) —
+  // burada da o yöne göre düşük index'ler (100/50) koyu tonlara karşılık geliyor,
+  // 800/900 DEĞİL (bu, ilk denemede yapılan ve DOM'da doğrulanan bir hataydı).
+  :root.app-dark & {
+    background: linear-gradient(160deg, var(--p-surface-100, #2C3532) 0%, var(--p-surface-50, #1B211F) 145%);
+  }
+
   @media (prefers-reduced-motion: no-preference) {
     animation: kpi-card-in 0.45s ease both;
   }
@@ -543,6 +560,13 @@ h1, h2, h3 {
 // "amber" paleti — markanın tek bir yerde harcanan cüretkarlığı).
 .kpi-card--accent {
   background: linear-gradient(160deg, #ffffff 0%, var(--p-amber-50, #FBF6ED) 145%);
+
+  // finara-preset.ts'teki "dark.surface" TERS çevrilmiş (0 en koyu, 950 en açık) —
+  // burada da o yöne göre düşük index'ler (100/50) koyu tonlara karşılık geliyor,
+  // 800/900 DEĞİL (bu, ilk denemede yapılan ve DOM'da doğrulanan bir hataydı).
+  :root.app-dark & {
+    background: linear-gradient(160deg, var(--p-surface-100, #2C3532) 0%, var(--p-surface-50, #1B211F) 145%);
+  }
 
   .kpi-icon-chip {
     background: var(--p-amber-50, #FBF6ED);

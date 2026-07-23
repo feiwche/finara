@@ -33,12 +33,30 @@
   --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Menlo, monospace;
 }
 
-// Bilinçli açık tema kilidi — önceden body'ye hiç arka plan set edilmemişti, bu da
-// tarayıcı/OS koyu modu tercih ettiğinde siyah arka plan üzerinde beyaz PrimeNG
-// kartlarının kazara oluşmasına yol açıyordu (tasarlanmamış bir görünüm). PrimeNG'nin
-// kendi darkModeSelector:false ayarı zaten açık temayı hedefliyordu, eksik olan buydu.
+// Önceden bilinçli bir açık tema kilidiydi (body'ye hiç arka plan set edilmemişti,
+// tarayıcı/OS koyu modu tercih edince tasarlanmamış siyah-üstü-beyaz görünüm
+// oluşuyordu). Artık karanlık mod düzgün desteklendiği için (bkz. ThemeService,
+// finara-preset.ts'teki colorScheme.dark bloğu) kilit '.app-dark' sınıfına göre
+// koşullu hale getirildi — tarayıcının kendi form kontrolü/scrollbar renklerinin de
+// (bu, `color-scheme` CSS özelliğinin işi, PrimeNG'in tema tokenlarından ayrı) doğru
+// modu yansıtması için.
 :root {
   color-scheme: light;
+}
+
+:root.app-dark {
+  color-scheme: dark;
+
+  // finara-preset.ts'te "primary" (pine) tek bir sabit skala olarak tanımlı, mode'a
+  // göre ayrılmıyor (sadece "surface" ayrıldı) — 950/900 gibi en koyu tonlar başlık/KPI
+  // metninde "açık zeminde koyu mürekkep" varsayımıyla kullanılıyordu (bkz. h1-h3,
+  // .stat-chip-value). Zemin karardığında bu metin de kararırsa okunmaz hale gelir.
+  // Skalanın tamamını yeniden tanımlamak yerine (geniş, öngörülemeyen etki alanı),
+  // sadece bu iki uç token'ı `var()` ile daha açık bir pine tonuna yönlendiriyoruz —
+  // her iki uca da referans veren TÜM kullanım yerleri (component bazında değil, tek
+  // noktadan) otomatik düzeliyor.
+  --p-primary-950: var(--p-primary-100);
+  --p-primary-900: var(--p-primary-200);
 }
 
 html, body {

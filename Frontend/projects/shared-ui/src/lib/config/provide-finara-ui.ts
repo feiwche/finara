@@ -1,17 +1,27 @@
-import { EnvironmentProviders, LOCALE_ID, makeEnvironmentProviders } from '@angular/core';
+import { APP_INITIALIZER, EnvironmentProviders, LOCALE_ID, makeEnvironmentProviders } from '@angular/core';
 import { providePrimeNG } from 'primeng/config';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { FinaraPreset } from './finara-preset';
+import { ThemeService } from '../theme/theme.service';
 
 // Client ve BackOffice aynı görsel kimliği paylaşsın diye PrimeNG tema kurulumu
-// (FinaraPreset — Aura'nın üzerine kurulu marka katmanı, bkz. finara-preset.ts —
-// + karanlık mod kilidi) ve TR locale/toast/confirm altyapısı tek yerden sağlanıyor —
-// her iki app.config.ts bunu çağırır.
+// (FinaraPreset — Aura'nın üzerine kurulu marka katmanı, bkz. finara-preset.ts) ve TR
+// locale/toast/confirm altyapısı tek yerden sağlanıyor — her iki app.config.ts bunu çağırır.
+// '.app-dark' seçicisi ThemeService'teki DARK_CLASS ile birebir aynı olmalı.
 export function provideFinaraUi(): EnvironmentProviders {
   return makeEnvironmentProviders([
-    providePrimeNG({ theme: { preset: FinaraPreset, options: { darkModeSelector: false } } }),
+    providePrimeNG({ theme: { preset: FinaraPreset, options: { darkModeSelector: '.app-dark' } } }),
     { provide: LOCALE_ID, useValue: 'tr' },
     MessageService,
-    ConfirmationService
+    ConfirmationService,
+    // AuthService.restoreSession ile aynı desen (her iki app.config.ts'te tekrarlanmak
+    // yerine burada merkezi — ThemeService hiçbir app'e özgü parametre almıyor) — route
+    // guard'ları/ilk render'dan önce, kaydedilmiş tema tercihini <html>'e uyguluyor.
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (themeService: ThemeService) => () => themeService.init(),
+      deps: [ThemeService],
+      multi: true
+    }
   ]);
 }
