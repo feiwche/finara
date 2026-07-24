@@ -31,8 +31,8 @@ public class User : BaseEntity
         if (string.IsNullOrWhiteSpace(passwordHash))
             throw new ArgumentException("Şifre hash'i boş olamaz.", nameof(passwordHash));
 
-        if (role == UserRole.BankAdmin && bankId is null)
-            throw new ArgumentException("BankAdmin rolü bir banka kimliği gerektirir.", nameof(bankId));
+        if (role is UserRole.BankAdmin or UserRole.Analyst && bankId is null)
+            throw new ArgumentException($"{role} rolü bir banka kimliği gerektirir.", nameof(bankId));
 
         if (role == UserRole.SuperAdmin && bankId is not null)
             throw new ArgumentException("SuperAdmin bir bankaya bağlı olamaz.", nameof(bankId));

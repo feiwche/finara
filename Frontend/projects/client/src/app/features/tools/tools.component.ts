@@ -5,18 +5,20 @@ import { firstValueFrom } from 'rxjs';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { MessageModule } from 'primeng/message';
 import { MessageService } from 'primeng/api';
 
-import { Client, GenerateMockDataRequest, describeApiError } from '@finara/shared-ui';
+import { AuthService, Client, GenerateMockDataRequest, describeApiError } from '@finara/shared-ui';
 
 @Component({
     selector: 'app-tools',
-    imports: [FormsModule, CardModule, ButtonModule, InputNumberModule],
+    imports: [FormsModule, CardModule, ButtonModule, InputNumberModule, MessageModule],
     templateUrl: './tools.component.html'
 })
 export class ToolsComponent {
   private readonly client = inject(Client);
   private readonly messageService = inject(MessageService);
+  protected readonly authService = inject(AuthService);
 
   protected mockCustomerCount = 20;
   protected mockTransactionsPerCustomer = 15;

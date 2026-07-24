@@ -9,5 +9,10 @@ namespace Finara.Domain.Enums;
 public enum UserRole
 {
     SuperAdmin,
-    BankAdmin
+    BankAdmin,
+
+    // Sona eklendi (mevcut kayıtlı int değerlerin anlamını kaydırmamak için, BankAdmin=1
+    // gibi). BankAdmin ile aynı bank-scope kuralına tabi (User.BankId dolu) ama salt-okunuz —
+    // hiçbir mutasyon (POST/PUT/DELETE) ucuna erişemez, bkz. Program.cs "WriteAccess" policy'si.
+    Analyst
 }

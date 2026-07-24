@@ -18,6 +18,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 
 import {
+  AuthService,
   Client,
   CreateCustomerRequest,
   CustomerImportResult,
@@ -56,6 +57,7 @@ export class CustomerListComponent implements OnInit, OnDestroy {
   private readonly client = inject(Client);
   private readonly router = inject(Router);
   private readonly messageService = inject(MessageService);
+  protected readonly authService = inject(AuthService);
 
   protected readonly propensitySeverity = propensitySeverity;
   protected readonly spendingPropensityLabel = spendingPropensityLabel;

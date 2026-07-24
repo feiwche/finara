@@ -17,7 +17,8 @@ public static class CampaignEndpoints
             var summary = await service.CreateCampaignAsync(request, ct);
             return Results.Created($"/api/campaigns/{summary.Id}", summary);
         })
-        .Produces<CampaignSummary>(StatusCodes.Status201Created);
+        .Produces<CampaignSummary>(StatusCodes.Status201Created)
+        .RequireAuthorization("WriteAccess");
 
         campaigns.MapGet("/", async (ICampaignService service, CancellationToken ct) =>
             Results.Ok(await service.GetCampaignsAsync(ct)))
@@ -39,21 +40,25 @@ public static class CampaignEndpoints
         campaigns.MapPost("/{campaignId:guid}/activate", (Guid campaignId, ICampaignService service, CancellationToken ct) =>
             Transition(campaignId, service.ActivateCampaignAsync, ct))
             .Produces<CampaignSummary>()
-            .ProducesProblem(StatusCodes.Status404NotFound);
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .RequireAuthorization("WriteAccess");
 
         campaigns.MapPost("/{campaignId:guid}/pause", (Guid campaignId, ICampaignService service, CancellationToken ct) =>
             Transition(campaignId, service.PauseCampaignAsync, ct))
             .Produces<CampaignSummary>()
-            .ProducesProblem(StatusCodes.Status404NotFound);
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .RequireAuthorization("WriteAccess");
 
         campaigns.MapPost("/{campaignId:guid}/complete", (Guid campaignId, ICampaignService service, CancellationToken ct) =>
             Transition(campaignId, service.CompleteCampaignAsync, ct))
             .Produces<CampaignSummary>()
-            .ProducesProblem(StatusCodes.Status404NotFound);
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .RequireAuthorization("WriteAccess");
 
         campaigns.MapPost("/{campaignId:guid}/archive", (Guid campaignId, ICampaignService service, CancellationToken ct) =>
             Transition(campaignId, service.ArchiveCampaignAsync, ct))
             .Produces<CampaignSummary>()
-            .ProducesProblem(StatusCodes.Status404NotFound);
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .RequireAuthorization("WriteAccess");
     }
 }

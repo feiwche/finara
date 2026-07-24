@@ -2,7 +2,9 @@
   <h1>Kampanya Yönetimi</h1>
   <div class="toolbar-actions">
     <p-button label="Dışa Aktar" icon="pi pi-download" severity="secondary" [outlined]="true" (onClick)="dt.exportCSV()" />
-    <p-button label="Yeni Kampanya" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+    @if (authService.canWrite()) {
+      <p-button label="Yeni Kampanya" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+    }
   </div>
 </div>
 
@@ -64,25 +66,29 @@
         }
       </td>
       <td>
-        <div class="action-buttons">
-          @if (campaign.status === 'Draft' || campaign.status === 'Paused') {
-            <p-button label="Aktifleştir" icon="pi pi-play" size="small"
-              [loading]="busyId() === campaign.id" (onClick)="activate(campaign)" />
-          }
-          @if (campaign.status === 'Active') {
-            <p-button label="Duraklat" icon="pi pi-pause" size="small" severity="warn" [outlined]="true"
-              [loading]="busyId() === campaign.id" (onClick)="pause(campaign)" />
-            <p-button label="Tamamla" icon="pi pi-check" size="small" severity="success" [outlined]="true"
-              [loading]="busyId() === campaign.id" (onClick)="confirmComplete(campaign)" />
-          }
-          @if (campaign.status !== 'Archived') {
-            <p-button label="Arşivle" icon="pi pi-inbox" size="small" severity="secondary" [outlined]="true"
-              [loading]="busyId() === campaign.id" (onClick)="confirmArchive(campaign)" />
-          }
-          @if (campaign.status === 'Archived') {
-            <span class="muted-text">—</span>
-          }
-        </div>
+        @if (authService.canWrite()) {
+          <div class="action-buttons">
+            @if (campaign.status === 'Draft' || campaign.status === 'Paused') {
+              <p-button label="Aktifleştir" icon="pi pi-play" size="small"
+                [loading]="busyId() === campaign.id" (onClick)="activate(campaign)" />
+            }
+            @if (campaign.status === 'Active') {
+              <p-button label="Duraklat" icon="pi pi-pause" size="small" severity="warn" [outlined]="true"
+                [loading]="busyId() === campaign.id" (onClick)="pause(campaign)" />
+              <p-button label="Tamamla" icon="pi pi-check" size="small" severity="success" [outlined]="true"
+                [loading]="busyId() === campaign.id" (onClick)="confirmComplete(campaign)" />
+            }
+            @if (campaign.status !== 'Archived') {
+              <p-button label="Arşivle" icon="pi pi-inbox" size="small" severity="secondary" [outlined]="true"
+                [loading]="busyId() === campaign.id" (onClick)="confirmArchive(campaign)" />
+            }
+            @if (campaign.status === 'Archived') {
+              <span class="muted-text">—</span>
+            }
+          </div>
+        } @else {
+          <span class="muted-text">—</span>
+        }
       </td>
     </tr>
   </ng-template>
@@ -95,9 +101,11 @@
           <p class="empty-state-text">
             Bir hedef kitle (kategori/eğilim) ve tarih aralığı belirleyip ilk kampanyanızı oluşturun — aktifleştirdiğinizde uygun müşterilere otomatik teklif üretilir.
           </p>
-          <div class="empty-state-actions">
-            <p-button label="Yeni Kampanya" icon="pi pi-plus" size="small" (onClick)="openCreateDialog()" />
-          </div>
+          @if (authService.canWrite()) {
+            <div class="empty-state-actions">
+              <p-button label="Yeni Kampanya" icon="pi pi-plus" size="small" (onClick)="openCreateDialog()" />
+            </div>
+          }
         </div>
       </td>
     </tr>

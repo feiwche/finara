@@ -5664,6 +5664,7 @@ export interface IUpdateConsentRequest {
 export enum UserRole {
     SuperAdmin = "SuperAdmin",
     BankAdmin = "BankAdmin",
+    Analyst = "Analyst",
 }
 
 export interface FileParameter {

@@ -2,7 +2,9 @@
   <h1>Kampanyalar</h1>
   <div class="toolbar-actions">
     <p-button label="Dışa Aktar" icon="pi pi-download" severity="secondary" [outlined]="true" (onClick)="dt.exportCSV()" />
-    <p-button label="Yeni Kampanya" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+    @if (authService.canWrite()) {
+      <p-button label="Yeni Kampanya" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+    }
   </div>
 </div>
 
@@ -64,7 +66,7 @@
         }
       </td>
       <td>
-        @if (campaign.status === 'Draft' || campaign.status === 'Paused') {
+        @if ((campaign.status === 'Draft' || campaign.status === 'Paused') && authService.canWrite()) {
           <p-button
             label="Aktifleştir"
             size="small"
@@ -84,9 +86,11 @@
           <p class="empty-state-text">
             Bir hedef kitle (kategori/eğilim) ve tarih aralığı belirleyip ilk kampanyanızı oluşturun — aktifleştirdiğinizde uygun müşterilere otomatik teklif üretilir.
           </p>
-          <div class="empty-state-actions">
-            <p-button label="Yeni Kampanya" icon="pi pi-plus" size="small" (onClick)="openCreateDialog()" />
-          </div>
+          @if (authService.canWrite()) {
+            <div class="empty-state-actions">
+              <p-button label="Yeni Kampanya" icon="pi pi-plus" size="small" (onClick)="openCreateDialog()" />
+            </div>
+          }
         </div>
       </td>
     </tr>

@@ -3,19 +3,27 @@
 <div class="grid">
   <p-card header="Mock Veri Üret" styleClass="panel">
     <p>Test amaçlı rastgele müşteri ve harcama verisi üretir (dakikada en fazla 5 kez kullanılabilir).</p>
-    <div class="field">
-      <label>Müşteri Sayısı</label>
-      <p-inputnumber [(ngModel)]="mockCustomerCount" [min]="1" [max]="500" />
-    </div>
-    <div class="field">
-      <label>Müşteri Başına İşlem Sayısı</label>
-      <p-inputnumber [(ngModel)]="mockTransactionsPerCustomer" [min]="1" [max]="200" />
-    </div>
-    <p-button label="Üret" icon="pi pi-database" [loading]="mockBusy()" (onClick)="generateMockData()" />
+    @if (authService.canWrite()) {
+      <div class="field">
+        <label>Müşteri Sayısı</label>
+        <p-inputnumber [(ngModel)]="mockCustomerCount" [min]="1" [max]="500" />
+      </div>
+      <div class="field">
+        <label>Müşteri Başına İşlem Sayısı</label>
+        <p-inputnumber [(ngModel)]="mockTransactionsPerCustomer" [min]="1" [max]="200" />
+      </div>
+      <p-button label="Üret" icon="pi pi-database" [loading]="mockBusy()" (onClick)="generateMockData()" />
+    } @else {
+      <p-message severity="info" text="Salt-okunuz (Analist) hesaplar mock veri üretemez." />
+    }
   </p-card>
 
   <p-card header="Segmentasyonu Yeniden Hesapla" styleClass="panel">
     <p>Son 90 günlük harcama penceresine göre tüm müşteriler için RFM segmentini yeniden hesaplar.</p>
-    <p-button label="Yeniden Hesapla" icon="pi pi-refresh" [loading]="segmentationBusy()" (onClick)="recalculateSegmentation()" />
+    @if (authService.canWrite()) {
+      <p-button label="Yeniden Hesapla" icon="pi pi-refresh" [loading]="segmentationBusy()" (onClick)="recalculateSegmentation()" />
+    } @else {
+      <p-message severity="info" text="Salt-okunuz (Analist) hesaplar segmentasyonu yeniden hesaplayamaz." />
+    }
   </p-card>
 </div>

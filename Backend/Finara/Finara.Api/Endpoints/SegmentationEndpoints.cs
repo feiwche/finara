@@ -12,7 +12,7 @@ public static class SegmentationEndpoints
             Results.Ok(await service.RecalculateAllAsync(ct)))
             .WithTags("Segmentation")
             .RequireRateLimiting(RateLimitPolicies.Global)
-            .RequireAuthorization()
+            .RequireAuthorization("WriteAccess")
             .Produces<RecalculateSegmentsResult>();
 
         app.MapGet("/api/customers/{customerId:guid}/segment", async (Guid customerId, ISegmentationService service, CancellationToken ct) =>
@@ -53,7 +53,7 @@ public static class SegmentationEndpoints
         })
         .WithTags("Segmentation")
         .RequireRateLimiting(RateLimitPolicies.Global)
-        .RequireAuthorization()
+        .RequireAuthorization("WriteAccess")
         .Produces<SegmentSummary>()
         .ProducesProblem(StatusCodes.Status404NotFound);
 
@@ -70,7 +70,8 @@ public static class SegmentationEndpoints
                 : Results.Ok(result);
         })
         .Produces<GenerateOffersResult>()
-        .ProducesProblem(StatusCodes.Status404NotFound);
+        .ProducesProblem(StatusCodes.Status404NotFound)
+        .RequireAuthorization("WriteAccess");
 
         offers.MapGet("/", async (Guid customerId, INextBestOfferService service, CancellationToken ct) =>
         {
@@ -92,7 +93,8 @@ public static class SegmentationEndpoints
                 : Results.Ok(result);
         })
         .Produces<OfferSummary>()
-        .ProducesProblem(StatusCodes.Status404NotFound);
+        .ProducesProblem(StatusCodes.Status404NotFound)
+        .RequireAuthorization("WriteAccess");
 
         offers.MapPost("/{offerId:guid}/decline", async (Guid customerId, Guid offerId, INextBestOfferService service, CancellationToken ct) =>
         {
@@ -103,7 +105,8 @@ public static class SegmentationEndpoints
                 : Results.Ok(result);
         })
         .Produces<OfferSummary>()
-        .ProducesProblem(StatusCodes.Status404NotFound);
+        .ProducesProblem(StatusCodes.Status404NotFound)
+        .RequireAuthorization("WriteAccess");
 
         offers.MapPost("/{offerId:guid}/distribute", async (Guid customerId, Guid offerId, DistributeOfferRequest request, IOfferDistributionService service, CancellationToken ct) =>
         {
@@ -114,6 +117,7 @@ public static class SegmentationEndpoints
                 : Results.Ok(result);
         })
         .Produces<NotificationDispatchResult>()
-        .ProducesProblem(StatusCodes.Status404NotFound);
+        .ProducesProblem(StatusCodes.Status404NotFound)
+        .RequireAuthorization("WriteAccess");
     }
 }

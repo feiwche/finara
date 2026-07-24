@@ -12,7 +12,7 @@ const ROLE_CLAIM_KEY = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/
 
 interface DecodedClaims {
   email: string | null;
-  isSuperAdmin: boolean;
+  role: string | null;
 }
 
 // JWT'nin sadece payload'ını (imza doğrulaması yapmadan) okuyoruz — burada güvenlik
@@ -22,9 +22,9 @@ function decodeClaimsFromJwt(token: string): DecodedClaims {
     const payload = token.split('.')[1];
     const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
     const claims = JSON.parse(json);
-    return { email: claims.email ?? null, isSuperAdmin: claims[ROLE_CLAIM_KEY] === 'SuperAdmin' };
+    return { email: claims.email ?? null, role: claims[ROLE_CLAIM_KEY] ?? null };
   } catch {
-    return { email: null, isSuperAdmin: false };
+    return { email: null, role: null };
   }
 }
 
@@ -35,12 +35,19 @@ export class AuthService {
 
   private readonly accessTokenSignal = signal<string | null>(null);
   private readonly emailSignal = signal<string | null>(null);
-  private readonly isSuperAdminSignal = signal(false);
+  private readonly roleSignal = signal<string | null>(null);
   private refreshPromise: Promise<string | null> | null = null;
 
   readonly isAuthenticated = computed(() => this.accessTokenSignal() !== null);
   readonly email = this.emailSignal.asReadonly();
-  readonly isSuperAdmin = this.isSuperAdminSignal.asReadonly();
+  readonly role = this.roleSignal.asReadonly();
+  readonly isSuperAdmin = computed(() => this.roleSignal() === 'SuperAdmin');
+  readonly isAnalyst = computed(() => this.roleSignal() === 'Analyst');
+
+  // Analist (salt-okunuz) rolü hariç herkes yazma işlemi yapabilir — mutasyon
+  // butonlarını göstermeden önce bu kontrol ediliyor (backend zaten "WriteAccess"
+  // policy'siyle aynı kısıtlamayı zorunlu kılıyor, bu sadece UX katmanı).
+  readonly canWrite = computed(() => !this.isAnalyst());
 
   get accessToken(): string | null {
     return this.accessTokenSignal();
@@ -55,7 +62,7 @@ export class AuthService {
     const refreshToken = this.isBrowser ? localStorage.getItem(REFRESH_TOKEN_KEY) : null;
     this.accessTokenSignal.set(null);
     this.emailSignal.set(null);
-    this.isSuperAdminSignal.set(false);
+    this.roleSignal.set(null);
     if (this.isBrowser) {
       localStorage.removeItem(REFRESH_TOKEN_KEY);
     }
@@ -97,7 +104,7 @@ export class AuthService {
       } catch (err) {
         this.accessTokenSignal.set(null);
         this.emailSignal.set(null);
-        this.isSuperAdminSignal.set(false);
+        this.roleSignal.set(null);
         if (this.isBrowser) localStorage.removeItem(REFRESH_TOKEN_KEY);
         throw err;
       } finally {
@@ -110,9 +117,9 @@ export class AuthService {
 
   private applyTokens(accessToken: string | undefined, refreshToken: string | undefined): void {
     this.accessTokenSignal.set(accessToken ?? null);
-    const claims = accessToken ? decodeClaimsFromJwt(accessToken) : { email: null, isSuperAdmin: false };
+    const claims = accessToken ? decodeClaimsFromJwt(accessToken) : { email: null, role: null };
     this.emailSignal.set(claims.email);
-    this.isSuperAdminSignal.set(claims.isSuperAdmin);
+    this.roleSignal.set(claims.role);
     if (this.isBrowser && refreshToken) {
       localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
     }

@@ -18,6 +18,7 @@ import { MessageModule } from 'primeng/message';
 import { ConfirmationService, MessageService } from 'primeng/api';
 
 import {
+  AuthService,
   CampaignSummary,
   Client,
   CreateCampaignRequest,
@@ -60,6 +61,7 @@ export class CampaignManagementComponent implements OnInit {
   private readonly confirmationService = inject(ConfirmationService);
   private readonly realtimeService = inject(RealtimeService);
   private readonly destroyRef = inject(DestroyRef);
+  protected readonly authService = inject(AuthService);
 
   protected campaigns = signal<CampaignSummary[]>([]);
   protected loading = signal(false);

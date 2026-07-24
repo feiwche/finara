@@ -32,6 +32,7 @@ public static class ConsentEndpoints
                 : Results.Ok(result);
         })
         .Produces<ConsentSummary>()
-        .ProducesProblem(StatusCodes.Status404NotFound);
+        .ProducesProblem(StatusCodes.Status404NotFound)
+        .RequireAuthorization("WriteAccess");
     }
 }

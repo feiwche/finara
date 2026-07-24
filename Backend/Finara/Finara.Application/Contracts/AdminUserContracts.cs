@@ -2,9 +2,9 @@ using Finara.Domain.Enums;
 
 namespace Finara.Application.Contracts;
 
-// Role/BankId sadece SuperAdmin çağırdığında anlamlı — BankAdmin çağırırsa ikisi de
-// yoksayılır, oluşturulan hesap her zaman BankAdmin + çağıranın kendi bankası olur
-// (bkz. AdminUserService.CreateAdminAsync).
+// SuperAdmin çağırırsa Role/BankId serbestçe seçilebilir. BankAdmin çağırırsa BankId
+// yoksayılır (her zaman kendi bankası) ve Role sadece BankAdmin/Analyst arasında seçilebilir
+// (Analyst değilse BankAdmin'e düşer, SuperAdmin İSTEYEMEZ) — bkz. AdminUserService.CreateAdminAsync.
 public record CreateAdminRequest(string Email, string Password, UserRole? Role = null, Guid? BankId = null);
 
 public record AdminUserSummary(
@@ -15,8 +15,7 @@ public record AdminUserSummary(
     bool IsActive,
     DateTime CreatedAtUtc);
 
-// Role/BankId burada da sadece SuperAdmin çağırdığında anlamlı — CreateAdminRequest ile
-// aynı kural (bkz. AdminUserService.CreateInvitationAsync).
+// CreateAdminRequest ile aynı Role/BankId kuralı (bkz. AdminUserService.CreateInvitationAsync).
 public record CreateInvitationRequest(string Email, string InviteUrlBase, UserRole? Role = null, Guid? BankId = null);
 
 public record InvitationSummary(

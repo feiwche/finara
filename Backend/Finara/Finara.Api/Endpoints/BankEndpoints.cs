@@ -21,7 +21,8 @@ public static class BankEndpoints
             var summary = await service.CreateBankAsync(request, ct);
             return Results.Created($"/api/banks/{summary.Id}", summary);
         })
-        .Produces<BankSummary>(StatusCodes.Status201Created);
+        .Produces<BankSummary>(StatusCodes.Status201Created)
+        .RequireAuthorization("WriteAccess");
 
         banks.MapPost("/{id:guid}/deactivate", async (Guid id, IBankService service, CancellationToken ct) =>
         {
@@ -32,6 +33,7 @@ public static class BankEndpoints
                 : Results.Ok(summary);
         })
         .Produces<BankSummary>()
-        .ProducesProblem(StatusCodes.Status404NotFound);
+        .ProducesProblem(StatusCodes.Status404NotFound)
+        .RequireAuthorization("WriteAccess");
     }
 }

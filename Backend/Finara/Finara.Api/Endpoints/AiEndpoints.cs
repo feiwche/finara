@@ -17,7 +17,7 @@ public static class AiEndpoints
             Results.Ok(new AiPingResponse(await chatService.AskAsync(request.Prompt, ct))))
             .WithTags("AI")
             .RequireRateLimiting(RateLimitPolicies.Global)
-            .RequireAuthorization()
+            .RequireAuthorization("WriteAccess")
             .Produces<AiPingResponse>();
 
         app.MapPost("/api/customers/{customerId:guid}/ai-insight", async (Guid customerId, AiInsightRequest request, IAiInsightService service, CancellationToken ct) =>
@@ -32,7 +32,7 @@ public static class AiEndpoints
         // Ollama isteği saniyeler sürebiliyor — genel limitten daha sıkı bir politika mantıklı olurdu
         // ama Faz 5 kapsamını dar tutmak için şimdilik genel limiti kullanıyoruz.
         .RequireRateLimiting(RateLimitPolicies.Global)
-        .RequireAuthorization()
+        .RequireAuthorization("WriteAccess")
         .Produces<AiInsightResult>()
         .ProducesProblem(StatusCodes.Status404NotFound);
     }

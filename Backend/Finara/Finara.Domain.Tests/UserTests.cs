@@ -84,6 +84,25 @@ public class UserTests
     }
 
     [Fact]
+    public void Create_AnalistBankIdIleOlusturulabilir()
+    {
+        var bankId = Guid.NewGuid();
+
+        var user = Domain.Entities.User.Create("analist@example.com", "hashed-value", UserRole.Analyst, bankId);
+
+        user.BankId.Should().Be(bankId);
+        user.Role.Should().Be(UserRole.Analyst);
+    }
+
+    [Fact]
+    public void Create_AnalistBankIdSiz_ArgumentExceptionFirlatir()
+    {
+        var act = () => Domain.Entities.User.Create("analist@example.com", "hashed-value", UserRole.Analyst);
+
+        act.Should().Throw<ArgumentException>().WithParameterName("bankId");
+    }
+
+    [Fact]
     public void Deactivate_AktifKullaniciyiPasiflestirir()
     {
         var user = Domain.Entities.User.Create("admin@example.com", "hashed-value");

@@ -60,10 +60,10 @@ public class AdminUserService(
         }
         else
         {
-            // BankAdmin sadece kendi bankası için BankAdmin oluşturabilir — istekte
-            // farklı bir Role/BankId gelse bile yoksayılır (başka bankaya yönetici
-            // atayamaz, SuperAdmin oluşturamaz).
-            role = UserRole.BankAdmin;
+            // BankAdmin sadece kendi bankası için BankAdmin veya Analist (salt-okunuz)
+            // oluşturabilir — istekte farklı bir BankId gelse bile yoksayılır (başka bankaya
+            // yönetici atayamaz), SuperAdmin İSTEYEMEZ (Analyst dışındaki her şey BankAdmin'e düşer).
+            role = request.Role == UserRole.Analyst ? UserRole.Analyst : UserRole.BankAdmin;
             bankId = currentUser.BankId;
         }
 
@@ -84,7 +84,7 @@ public class AdminUserService(
         // ile aynı kural, ama currentUser değil YENİ kullanıcı için uygulanıyor).
         await auditLogRepository.InsertAsync(
             AuditLog.Create(bankId ?? DefaultBank.Id, null, AuditActionType.AdminCreated,
-                $"{user.Email} ({(role == UserRole.SuperAdmin ? "SuperAdmin" : "BankAdmin")})", currentUser.UserId),
+                $"{user.Email} ({role})", currentUser.UserId),
             cancellationToken);
 
         return ToSummary(user);
@@ -146,7 +146,9 @@ public class AdminUserService(
         }
         else
         {
-            role = UserRole.BankAdmin;
+            // CreateAdminAsync'teki BankAdmin dalıyla aynı kural — kendi bankası için
+            // BankAdmin ya da Analist daveti çıkarabilir, SuperAdmin daveti çıkaramaz.
+            role = request.Role == UserRole.Analyst ? UserRole.Analyst : UserRole.BankAdmin;
             bankId = currentUser.BankId;
         }
 
@@ -170,7 +172,7 @@ public class AdminUserService(
 
         await auditLogRepository.InsertAsync(
             AuditLog.Create(bankId ?? DefaultBank.Id, null, AuditActionType.AdminInvited,
-                $"{invitation.Email} ({(role == UserRole.SuperAdmin ? "SuperAdmin" : "BankAdmin")})", currentUser.UserId),
+                $"{invitation.Email} ({role})", currentUser.UserId),
             cancellationToken);
 
         var acceptUrl = $"{request.InviteUrlBase}/accept-invitation?token={Uri.EscapeDataString(rawToken)}";

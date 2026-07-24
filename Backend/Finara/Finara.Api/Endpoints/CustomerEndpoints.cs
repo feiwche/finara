@@ -17,7 +17,8 @@ public static class CustomerEndpoints
             var summary = await service.CreateCustomerAsync(request, ct);
             return Results.Created($"/api/customers/{summary.Id}", summary);
         })
-        .Produces<CustomerSummary>(StatusCodes.Status201Created);
+        .Produces<CustomerSummary>(StatusCodes.Status201Created)
+        .RequireAuthorization("WriteAccess");
 
         customers.MapGet("/", async (ICustomerService service, CancellationToken ct) =>
             Results.Ok(await service.GetCustomersAsync(ct)))
@@ -47,7 +48,8 @@ public static class CustomerEndpoints
         })
         .DisableAntiforgery()
         .Accepts<IFormFile>("multipart/form-data")
-        .Produces<CustomerImportResult>();
+        .Produces<CustomerImportResult>()
+        .RequireAuthorization("WriteAccess");
 
         customers.MapPost("/{customerId:guid}/erase", async (Guid customerId, ICustomerService service, CancellationToken ct) =>
         {
@@ -58,7 +60,8 @@ public static class CustomerEndpoints
                 : Results.Ok(summary);
         })
         .Produces<CustomerSummary>()
-        .ProducesProblem(StatusCodes.Status404NotFound);
+        .ProducesProblem(StatusCodes.Status404NotFound)
+        .RequireAuthorization("WriteAccess");
 
         customers.MapPost("/{customerId:guid}/transactions", async (Guid customerId, RecordTransactionRequest request, ICustomerService service, CancellationToken ct) =>
         {
@@ -69,7 +72,8 @@ public static class CustomerEndpoints
                 : Results.Created($"/api/customers/{customerId}/transactions/{summary.Id}", summary);
         })
         .Produces<TransactionSummary>(StatusCodes.Status201Created)
-        .ProducesProblem(StatusCodes.Status404NotFound);
+        .ProducesProblem(StatusCodes.Status404NotFound)
+        .RequireAuthorization("WriteAccess");
 
         customers.MapGet("/{customerId:guid}/transactions", async (Guid customerId, ICustomerService service, CancellationToken ct) =>
         {
@@ -86,7 +90,7 @@ public static class CustomerEndpoints
             Results.Ok(await service.GenerateMockDataAsync(request, ct)))
             .WithTags("Mock Data")
             .RequireRateLimiting(RateLimitPolicies.MockGeneration)
-            .RequireAuthorization()
+            .RequireAuthorization("WriteAccess")
             .Produces<MockGenerationResult>();
     }
 }

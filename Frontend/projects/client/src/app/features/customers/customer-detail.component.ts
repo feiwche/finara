@@ -26,6 +26,7 @@ import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import {
   AiInsightRequest,
   AiInsightResult,
+  AuthService,
   Client,
   ConsentChannel,
   ConsentSummary,
@@ -102,6 +103,7 @@ export class CustomerDetailComponent implements OnInit {
   private readonly titleService = inject(Title);
   private readonly messageService = inject(MessageService);
   private readonly confirmationService = inject(ConfirmationService);
+  protected readonly authService = inject(AuthService);
 
   protected readonly offerResponseSeverity = offerResponseSeverity;
   protected readonly offerResponseLabel = offerResponseLabel;

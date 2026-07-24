@@ -23,7 +23,8 @@ public static class AdminUserEndpoints
             var summary = await service.CreateAdminAsync(request, ct);
             return Results.Created($"/api/admin-users/{summary.Id}", summary);
         })
-        .Produces<AdminUserSummary>(StatusCodes.Status201Created);
+        .Produces<AdminUserSummary>(StatusCodes.Status201Created)
+        .RequireAuthorization("WriteAccess");
 
         admins.MapPost("/{userId:guid}/deactivate", async (Guid userId, ClaimsPrincipal principal, IAdminUserService service, CancellationToken ct) =>
         {
@@ -40,7 +41,8 @@ public static class AdminUserEndpoints
                 : Results.Ok(summary);
         })
         .Produces<AdminUserSummary>()
-        .ProducesProblem(StatusCodes.Status404NotFound);
+        .ProducesProblem(StatusCodes.Status404NotFound)
+        .RequireAuthorization("WriteAccess");
 
         var invitations = app.MapGroup("/api/admin-invitations").WithTags("AdminInvitations")
             .RequireRateLimiting(RateLimitPolicies.Global)
@@ -55,7 +57,8 @@ public static class AdminUserEndpoints
             var summary = await service.CreateInvitationAsync(request, ct);
             return Results.Created($"/api/admin-invitations/{summary.Id}", summary);
         })
-        .Produces<InvitationSummary>(StatusCodes.Status201Created);
+        .Produces<InvitationSummary>(StatusCodes.Status201Created)
+        .RequireAuthorization("WriteAccess");
 
         // "cancel" bilinçli seçildi ("revoke" değil) — NSwag'ın ürettiği TS metod adı
         // /api/auth/revoke ile çakışıp (aynı son segment) birinin sessizce "revoke2"
@@ -70,6 +73,7 @@ public static class AdminUserEndpoints
                 : Results.Ok(summary);
         })
         .Produces<InvitationSummary>()
-        .ProducesProblem(StatusCodes.Status404NotFound);
+        .ProducesProblem(StatusCodes.Status404NotFound)
+        .RequireAuthorization("WriteAccess");
     }
 }

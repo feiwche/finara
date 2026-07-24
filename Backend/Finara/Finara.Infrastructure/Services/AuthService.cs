@@ -221,7 +221,7 @@ public class AuthService(
         // yoksa null" deseni).
         await auditLogRepository.InsertAsync(
             AuditLog.Create(invitation.BankId ?? DefaultBank.Id, null, AuditActionType.AdminInvitationAccepted,
-                $"{user.Email} ({(invitation.Role == UserRole.SuperAdmin ? "SuperAdmin" : "BankAdmin")})", null),
+                $"{user.Email} ({invitation.Role})", null),
             cancellationToken);
     }
 

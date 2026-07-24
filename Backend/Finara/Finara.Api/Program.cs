@@ -9,6 +9,7 @@ using Finara.Api.RateLimiting;
 using Finara.Api.Realtime;
 using Finara.Api.Security;
 using Finara.Application.Interfaces;
+using Finara.Domain.Enums;
 using Finara.Infrastructure.Automation;
 using Finara.Infrastructure.MockData;
 using Finara.Infrastructure.Persistence;
@@ -170,7 +171,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddAuthorization();
+// "WriteAccess" — Analist rolünün (salt-okunuz, bkz. UserRole.cs) hiçbir mutasyon
+// (POST/PUT/DELETE) ucuna erişememesi için tüm yazma endpoint'lerinde kullanılıyor;
+// GET uçları hâlâ sade RequireAuthorization() ile (herhangi bir kimliği doğrulanmış
+// rol, Analist dahil) korunuyor. Rol claim'i zaten AuthService.IssueTokensAsync'te
+// ClaimTypes.Role olarak ekleniyor, RequireRole bunu doğrudan okuyor.
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("WriteAccess", policy =>
+        policy.RequireRole(nameof(UserRole.SuperAdmin), nameof(UserRole.BankAdmin)));
+});
 
 builder.Services.AddSignalR();
 builder.Services.AddScoped<IRealtimeNotifier, SignalRRealtimeNotifier>();

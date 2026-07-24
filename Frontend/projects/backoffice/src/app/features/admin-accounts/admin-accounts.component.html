@@ -5,7 +5,9 @@
 <div class="toolbar">
   <span></span>
   <div class="toolbar-actions">
-    <p-button label="Yeni Yönetici" icon="pi pi-user-plus" (onClick)="openCreateDialog()" />
+    @if (authService.canWrite()) {
+      <p-button label="Yeni Yönetici" icon="pi pi-user-plus" (onClick)="openCreateDialog()" />
+    }
   </div>
 </div>
 
@@ -58,7 +60,7 @@
       </td>
       <td>{{ admin.createdAtUtc | date: 'yyyy-MM-dd' }}</td>
       <td>
-        @if (admin.isActive && !isSelf(admin)) {
+        @if (admin.isActive && !isSelf(admin) && authService.canWrite()) {
           <p-button
             label="Pasifleştir"
             icon="pi pi-user-minus"
@@ -69,7 +71,7 @@
             (onClick)="confirmDeactivate(admin)"
           />
         }
-        @if (!admin.isActive) {
+        @if (!admin.isActive || !authService.canWrite()) {
           <span class="muted-text">—</span>
         }
       </td>
@@ -87,7 +89,9 @@
 <div class="toolbar">
   <span class="muted-text">Yeni bir yönetici hesabı için e-posta davetiyesi gönderin — kişi kendi şifresini kendi belirler.</span>
   <div class="toolbar-actions">
-    <p-button label="Yeni Davet" icon="pi pi-send" (onClick)="openInviteDialog()" />
+    @if (authService.canWrite()) {
+      <p-button label="Yeni Davet" icon="pi pi-send" (onClick)="openInviteDialog()" />
+    }
   </div>
 </div>
 
@@ -116,7 +120,7 @@
       </td>
       <td>{{ invitation.expiresAtUtc | date: 'yyyy-MM-dd HH:mm' }}</td>
       <td>
-        @if (isPendingInvitation(invitation)) {
+        @if (isPendingInvitation(invitation) && authService.canWrite()) {
           <p-button
             label="İptal Et"
             icon="pi pi-ban"
@@ -156,29 +160,33 @@
       <small class="field-error">Şifre zorunlu (en az 8 karakter, harf ve rakam içermeli).</small>
     }
   </div>
-  @if (authService.isSuperAdmin()) {
+  <div class="field">
+    <label>Rol</label>
+    <p-select
+      [options]="authService.isSuperAdmin() ? roleOptions : bankScopedRoleOptions"
+      optionLabel="label"
+      optionValue="value"
+      [(ngModel)]="newAdmin.role"
+    />
+  </div>
+  @if (authService.isSuperAdmin() && newAdmin.role !== UserRole.SuperAdmin) {
     <div class="field">
-      <label>Rol</label>
-      <p-select [options]="roleOptions" optionLabel="label" optionValue="value" [(ngModel)]="newAdmin.role" />
+      <label>Banka *</label>
+      <p-select
+        [options]="banks()"
+        optionLabel="name"
+        optionValue="id"
+        [(ngModel)]="newAdmin.bankId"
+        placeholder="Banka seçin"
+        [class.field-invalid]="createSubmitted && !newAdmin.bankId"
+      />
+      @if (createSubmitted && !newAdmin.bankId) {
+        <small class="field-error">{{ roleLabel(newAdmin.role ?? '') }} için banka seçimi zorunlu.</small>
+      }
     </div>
-    @if (newAdmin.role === UserRole.BankAdmin) {
-      <div class="field">
-        <label>Banka *</label>
-        <p-select
-          [options]="banks()"
-          optionLabel="name"
-          optionValue="id"
-          [(ngModel)]="newAdmin.bankId"
-          placeholder="Banka seçin"
-          [class.field-invalid]="createSubmitted && !newAdmin.bankId"
-        />
-        @if (createSubmitted && !newAdmin.bankId) {
-          <small class="field-error">BankAdmin için banka seçimi zorunlu.</small>
-        }
-      </div>
-    }
-  } @else {
-    <p class="muted-text">Yeni hesap, sizin bankanız için Banka Yöneticisi olarak oluşturulacak.</p>
+  }
+  @if (!authService.isSuperAdmin()) {
+    <p class="muted-text">Yeni hesap, sizin bankanız için oluşturulacak.</p>
   }
   @if (createError()) {
     <p-message severity="error" [text]="createError()!" />
@@ -194,29 +202,33 @@
       <small class="field-error">E-posta zorunlu.</small>
     }
   </div>
-  @if (authService.isSuperAdmin()) {
+  <div class="field">
+    <label>Rol</label>
+    <p-select
+      [options]="authService.isSuperAdmin() ? roleOptions : bankScopedRoleOptions"
+      optionLabel="label"
+      optionValue="value"
+      [(ngModel)]="newInvitation.role"
+    />
+  </div>
+  @if (authService.isSuperAdmin() && newInvitation.role !== UserRole.SuperAdmin) {
     <div class="field">
-      <label>Rol</label>
-      <p-select [options]="roleOptions" optionLabel="label" optionValue="value" [(ngModel)]="newInvitation.role" />
+      <label>Banka *</label>
+      <p-select
+        [options]="banks()"
+        optionLabel="name"
+        optionValue="id"
+        [(ngModel)]="newInvitation.bankId"
+        placeholder="Banka seçin"
+        [class.field-invalid]="inviteSubmitted && !newInvitation.bankId"
+      />
+      @if (inviteSubmitted && !newInvitation.bankId) {
+        <small class="field-error">{{ roleLabel(newInvitation.role ?? '') }} daveti için banka seçimi zorunlu.</small>
+      }
     </div>
-    @if (newInvitation.role === UserRole.BankAdmin) {
-      <div class="field">
-        <label>Banka *</label>
-        <p-select
-          [options]="banks()"
-          optionLabel="name"
-          optionValue="id"
-          [(ngModel)]="newInvitation.bankId"
-          placeholder="Banka seçin"
-          [class.field-invalid]="inviteSubmitted && !newInvitation.bankId"
-        />
-        @if (inviteSubmitted && !newInvitation.bankId) {
-          <small class="field-error">BankAdmin daveti için banka seçimi zorunlu.</small>
-        }
-      </div>
-    }
-  } @else {
-    <p class="muted-text">Davet, sizin bankanız için Banka Yöneticisi rolüyle gönderilecek.</p>
+  }
+  @if (!authService.isSuperAdmin()) {
+    <p class="muted-text">Davet, sizin bankanız için gönderilecek.</p>
   }
   @if (inviteError()) {
     <p-message severity="error" [text]="inviteError()!" />

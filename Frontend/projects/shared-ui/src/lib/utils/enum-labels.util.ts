@@ -40,7 +40,8 @@ const OFFER_RESPONSE_LABELS: Record<string, string> = {
 
 const USER_ROLE_LABELS: Record<string, string> = {
   SuperAdmin: 'Süper Yönetici',
-  BankAdmin: 'Banka Yöneticisi'
+  BankAdmin: 'Banka Yöneticisi',
+  Analyst: 'Analist (Salt Okunur)'
 };
 
 const AUDIT_ACTION_TYPE_LABELS: Record<string, string> = {

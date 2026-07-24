@@ -48,6 +48,9 @@ export class AdminAccountsComponent implements OnInit {
   protected readonly inactiveCount = computed(() => this.admins().filter(a => !a.isActive).length);
 
   protected readonly roleOptions = USER_ROLE_OPTIONS;
+  // BankAdmin (SuperAdmin olmayan) sadece kendi bankası için BankAdmin/Analist seçebilir —
+  // backend'deki AdminUserService.CreateAdminAsync/CreateInvitationAsync ile aynı kural.
+  protected readonly bankScopedRoleOptions = USER_ROLE_OPTIONS.filter(o => o.value !== UserRole.SuperAdmin);
 
   protected dialogVisible = signal(false);
   protected createBusy = signal(false);
@@ -109,7 +112,9 @@ export class AdminAccountsComponent implements OnInit {
   async createAdmin(): Promise<void> {
     this.createError.set(null);
     this.createSubmitted = true;
-    const needsBank = this.authService.isSuperAdmin() && this.newAdmin.role === UserRole.BankAdmin;
+    // SuperAdmin, BankAdmin VEYA Analist oluşturuyorsa (ikisi de bank-scope'lu, bkz.
+    // User.Create validasyonu) banka seçmeli — sadece SuperAdmin oluştururken gerekmiyor.
+    const needsBank = this.authService.isSuperAdmin() && this.newAdmin.role !== UserRole.SuperAdmin;
     if (!this.newAdmin.email || !this.newAdmin.password || (needsBank && !this.newAdmin.bankId)) return;
 
     this.createBusy.set(true);
@@ -197,7 +202,7 @@ export class AdminAccountsComponent implements OnInit {
   async createInvitation(): Promise<void> {
     this.inviteError.set(null);
     this.inviteSubmitted = true;
-    const needsBank = this.authService.isSuperAdmin() && this.newInvitation.role === UserRole.BankAdmin;
+    const needsBank = this.authService.isSuperAdmin() && this.newInvitation.role !== UserRole.SuperAdmin;
     if (!this.newInvitation.email || (needsBank && !this.newInvitation.bankId)) return;
 
     this.inviteBusy.set(true);

@@ -27,7 +27,7 @@
         <div><strong>E-posta:</strong> {{ c.email }}</div>
         <div><strong>Yaş:</strong> {{ c.age }}</div>
         <div><strong>Genel eğilim:</strong> {{ spendingPropensityLabel(c.propensity!) }}</div>
-        @if (!c.isErased) {
+        @if (!c.isErased && authService.canWrite()) {
           <p-button
             label="KVKK Unutulma Hakkını Kullan"
             icon="pi pi-trash"
@@ -64,16 +64,18 @@
           @if (s.aiCommentary) {
             <div class="ai-commentary-label"><i class="pi pi-sparkles"></i> AI Yorumu</div>
             <p class="ai-commentary-text">{{ s.aiCommentary }}</p>
-            <p-button
-              label="Yeniden Oluştur"
-              icon="pi pi-refresh"
-              size="small"
-              severity="secondary"
-              [outlined]="true"
-              [loading]="aiCommentaryBusy()"
-              (onClick)="generateSegmentAiCommentary()"
-            />
-          } @else {
+            @if (authService.canWrite()) {
+              <p-button
+                label="Yeniden Oluştur"
+                icon="pi pi-refresh"
+                size="small"
+                severity="secondary"
+                [outlined]="true"
+                [loading]="aiCommentaryBusy()"
+                (onClick)="generateSegmentAiCommentary()"
+              />
+            }
+          } @else if (authService.canWrite()) {
             <p-button
               label="AI Yorumu Al"
               icon="pi pi-sparkles"
@@ -111,6 +113,8 @@
       <p-card header="Yeni İşlem Ekle" styleClass="panel">
         @if (customer()?.isErased) {
           <p-message severity="warn" text="Bu müşteri anonimleştirildiği için yeni işlem eklenemez." />
+        } @else if (!authService.canWrite()) {
+          <p-message severity="info" text="Salt-okunuz (Analist) hesaplar yeni işlem ekleyemez." />
         } @else {
           <div class="field">
             <label>Tutar (TRY) *</label>
@@ -182,13 +186,15 @@
   <p-tabPanel header="Teklifler">
     <div class="toolbar">
       <span>Bu müşteriye sunulan kampanya teklifleri</span>
-      <p-button
-        label="Teklif Üret"
-        icon="pi pi-sparkles"
-        [loading]="offersBusy()"
-        [disabled]="customer()?.isErased ?? false"
-        (onClick)="generateOffers()"
-      />
+      @if (authService.canWrite()) {
+        <p-button
+          label="Teklif Üret"
+          icon="pi pi-sparkles"
+          [loading]="offersBusy()"
+          [disabled]="customer()?.isErased ?? false"
+          (onClick)="generateOffers()"
+        />
+      }
     </div>
 
     <p-table [value]="offers()" [rows]="10" [paginator]="offers().length > 10" styleClass="p-datatable-sm">
@@ -215,38 +221,42 @@
           </td>
           <td>{{ offer.presentedAtUtc | date: 'yyyy-MM-dd' }}</td>
           <td class="offer-actions">
-            @if (offer.response === 'Pending') {
+            @if (authService.canWrite()) {
+              @if (offer.response === 'Pending') {
+                <p-button
+                  label="Kabul Et"
+                  size="small"
+                  severity="success"
+                  [loading]="respondingOfferId() === offer.id"
+                  (onClick)="respondToOffer(offer, true)"
+                />
+                <p-button
+                  label="Reddet"
+                  size="small"
+                  severity="danger"
+                  [loading]="respondingOfferId() === offer.id"
+                  (onClick)="respondToOffer(offer, false)"
+                />
+              }
               <p-button
-                label="Kabul Et"
+                label="SMS Gönder"
                 size="small"
-                severity="success"
-                [loading]="respondingOfferId() === offer.id"
-                (onClick)="respondToOffer(offer, true)"
+                severity="secondary"
+                icon="pi pi-mobile"
+                [loading]="distributingOfferId() === offer.id"
+                (onClick)="distributeOffer(offer, ConsentChannel.Sms)"
               />
               <p-button
-                label="Reddet"
+                label="E-posta Gönder"
                 size="small"
-                severity="danger"
-                [loading]="respondingOfferId() === offer.id"
-                (onClick)="respondToOffer(offer, false)"
+                severity="secondary"
+                icon="pi pi-envelope"
+                [loading]="distributingOfferId() === offer.id"
+                (onClick)="distributeOffer(offer, ConsentChannel.Email)"
               />
+            } @else {
+              <span class="muted-text">—</span>
             }
-            <p-button
-              label="SMS Gönder"
-              size="small"
-              severity="secondary"
-              icon="pi pi-mobile"
-              [loading]="distributingOfferId() === offer.id"
-              (onClick)="distributeOffer(offer, ConsentChannel.Sms)"
-            />
-            <p-button
-              label="E-posta Gönder"
-              size="small"
-              severity="secondary"
-              icon="pi pi-envelope"
-              [loading]="distributingOfferId() === offer.id"
-              (onClick)="distributeOffer(offer, ConsentChannel.Email)"
-            />
           </td>
         </tr>
       </ng-template>
@@ -288,13 +298,17 @@
           <td>{{ consent.grantedAtUtc ? (consent.grantedAtUtc | date: 'yyyy-MM-dd HH:mm') : '—' }}</td>
           <td>{{ consent.revokedAtUtc ? (consent.revokedAtUtc | date: 'yyyy-MM-dd HH:mm') : '—' }}</td>
           <td>
-            <p-button
-              [label]="consent.isGranted ? 'Rızayı Kaldır' : 'Rıza Ver'"
-              size="small"
-              [severity]="consent.isGranted ? 'danger' : 'success'"
-              [loading]="consentBusy() === consent.channel"
-              (onClick)="toggleConsent(consent)"
-            />
+            @if (authService.canWrite()) {
+              <p-button
+                [label]="consent.isGranted ? 'Rızayı Kaldır' : 'Rıza Ver'"
+                size="small"
+                [severity]="consent.isGranted ? 'danger' : 'success'"
+                [loading]="consentBusy() === consent.channel"
+                (onClick)="toggleConsent(consent)"
+              />
+            } @else {
+              <span class="muted-text">—</span>
+            }
           </td>
         </tr>
       </ng-template>
@@ -303,11 +317,14 @@
 
   <p-tabPanel header="AI Analiz">
     <p-card styleClass="panel">
+      @if (!authService.canWrite()) {
+        <p-message severity="info" text="Salt-okunuz (Analist) hesaplar AI analizi başlatamaz." />
+      }
       <div class="field">
         <label>Soru (boş bırakılırsa genel özet istenir)</label>
-        <textarea pTextarea rows="2" [(ngModel)]="aiQuestion"></textarea>
+        <textarea pTextarea rows="2" [(ngModel)]="aiQuestion" [disabled]="!authService.canWrite()"></textarea>
       </div>
-      <p-button label="Analiz Et" icon="pi pi-sparkles" [loading]="aiBusy()" (onClick)="runAiInsight()" />
+      <p-button label="Analiz Et" icon="pi pi-sparkles" [loading]="aiBusy()" [disabled]="!authService.canWrite()" (onClick)="runAiInsight()" />
       @if (aiBusy()) {
         <div class="ai-loading">
           <p-progressSpinner styleClass="ai-spinner" strokeWidth="4" />
