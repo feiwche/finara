@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from '@finara/shared-ui';
+import { authGuard, superAdminGuard } from '@finara/shared-ui';
 import { AppShellComponent } from './layout/app-shell.component';
 
 export const routes: Routes = [
@@ -52,6 +52,7 @@ export const routes: Routes = [
       {
         path: 'banks',
         title: 'Finara BackOffice — Banka Yönetimi',
+        canActivate: [superAdminGuard],
         loadComponent: () => import('./features/banks/bank-management.component').then(m => m.BankManagementComponent)
       },
       {

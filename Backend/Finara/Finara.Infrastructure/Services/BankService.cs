@@ -10,6 +10,15 @@ public class BankService(FinaraDbContext dbContext, ICurrentUserContext currentU
 {
     public async Task<IReadOnlyList<BankSummary>> GetBanksAsync(CancellationToken cancellationToken = default)
     {
+        // CreateBankAsync/DeactivateBankAsync'te zaten olan SuperAdmin kısıtlaması burada
+        // eksikti — auth'lı HERHANGİ bir kullanıcı (BankAdmin dahil) tüm bankaların
+        // listesini görebiliyordu (route'ta sadece RequireAuthorization() vardı, rol
+        // kontrolü yoktu — güvenlik incelemesinde bulundu). Bu uca meşru tek erişim
+        // noktası zaten SuperAdmin-only bank-management ekranı; BankAdmin için hiçbir
+        // frontend akışı bu listeyi kullanmıyor.
+        if (!currentUser.IsSuperAdmin)
+            throw new InvalidOperationException("Banka listesini görüntülemek için SuperAdmin yetkisi gerekli.");
+
         var banks = await dbContext.Banks.AsNoTracking().OrderBy(b => b.Name).ToListAsync(cancellationToken);
         return banks.Select(ToSummary).ToList();
     }
