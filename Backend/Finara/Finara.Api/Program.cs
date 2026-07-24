@@ -9,6 +9,7 @@ using Finara.Api.RateLimiting;
 using Finara.Api.Realtime;
 using Finara.Api.Security;
 using Finara.Application.Interfaces;
+using Finara.Infrastructure.Automation;
 using Finara.Infrastructure.MockData;
 using Finara.Infrastructure.Persistence;
 using Finara.Infrastructure.Services;
@@ -36,6 +37,11 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
 
 builder.Services.Configure<PayloadGuardOptions>(builder.Configuration.GetSection("PayloadGuard"));
+
+// Zamanlanmış otomasyon — segmentasyonu ve teklif üretimini periyodik olarak,
+// manuel butonlara ihtiyaç kalmadan tetikler (bkz. FinaraAutomationService).
+builder.Services.Configure<AutomationOptions>(builder.Configuration.GetSection("Automation"));
+builder.Services.AddHostedService<FinaraAutomationService>();
 
 // Faz 8.2 — Bogus tabanlı mock üretici, BankDataProviderType.Mock anahtarıyla keyed
 // service olarak kayıtlı. IBankDataProviderFactory'yi tüketen kod değişmeden yeni bir

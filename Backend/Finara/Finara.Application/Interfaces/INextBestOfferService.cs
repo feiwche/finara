@@ -8,6 +8,11 @@ public interface INextBestOfferService
     // segmenti yoksa InvalidOperationException fırlatır (önce segmentasyon çalıştırılmalı).
     Task<GenerateOffersResult?> GenerateOffersAsync(Guid customerId, int maxOffers, CancellationToken cancellationToken = default);
 
+    // Zamanlanmış otomasyon için — aktif bir segmenti olan TÜM müşteriler üzerinde
+    // GenerateOffersAsync ile aynı skor/eşik mantığını tek tek çalıştırır. Segmenti
+    // olmayan müşteriler (henüz hiç segmentasyona girmemiş) sessizce atlanır.
+    Task<GenerateOffersResult> GenerateOffersForAllEligibleCustomersAsync(int maxOffersPerCustomer, CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<OfferSummary>?> GetOffersAsync(Guid customerId, CancellationToken cancellationToken = default);
 
     // customerId/offerId eşleşen bir teklif bulunamazsa null döner (API katmanı 404'e çevirir);

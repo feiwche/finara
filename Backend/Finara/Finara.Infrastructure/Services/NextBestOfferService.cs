@@ -21,6 +21,44 @@ public class NextBestOfferService(FinaraDbContext dbContext, IAuditLogRepository
         if (segment is null)
             throw new InvalidOperationException("Müşterinin aktif bir segmenti yok — önce POST /api/segmentation/recalculate çalıştırılmalı.");
 
+        var created = await GenerateOffersForCustomerAsync(customer, segment, maxOffers, cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return new GenerateOffersResult(created);
+    }
+
+    public async Task<GenerateOffersResult> GenerateOffersForAllEligibleCustomersAsync(int maxOffersPerCustomer, CancellationToken cancellationToken = default)
+    {
+        // Aktif segmenti olan (yani en az bir kez segmentasyona girmiş), silinmemiş/anonimleştirilmemiş
+        // tüm müşteriler taranır. Bank-scope filtresi burada da geçerli — SuperAdmin (otomasyon
+        // dahil) tüm bankaları, BankAdmin sadece kendi bankasını kapsar.
+        var segmentsQuery = dbContext.Segments.Where(s => s.IsActive);
+        if (!currentUser.IsSuperAdmin)
+            segmentsQuery = segmentsQuery.Where(s => s.BankId == currentUser.BankId);
+
+        var eligibleSegments = await segmentsQuery.ToListAsync(cancellationToken);
+        if (eligibleSegments.Count == 0)
+            return new GenerateOffersResult(0);
+
+        var customerIds = eligibleSegments.Select(s => s.CustomerId).ToList();
+        var customers = await dbContext.Customers
+            .Where(c => customerIds.Contains(c.Id) && !c.IsErased)
+            .ToDictionaryAsync(c => c.Id, cancellationToken);
+
+        var totalCreated = 0;
+        foreach (var segment in eligibleSegments)
+        {
+            if (!customers.TryGetValue(segment.CustomerId, out var customer))
+                continue;
+
+            totalCreated += await GenerateOffersForCustomerAsync(customer, segment, maxOffersPerCustomer, cancellationToken);
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return new GenerateOffersResult(totalCreated);
+    }
+
+    private async Task<int> GenerateOffersForCustomerAsync(Customer customer, Segment segment, int maxOffers, CancellationToken cancellationToken)
+    {
         var referenceUtc = DateTime.UtcNow;
         var activeCampaigns = await dbContext.Campaigns
             // Süresi dolmuş (EndDateUtc geçmişte) bir kampanya Status=Active kalmış olsa bile
@@ -33,7 +71,7 @@ public class NextBestOfferService(FinaraDbContext dbContext, IAuditLogRepository
         // Aynı kampanya için zaten bekleyen bir teklif varsa tekrar üretme —
         // arka arkaya çağrılırsa aynı teklif çoğaltılmasın diye.
         var campaignsWithPendingOffer = await dbContext.CampaignOffers
-            .Where(o => o.CustomerId == customerId && o.Response == OfferResponse.Pending)
+            .Where(o => o.CustomerId == customer.Id && o.Response == OfferResponse.Pending)
             .Select(o => o.CampaignId)
             .ToListAsync(cancellationToken);
 
@@ -47,15 +85,13 @@ public class NextBestOfferService(FinaraDbContext dbContext, IAuditLogRepository
 
         foreach (var (campaign, score) in scoredCampaigns)
         {
-            dbContext.CampaignOffers.Add(CampaignOffer.Create(customer.BankId, campaign.Id, customerId, score));
+            dbContext.CampaignOffers.Add(CampaignOffer.Create(customer.BankId, campaign.Id, customer.Id, score));
             await auditLogRepository.InsertAsync(
-                AuditLog.Create(customer.BankId, customerId, AuditActionType.CampaignOfferPresented, $"{campaign.Name} (güven skoru: {score})", currentUser.UserId),
+                AuditLog.Create(customer.BankId, customer.Id, AuditActionType.CampaignOfferPresented, $"{campaign.Name} (güven skoru: {score})", currentUser.UserId),
                 cancellationToken);
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
-
-        return new GenerateOffersResult(scoredCampaigns.Count);
+        return scoredCampaigns.Count;
     }
 
     public async Task<IReadOnlyList<OfferSummary>?> GetOffersAsync(Guid customerId, CancellationToken cancellationToken = default)
