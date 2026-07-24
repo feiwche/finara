@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Mail;
+using Finara.Application.Contracts;
 using Finara.Application.Interfaces;
 using Microsoft.Extensions.Options;
 
@@ -39,6 +40,36 @@ public class SmtpAdminEmailSender(IOptions<SmtpOptions> options) : IAdminEmailSe
             toEmail,
             "Finara — Hesap Daveti",
             $"Finara'ya davet edildiniz. Hesabınızı oluşturmak için bağlantıya tıklayın (24 saat geçerlidir):\n\n{acceptUrl}\n\nBu daveti siz talep etmediyseniz bu e-postayı yok sayabilirsiniz.");
+
+        await client.SendMailAsync(mail, cancellationToken);
+    }
+
+    public async Task SendWeeklyDigestEmailAsync(
+        string toEmail, string bankName, WeeklyDigestStats stats, DateTime weekStartUtc, DateTime weekEndUtc,
+        CancellationToken cancellationToken = default)
+    {
+        using var client = new SmtpClient(_options.Host, _options.Port)
+        {
+            Credentials = new NetworkCredential(_options.Username, _options.Password),
+            EnableSsl = _options.EnableSsl
+        };
+        using var mail = new MailMessage(
+            _options.FromAddress,
+            toEmail,
+            $"Finara — {bankName} Haftalık Özet ({weekStartUtc:dd.MM} - {weekEndUtc:dd.MM})",
+            $"""
+            Merhaba,
+
+            {bankName} için {weekStartUtc:dd.MM.yyyy} - {weekEndUtc:dd.MM.yyyy} haftasının özeti:
+
+            - Yeni müşteri: {stats.NewCustomers}
+            - Kabul edilen teklif: {stats.OffersAccepted}
+            - Reddedilen teklif: {stats.OffersDeclined}
+            - Aktif kampanya: {stats.ActiveCampaigns}
+            - Toplam müşteri: {stats.TotalCustomers}
+
+            Detaylar için BackOffice panelindeki Genel Bakış ekranını ziyaret edin.
+            """);
 
         await client.SendMailAsync(mail, cancellationToken);
     }

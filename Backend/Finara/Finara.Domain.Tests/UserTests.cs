@@ -103,4 +103,16 @@ public class UserTests
 
         act.Should().Throw<InvalidOperationException>();
     }
+
+    [Fact]
+    public void MarkDigestSent_VarsayilanOlarakNull_IsaretlemeSonrasiDoluyor()
+    {
+        var user = Domain.Entities.User.Create("admin@example.com", "hashed-value");
+        user.LastWeeklyDigestSentAtUtc.Should().BeNull();
+
+        user.MarkDigestSent();
+
+        user.LastWeeklyDigestSentAtUtc.Should().NotBeNull();
+        user.LastWeeklyDigestSentAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+    }
 }

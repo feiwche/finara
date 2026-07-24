@@ -12,4 +12,9 @@ public interface IReportService
     Task<IReadOnlyList<DailyCustomerGrowthPoint>> GetCustomerGrowthAsync(int days, CancellationToken cancellationToken = default);
 
     Task<OfferImpactSummary> GetOfferImpactSummaryAsync(CancellationToken cancellationToken = default);
+
+    // Diğer metodların aksine ICurrentUserContext'ten DEĞİL, doğrudan verilen bankId'den
+    // hesaplanıyor — WeeklyDigestService bir HTTP isteği/oturumu olmadan, birden çok
+    // bankanın istatistiğini sırayla hesaplaması gerektiği için (bkz. o dosyadaki yorum).
+    Task<WeeklyDigestStats> GetWeeklyDigestStatsAsync(Guid bankId, DateTime sinceUtc, CancellationToken cancellationToken = default);
 }

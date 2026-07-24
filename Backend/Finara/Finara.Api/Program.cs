@@ -43,6 +43,10 @@ builder.Services.Configure<PayloadGuardOptions>(builder.Configuration.GetSection
 builder.Services.Configure<AutomationOptions>(builder.Configuration.GetSection("Automation"));
 builder.Services.AddHostedService<FinaraAutomationService>();
 
+// Her BankAdmin'e kendi bankası için haftalık özet e-postası (bkz. WeeklyDigestService).
+builder.Services.Configure<WeeklyDigestOptions>(builder.Configuration.GetSection("WeeklyDigest"));
+builder.Services.AddHostedService<WeeklyDigestService>();
+
 // Faz 8.2 — Bogus tabanlı mock üretici, BankDataProviderType.Mock anahtarıyla keyed
 // service olarak kayıtlı. IBankDataProviderFactory'yi tüketen kod değişmeden yeni bir
 // enum değeri + yeni bir AddKeyedScoped satırıyla genişletilebiliyor — tam da bunun

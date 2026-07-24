@@ -1,3 +1,5 @@
+using Finara.Application.Contracts;
+
 namespace Finara.Application.Interfaces;
 
 // INotificationDispatcher (Customer + IConsentGate + NotificationLog etrafında kurulu)
@@ -9,4 +11,8 @@ public interface IAdminEmailSender
     Task SendPasswordResetEmailAsync(string toEmail, string resetUrl, CancellationToken cancellationToken = default);
 
     Task SendInvitationEmailAsync(string toEmail, string acceptUrl, CancellationToken cancellationToken = default);
+
+    Task SendWeeklyDigestEmailAsync(
+        string toEmail, string bankName, WeeklyDigestStats stats, DateTime weekStartUtc, DateTime weekEndUtc,
+        CancellationToken cancellationToken = default);
 }

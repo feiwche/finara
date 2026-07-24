@@ -15,6 +15,12 @@ public class User : BaseEntity
     // SuperAdmin için null (tüm bankaları görür), BankAdmin için zorunlu (bkz. Create).
     public Guid? BankId { get; private set; }
 
+    // Haftalık özet e-postası (WeeklyDigestService) — null ise hiç gönderilmemiş demektir.
+    // "Hangi gün gönderildi" gibi takvim bazlı bir kural yerine "son gönderimden bu yana
+    // en az 7 gün geçti mi" kontrolü kullanılıyor — servis kesintiye uğrayıp yeniden
+    // başlarsa (ör. bir Pazartesi kaçırılırsa) kırılgan olmasın diye.
+    public DateTime? LastWeeklyDigestSentAtUtc { get; private set; }
+
     private User() { }
 
     public static User Create(string email, string passwordHash, UserRole role = UserRole.SuperAdmin, Guid? bankId = null)
@@ -47,6 +53,12 @@ public class User : BaseEntity
             throw new InvalidOperationException("Kullanıcı zaten pasif.");
 
         IsActive = false;
+        MarkUpdated();
+    }
+
+    public void MarkDigestSent()
+    {
+        LastWeeklyDigestSentAtUtc = DateTime.UtcNow;
         MarkUpdated();
     }
 

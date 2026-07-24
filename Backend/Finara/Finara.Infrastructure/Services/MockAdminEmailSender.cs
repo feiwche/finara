@@ -1,3 +1,4 @@
+using Finara.Application.Contracts;
 using Finara.Application.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -17,6 +18,17 @@ public class MockAdminEmailSender(ILogger<MockAdminEmailSender> logger) : IAdmin
     public Task SendInvitationEmailAsync(string toEmail, string acceptUrl, CancellationToken cancellationToken = default)
     {
         logger.LogInformation("[Mock] Davet e-postası — Alıcı: {Email}, Bağlantı: {AcceptUrl}", toEmail, acceptUrl);
+        return Task.CompletedTask;
+    }
+
+    public Task SendWeeklyDigestEmailAsync(
+        string toEmail, string bankName, WeeklyDigestStats stats, DateTime weekStartUtc, DateTime weekEndUtc,
+        CancellationToken cancellationToken = default)
+    {
+        logger.LogInformation(
+            "[Mock] Haftalık özet e-postası — Alıcı: {Email}, Banka: {BankName}, Hafta: {WeekStart:dd.MM}-{WeekEnd:dd.MM}, " +
+            "Yeni müşteri: {NewCustomers}, Kabul: {Accepted}, Red: {Declined}, Aktif kampanya: {ActiveCampaigns}",
+            toEmail, bankName, weekStartUtc, weekEndUtc, stats.NewCustomers, stats.OffersAccepted, stats.OffersDeclined, stats.ActiveCampaigns);
         return Task.CompletedTask;
     }
 }
