@@ -22,6 +22,7 @@ import {
   RealtimeService,
   consentChannelLabel,
   describeApiError,
+  sanitizeCsvField,
   toUtcDateOnlyIso
 } from '@finara/shared-ui';
 
@@ -123,7 +124,7 @@ export class NotificationLogComponent implements OnInit {
       case 'sent':
         return event.data ? 'Gönderildi' : 'Atlandı';
       default:
-        return event.data == null ? '' : String(event.data);
+        return event.data == null ? '' : sanitizeCsvField(String(event.data));
     }
   };
 }

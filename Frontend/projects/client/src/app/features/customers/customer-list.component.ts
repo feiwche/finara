@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -14,6 +14,7 @@ import { TagModule } from 'primeng/tag';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { SelectModule } from 'primeng/select';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 
 import {
@@ -27,6 +28,7 @@ import {
   EDUCATION_LEVEL_OPTIONS,
   EducationLevel,
   propensitySeverity,
+  sanitizeCsvField,
   spendingPropensityLabel,
   toUtcDateOnlyIso
 } from '@finara/shared-ui';
@@ -45,11 +47,12 @@ import {
         TagModule,
         IconFieldModule,
         InputIconModule,
-        SelectModule
+        SelectModule,
+        TooltipModule
     ],
     templateUrl: './customer-list.component.html'
 })
-export class CustomerListComponent implements OnInit {
+export class CustomerListComponent implements OnInit, OnDestroy {
   private readonly client = inject(Client);
   private readonly router = inject(Router);
   private readonly messageService = inject(MessageService);
@@ -70,8 +73,20 @@ export class CustomerListComponent implements OnInit {
   // hafif bir uçtan (bkz. GET /api/customers/stats) geliyor.
   protected stats = signal<CustomerStats | null>(null);
 
+  // p-table'a [first]="tableFirst()" ile geri bağlanıyor — aksi halde arama/filtre
+  // sıfırlaması sadece VERİYİ 1. sayfaya döndürüyordu, paginator'ın kendi iç "hangi
+  // sayfa seçili" durumu (bulundu: p-table'ın kendi state'i, bizim lastLazyEvent'ten
+  // tamamen bağımsız) eski sayfada görünmeye devam ediyordu.
+  protected tableFirst = signal(0);
+
   private lastLazyEvent: TableLazyLoadEvent = { first: 0, rows: this.pageSize };
   private searchDebounceHandle: ReturnType<typeof setTimeout> | null = null;
+  // Debounce'lu arama ile paginator'ın (onLazyLoad) tetiklediği istek yarışabiliyordu —
+  // kullanıcı yazarken paginator'da farklı bir sayfaya tıklarsa, 300ms sonra bekleyen
+  // arama isteği geç dönüp az önceki manuel sayfa değişikliğini sessizce ezebiliyordu.
+  // Her istek artan bir sıra numarası taşıyor, sadece EN SON başlatılan isteğin yanıtı
+  // uygulanıyor (daha önce dönen ama artık "bayat" olan bir yanıt sessizce yok sayılıyor).
+  private requestSequence = 0;
 
   protected initials(customer: CustomerSummary): string {
     return `${customer.firstName?.[0] ?? ''}${customer.lastName?.[0] ?? ''}`.toUpperCase();
@@ -98,7 +113,7 @@ export class CustomerListComponent implements OnInit {
       case 'educationLevel':
         return educationLevelLabel(event.data as string);
       default:
-        return String(event.data);
+        return sanitizeCsvField(String(event.data));
     }
   };
 
@@ -136,18 +151,24 @@ export class CustomerListComponent implements OnInit {
 
   async loadCustomers(event?: TableLazyLoadEvent): Promise<void> {
     if (event) this.lastLazyEvent = event;
+    this.tableFirst.set(this.lastLazyEvent.first ?? 0);
 
+    const requestId = ++this.requestSequence;
     this.loading.set(true);
     try {
       const first = this.lastLazyEvent.first ?? 0;
       const page = Math.floor(first / this.pageSize) + 1;
       const result = await firstValueFrom(this.client.paged2(page, this.pageSize, this.searchTerm || undefined));
+      // Bu istek beklerken daha yeni bir istek (arama/sayfalama) başlatıldıysa, bu yanıt
+      // artık bayat — uygulanırsa kullanıcının en son gördüğü durumu geriye sarardı.
+      if (requestId !== this.requestSequence) return;
       this.customers.set(result.items ?? []);
       this.totalRecords.set(result.totalCount ?? 0);
     } catch (err) {
+      if (requestId !== this.requestSequence) return;
       this.messageService.add({ severity: 'error', summary: 'Müşteriler yüklenemedi', detail: describeApiError(err) });
     } finally {
-      this.loading.set(false);
+      if (requestId === this.requestSequence) this.loading.set(false);
     }
   }
 
@@ -157,12 +178,25 @@ export class CustomerListComponent implements OnInit {
   onSearchInput(): void {
     if (this.searchDebounceHandle) clearTimeout(this.searchDebounceHandle);
     this.searchDebounceHandle = setTimeout(() => {
-      this.lastLazyEvent = { ...this.lastLazyEvent, first: 0 };
-      void this.loadCustomers();
+      this.searchDebounceHandle = null;
+      this.resetToFirstPageAndReload();
     }, 300);
   }
 
+  ngOnDestroy(): void {
+    if (this.searchDebounceHandle) clearTimeout(this.searchDebounceHandle);
+  }
+
+  private resetToFirstPageAndReload(): void {
+    this.lastLazyEvent = { ...this.lastLazyEvent, first: 0 };
+    void this.loadCustomers();
+  }
+
+  // Yeni müşteri oluşturma/CSV içe aktarma sonrası da 1. sayfaya dönülüyor — aksi halde
+  // kullanıcı ör. 3. sayfadaysa "başarılı" mesajını görür ama eklediği kaydı (sıralamaya
+  // göre başka bir sayfaya düşmüşse) ekranda hiç göremezdi.
   private async reload(): Promise<void> {
+    this.lastLazyEvent = { ...this.lastLazyEvent, first: 0 };
     await Promise.all([this.loadCustomers(), this.loadStats()]);
   }
 

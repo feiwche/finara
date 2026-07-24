@@ -82,47 +82,51 @@
   <p-tabPanel header="İşlemler">
     <div class="grid">
       <p-card header="Yeni İşlem Ekle" styleClass="panel">
-        <div class="field">
-          <label>Tutar (TRY) *</label>
-          <p-inputnumber
-            [(ngModel)]="newTransaction.amount"
-            mode="decimal"
-            [minFractionDigits]="2"
-            [inputStyleClass]="txSubmitted && newTransaction.amount <= 0 ? 'field-invalid' : ''"
-          />
-          @if (txSubmitted && newTransaction.amount <= 0) {
-            <small class="field-error">Tutar sıfırdan büyük olmalı.</small>
-          }
-        </div>
-        <div class="field">
-          <label>Kategori</label>
-          <p-select [options]="categories" optionLabel="label" optionValue="value" [(ngModel)]="newTransaction.category" />
-        </div>
-        <div class="field">
-          <label>İşyeri *</label>
-          <input
-            type="text"
-            pInputText
-            [(ngModel)]="newTransaction.merchantName"
-            [class.field-invalid]="txSubmitted && !newTransaction.merchantName"
-          />
-          @if (txSubmitted && !newTransaction.merchantName) {
-            <small class="field-error">İşyeri zorunlu.</small>
-          }
-        </div>
-        <div class="field">
-          <label>Tarih *</label>
-          <p-datepicker
-            [(ngModel)]="newTransaction.occurredAtUtc"
-            dateFormat="yy-mm-dd"
-            [showIcon]="true"
-            [inputStyleClass]="txSubmitted && !newTransaction.occurredAtUtc ? 'field-invalid' : ''"
-          />
-          @if (txSubmitted && !newTransaction.occurredAtUtc) {
-            <small class="field-error">Tarih zorunlu.</small>
-          }
-        </div>
-        <p-button label="İşlem Kaydet" [loading]="txBusy()" (onClick)="recordTransaction()" />
+        @if (customer()?.isErased) {
+          <p-message severity="warn" text="Bu müşteri anonimleştirildiği için yeni işlem eklenemez." />
+        } @else {
+          <div class="field">
+            <label>Tutar (TRY) *</label>
+            <p-inputnumber
+              [(ngModel)]="newTransaction.amount"
+              mode="decimal"
+              [minFractionDigits]="2"
+              [inputStyleClass]="txSubmitted && newTransaction.amount <= 0 ? 'field-invalid' : ''"
+            />
+            @if (txSubmitted && newTransaction.amount <= 0) {
+              <small class="field-error">Tutar sıfırdan büyük olmalı.</small>
+            }
+          </div>
+          <div class="field">
+            <label>Kategori</label>
+            <p-select [options]="categories" optionLabel="label" optionValue="value" [(ngModel)]="newTransaction.category" />
+          </div>
+          <div class="field">
+            <label>İşyeri *</label>
+            <input
+              type="text"
+              pInputText
+              [(ngModel)]="newTransaction.merchantName"
+              [class.field-invalid]="txSubmitted && !newTransaction.merchantName"
+            />
+            @if (txSubmitted && !newTransaction.merchantName) {
+              <small class="field-error">İşyeri zorunlu.</small>
+            }
+          </div>
+          <div class="field">
+            <label>Tarih *</label>
+            <p-datepicker
+              [(ngModel)]="newTransaction.occurredAtUtc"
+              dateFormat="yy-mm-dd"
+              [showIcon]="true"
+              [inputStyleClass]="txSubmitted && !newTransaction.occurredAtUtc ? 'field-invalid' : ''"
+            />
+            @if (txSubmitted && !newTransaction.occurredAtUtc) {
+              <small class="field-error">Tarih zorunlu.</small>
+            }
+          </div>
+          <p-button label="İşlem Kaydet" [loading]="txBusy()" (onClick)="recordTransaction()" />
+        }
       </p-card>
 
       <p-card header="Son İşlemler" styleClass="panel">
@@ -151,7 +155,13 @@
   <p-tabPanel header="Teklifler">
     <div class="toolbar">
       <span>Bu müşteriye sunulan kampanya teklifleri</span>
-      <p-button label="Teklif Üret" icon="pi pi-sparkles" [loading]="offersBusy()" (onClick)="generateOffers()" />
+      <p-button
+        label="Teklif Üret"
+        icon="pi pi-sparkles"
+        [loading]="offersBusy()"
+        [disabled]="customer()?.isErased ?? false"
+        (onClick)="generateOffers()"
+      />
     </div>
 
     <p-table [value]="offers()" [rows]="10" [paginator]="offers().length > 10" styleClass="p-datatable-sm">

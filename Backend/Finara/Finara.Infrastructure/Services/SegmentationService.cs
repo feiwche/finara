@@ -21,7 +21,11 @@ public class SegmentationService(FinaraDbContext dbContext, IAuditLogRepository 
 
         // SuperAdmin tüm bankalar için yeniden hesaplar, BankAdmin sadece kendi bankası için.
         var transactionsQuery = dbContext.Transactions.AsQueryable();
-        var customersQuery = dbContext.Customers.AsQueryable();
+        // KVKK unutulma hakkıyla anonimleştirilmiş (IsErased) müşteriler yeniden
+        // profillenmiyor — aksi halde geçmiş (silinmeyen) işlemleri üzerinden RFM'leri
+        // tekrar hesaplanıp CurrentPropensity güncellenir, yeni bir Segment/AuditLog
+        // (SegmentAssigned) kaydı oluşurdu; bu, "unutulma" niyetiyle doğrudan çelişirdi.
+        var customersQuery = dbContext.Customers.Where(c => !c.IsErased).AsQueryable();
         var segmentsQuery = dbContext.Segments.AsQueryable();
         if (!currentUser.IsSuperAdmin)
         {
@@ -124,7 +128,7 @@ public class SegmentationService(FinaraDbContext dbContext, IAuditLogRepository 
 
                 await auditLogRepository.InsertAsync(
                     AuditLog.Create(customer.BankId, customerId, AuditActionType.SegmentAssigned,
-                        $"{propensity} / baskın kategori: {dominantCategory}"),
+                        $"{propensity} / baskın kategori: {dominantCategory}", currentUser.UserId),
                     cancellationToken);
             }
         }

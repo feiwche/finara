@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -15,12 +15,14 @@ import { Client, ResetPasswordRequest, describeApiError } from '@finara/shared-u
     imports: [FormsModule, RouterLink, PasswordModule, ButtonModule, CardModule, MessageModule],
     templateUrl: './reset-password.component.html'
 })
-export class ResetPasswordComponent implements OnInit {
+export class ResetPasswordComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly client = inject(Client);
 
   private token = '';
+  private navigateTimeout: ReturnType<typeof setTimeout> | null = null;
+  protected hasToken = true;
   protected newPassword = '';
   protected confirmPassword = '';
   protected busy = signal(false);
@@ -31,8 +33,13 @@ export class ResetPasswordComponent implements OnInit {
   ngOnInit(): void {
     this.token = this.route.snapshot.queryParamMap.get('token') ?? '';
     if (!this.token) {
+      this.hasToken = false;
       this.error.set('Geçersiz sıfırlama bağlantısı — e-postanızdaki bağlantıyı tekrar kullanın.');
     }
+  }
+
+  ngOnDestroy(): void {
+    if (this.navigateTimeout) clearTimeout(this.navigateTimeout);
   }
 
   async submit(): Promise<void> {
@@ -44,7 +51,7 @@ export class ResetPasswordComponent implements OnInit {
     try {
       await firstValueFrom(this.client.resetPassword(new ResetPasswordRequest({ token: this.token, newPassword: this.newPassword })));
       this.submitted.set(true);
-      setTimeout(() => void this.router.navigate(['/login']), 2500);
+      this.navigateTimeout = setTimeout(() => void this.router.navigate(['/login']), 2500);
     } catch (err) {
       this.error.set(describeApiError(err));
     } finally {

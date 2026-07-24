@@ -11,7 +11,15 @@
       [loading]="importBusy()"
       (onClick)="importFileInput.click()"
     />
-    <p-button label="Dışa Aktar" icon="pi pi-download" severity="secondary" [outlined]="true" (onClick)="dt.exportCSV()" />
+    <p-button
+      label="Sayfayı Dışa Aktar"
+      icon="pi pi-download"
+      severity="secondary"
+      [outlined]="true"
+      pTooltip="Sunucu taraflı sayfalama nedeniyle sadece o an görüntülenen sayfa (20 kayıt) dışa aktarılır, aramaya uyan tüm müşteriler değil."
+      tooltipPosition="bottom"
+      (onClick)="dt.exportCSV()"
+    />
     <p-button label="Yeni Müşteri" icon="pi pi-plus" (onClick)="openCreateDialog()" />
   </div>
 </div>
@@ -47,6 +55,7 @@
   [lazy]="true"
   (onLazyLoad)="loadCustomers($event)"
   [totalRecords]="totalRecords()"
+  [first]="tableFirst()"
   [rows]="pageSize"
   [paginator]="true"
   [columns]="exportColumns"

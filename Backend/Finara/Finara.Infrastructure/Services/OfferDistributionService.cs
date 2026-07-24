@@ -51,7 +51,7 @@ public class OfferDistributionService(
 
         var detail = result.Sent ? $"{campaignName} / gönderildi" : $"{campaignName} / atlandı: {result.SkippedReason}";
         await auditLogRepository.InsertAsync(
-            AuditLog.Create(offer.BankId, offer.CustomerId, AuditActionType.OfferDistributed, detail),
+            AuditLog.Create(offer.BankId, offer.CustomerId, AuditActionType.OfferDistributed, detail, currentUser.UserId),
             cancellationToken);
 
         // Gerçek zamanlı yayın — dispatcher'ın (Mock/Smtp/Twilio) az önce yazdığı satırı

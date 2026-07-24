@@ -579,6 +579,14 @@ h1, h2, h3 {
 
   .kpi-value {
     color: var(--p-amber-600, #955D22);
+
+    // amber paleti (primary'nin aksine) hiçbir colorScheme'e bağlanmadığı için mode'dan
+    // bağımsız sabit kalıyor (bkz. finara-preset.ts başındaki yorum) — amber-600, koyu
+    // moddaki kart zeminiyle (surface-50, #1B211F) yalnızca ~3:1 kontrast veriyor (WCAG AA
+    // büyük metin eşiğinin sınırında). Daha açık bir amber tonuna geçiliyor.
+    :root.app-dark & {
+      color: var(--p-amber-300, #DDA968);
+    }
   }
 }
 

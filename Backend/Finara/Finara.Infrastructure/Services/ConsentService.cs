@@ -69,7 +69,7 @@ public class ConsentService(FinaraDbContext dbContext, IAuditLogRepository audit
             AuditLog.Create(
                 customer.BankId, customerId,
                 request.IsGranted ? AuditActionType.ConsentGranted : AuditActionType.ConsentRevoked,
-                request.Channel.ToString()),
+                request.Channel.ToString(), currentUser.UserId),
             cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);

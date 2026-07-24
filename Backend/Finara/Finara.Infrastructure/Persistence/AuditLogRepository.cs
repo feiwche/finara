@@ -89,7 +89,10 @@ public class AuditLogRepository : IAuditLogRepository
     public async Task<PagedResult<AuditLogSummary>> GetPagedAsync(
         AuditLogFilter filter, string? search, int page, int pageSize, CancellationToken cancellationToken = default)
     {
-        page = Math.Max(page, 1);
+        // Üst sınır olmadan çok büyük bir "page" değeri (Skip = (page-1)*pageSize) int32
+        // taşmasına uğrayıp negatif bir OFFSET üretebilir — SQL Server bunu reddedip
+        // yakalanmamış bir SqlException'a (500) düşürürdü.
+        page = Math.Clamp(page, 1, 1_000_000);
         pageSize = Math.Clamp(pageSize, 1, 100);
 
         // COUNT ve veri sorgusu aynı WHERE koşulunu paylaşıyor — Dapper'da parametrik SQL
@@ -117,7 +120,7 @@ public class AuditLogRepository : IAuditLogRepository
             FROM AuditLogs a
             LEFT JOIN Customers c ON c.Id = a.CustomerId
             {whereClause}
-            ORDER BY a.OccurredAtUtc DESC
+            ORDER BY a.OccurredAtUtc DESC, a.Id DESC
             OFFSET @Skip ROWS FETCH NEXT @PageSize ROWS ONLY;
             """;
 

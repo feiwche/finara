@@ -71,7 +71,7 @@ public class AdminUserService(
         // ile aynı kural, ama currentUser değil YENİ kullanıcı için uygulanıyor).
         await auditLogRepository.InsertAsync(
             AuditLog.Create(bankId ?? DefaultBank.Id, null, AuditActionType.AdminCreated,
-                $"{user.Email} ({(role == UserRole.SuperAdmin ? "SuperAdmin" : "BankAdmin")})"),
+                $"{user.Email} ({(role == UserRole.SuperAdmin ? "SuperAdmin" : "BankAdmin")})", currentUser.UserId),
             cancellationToken);
 
         return ToSummary(user);
@@ -92,7 +92,7 @@ public class AdminUserService(
         await dbContext.SaveChangesAsync(cancellationToken);
 
         await auditLogRepository.InsertAsync(
-            AuditLog.Create(user.BankId ?? DefaultBank.Id, null, AuditActionType.AdminDeactivated, user.Email),
+            AuditLog.Create(user.BankId ?? DefaultBank.Id, null, AuditActionType.AdminDeactivated, user.Email, currentUserId),
             cancellationToken);
 
         return ToSummary(user);

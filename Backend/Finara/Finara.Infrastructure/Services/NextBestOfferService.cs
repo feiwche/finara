@@ -49,7 +49,7 @@ public class NextBestOfferService(FinaraDbContext dbContext, IAuditLogRepository
         {
             dbContext.CampaignOffers.Add(CampaignOffer.Create(customer.BankId, campaign.Id, customerId, score));
             await auditLogRepository.InsertAsync(
-                AuditLog.Create(customer.BankId, customerId, AuditActionType.CampaignOfferPresented, $"{campaign.Name} (güven skoru: {score})"),
+                AuditLog.Create(customer.BankId, customerId, AuditActionType.CampaignOfferPresented, $"{campaign.Name} (güven skoru: {score})", currentUser.UserId),
                 cancellationToken);
         }
 
@@ -93,7 +93,7 @@ public class NextBestOfferService(FinaraDbContext dbContext, IAuditLogRepository
         respond(offer);
 
         await auditLogRepository.InsertAsync(
-            AuditLog.Create(offer.BankId, customerId, actionType, offer.Campaign?.Name ?? string.Empty),
+            AuditLog.Create(offer.BankId, customerId, actionType, offer.Campaign?.Name ?? string.Empty, currentUser.UserId),
             cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);

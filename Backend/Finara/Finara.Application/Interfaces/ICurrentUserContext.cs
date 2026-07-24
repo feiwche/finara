@@ -9,6 +9,10 @@ public interface ICurrentUserContext
 
     Guid? BankId { get; }
 
+    // Denetim kaydına "kim yaptı" bilgisini damgalamak için — JWT'nin "sub" claim'inden
+    // okunuyor. Auth uçları (login/register öncesi) gibi kimliği doğrulanmamış isteklerde null.
+    Guid? UserId { get; }
+
     // Yazma işlemlerinde (yeni müşteri/kampanya/işlem oluşturma) hangi bankaya
     // damgalanacağını çözer: BankAdmin için kendi bankası, SuperAdmin için — henüz
     // banka seçme arayüzü olmadığı için — varsayılan banka.

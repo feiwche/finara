@@ -39,7 +39,7 @@ public class CustomerService(
         await dbContext.SaveChangesAsync(cancellationToken);
 
         await auditLogRepository.InsertAsync(
-            AuditLog.Create(bankId, customer.Id, AuditActionType.CustomerCreated, $"{customer.FirstName} {customer.LastName}"),
+            AuditLog.Create(bankId, customer.Id, AuditActionType.CustomerCreated, $"{customer.FirstName} {customer.LastName}", currentUser.UserId),
             cancellationToken);
 
         return ToSummary(customer);
@@ -57,7 +57,7 @@ public class CustomerService(
 
     public async Task<PagedResult<CustomerSummary>> GetCustomersPagedAsync(int page, int pageSize, string? search, CancellationToken cancellationToken = default)
     {
-        page = Math.Max(page, 1);
+        page = Math.Clamp(page, 1, 1_000_000);
         pageSize = Math.Clamp(pageSize, 1, 100);
 
         var query = dbContext.Customers.AsNoTracking().AsQueryable();
@@ -77,9 +77,11 @@ public class CustomerService(
 
         // Sayfalama SQL Server'da OFFSET/FETCH'e çevrildiği için deterministik bir sıralama
         // şart — sıralama olmadan aynı filtre iki farklı sayfa isteğinde farklı satır
-        // sırası döndürebilir (bazı sayfalarda tekrar/atlama), OrderBy bunu garanti ediyor.
+        // sırası döndürebilir (bazı sayfalarda tekrar/atlama). LastName+FirstName aynı olan
+        // iki müşteri arasında da bir "berabere kalma" durumu yaşanabildiği için son bir
+        // Id tie-break'i ekleniyor.
         var customers = await query
-            .OrderBy(c => c.LastName).ThenBy(c => c.FirstName)
+            .OrderBy(c => c.LastName).ThenBy(c => c.FirstName).ThenBy(c => c.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
@@ -89,7 +91,10 @@ public class CustomerService(
 
     public async Task<CustomerStats> GetCustomerStatsAsync(CancellationToken cancellationToken = default)
     {
-        var query = dbContext.Customers.AsNoTracking().AsQueryable();
+        // Anonimleştirilmiş (IsErased) müşteriler istatistiklere dahil edilmiyor — bir KVKK
+        // unutulma talebinden sonra "Harcamaya Yatkın" gibi davranışsal bir sayaca katkı
+        // vermeye devam etmesi, unutulma niyetiyle çelişirdi (bkz. Customer.Erase, SegmentationService).
+        var query = dbContext.Customers.AsNoTracking().Where(c => !c.IsErased).AsQueryable();
         if (!currentUser.IsSuperAdmin)
             query = query.Where(c => c.BankId == currentUser.BankId);
 
@@ -119,7 +124,7 @@ public class CustomerService(
         await dbContext.SaveChangesAsync(cancellationToken);
 
         await auditLogRepository.InsertAsync(
-            AuditLog.Create(customer.BankId, customerId, AuditActionType.TransactionRecorded, $"{transaction.MerchantName} — {transaction.Amount} {transaction.Currency}"),
+            AuditLog.Create(customer.BankId, customerId, AuditActionType.TransactionRecorded, $"{transaction.MerchantName} — {transaction.Amount} {transaction.Currency}", currentUser.UserId),
             cancellationToken);
 
         return ToSummary(transaction);
@@ -200,7 +205,7 @@ public class CustomerService(
 
         await auditLogRepository.InsertAsync(
             AuditLog.Create(customer.BankId, customer.Id, AuditActionType.CustomerErased,
-                "Müşteri verileri KVKK unutulma hakkı kapsamında anonimleştirildi."),
+                "Müşteri verileri KVKK unutulma hakkı kapsamında anonimleştirildi.", currentUser.UserId),
             cancellationToken);
 
         return ToSummary(customer);
@@ -237,11 +242,19 @@ public class CustomerService(
         var errors = new List<CustomerImportRowError>();
         var imported = new List<Customer>();
 
+        // Dosya boyutu (endpoint'te 5MB) tek başına yeterli değil — çok kısa satırlarla dolu
+        // bir dosya milyonlarca satıra sığabilir, her biri parse+DB kontrolü tetikler. Satır
+        // sayısına da ayrı bir üst sınır konuyor.
+        const int maxRows = 5000;
+
         var rowNumber = 1; // 1 = başlık satırı
         string? line;
         while ((line = await reader.ReadLineAsync(cancellationToken)) is not null)
         {
             rowNumber++;
+            if (rowNumber - 1 > maxRows)
+                throw new ArgumentException($"CSV dosyası çok fazla satır içeriyor (en fazla {maxRows} satır desteklenir).");
+
             if (string.IsNullOrWhiteSpace(line))
                 continue;
 
@@ -256,9 +269,13 @@ public class CustomerService(
                 if (existingEmails.Contains(normalizedEmail) || !seenInFile.Add(normalizedEmail))
                     throw new InvalidOperationException($"'{email}' e-posta adresiyle kayıtlı bir müşteri zaten var.");
 
+                // TryParse (kültüre bağlı, belirsiz format tahmini) yerine bilinçli olarak
+                // TryParseExact kullanılıyor — "03/04/1990" gibi gün/ay sırası belirsiz bir
+                // tarih, TryParse ile sessizce (hatasız) yanlış bir tarihe (ay/gün ters)
+                // çözülebilirdi. Sadece belgelenen format kabul ediliyor.
                 var dobRaw = Get("DOGUMTARIHI");
-                if (!DateTime.TryParse(dobRaw, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dob))
-                    throw new ArgumentException($"Geçersiz doğum tarihi formatı: '{dobRaw}' (beklenen: yyyy-aa-gg).");
+                if (!DateTime.TryParseExact(dobRaw, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dob))
+                    throw new ArgumentException($"Geçersiz doğum tarihi formatı: '{dobRaw}' (beklenen: yyyy-aa-gg, ör. 1990-05-12).");
 
                 var customer = Customer.Create(bankId, Get("AD"), Get("SOYAD"), email, dob);
 
@@ -294,7 +311,7 @@ public class CustomerService(
 
             await auditLogRepository.InsertAsync(
                 AuditLog.Create(bankId, null, AuditActionType.CustomerBulkImported,
-                    $"{imported.Count} müşteri CSV ile içe aktarıldı ({errors.Count} satır hatalı)."),
+                    $"{imported.Count} müşteri CSV ile içe aktarıldı ({errors.Count} satır hatalı).", currentUser.UserId),
                 cancellationToken);
         }
 

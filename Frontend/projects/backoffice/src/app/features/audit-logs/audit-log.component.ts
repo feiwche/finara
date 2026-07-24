@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
@@ -11,6 +11,7 @@ import { TagModule } from 'primeng/tag';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 
 import {
@@ -21,6 +22,7 @@ import {
   auditActionTypeLabel,
   auditActionTypeSeverity,
   describeApiError,
+  sanitizeCsvField,
   toUtcDateOnlyIso
 } from '@finara/shared-ui';
 
@@ -36,11 +38,12 @@ import {
         TagModule,
         IconFieldModule,
         InputIconModule,
-        InputTextModule
+        InputTextModule,
+        TooltipModule
     ],
     templateUrl: './audit-log.component.html'
 })
-export class AuditLogComponent implements OnInit {
+export class AuditLogComponent implements OnInit, OnDestroy {
   private readonly client = inject(Client);
   private readonly messageService = inject(MessageService);
 
@@ -56,12 +59,24 @@ export class AuditLogComponent implements OnInit {
   protected toUtc: Date | null = null;
   protected searchTerm = '';
 
+  // p-table'a [first]="tableFirst()" ile geri bağlanıyor — bkz. customer-list.component.ts'teki
+  // aynı düzeltmenin yorumu (paginator'ın kendi iç sayfa state'i, veri sıfırlamasından
+  // bağımsız kalıp eski sayfayı seçili göstermeye devam ediyordu).
+  protected tableFirst = signal(0);
+
   private lastLazyEvent: TableLazyLoadEvent = { first: 0, rows: this.pageSize };
   private searchDebounceHandle: ReturnType<typeof setTimeout> | null = null;
+  // bkz. customer-list.component.ts — debounce'lu arama ile paginator/filtre tetiklemeli
+  // istekler arasındaki yarış durumunu önlemek için istek sıralama koruması.
+  private requestSequence = 0;
 
   async ngOnInit(): Promise<void> {
     // Tablo satırları burada değil — [lazy]="true" p-table, ilk render'da (onLazyLoad)
     // ile kendiliğinden tetikliyor.
+  }
+
+  ngOnDestroy(): void {
+    if (this.searchDebounceHandle) clearTimeout(this.searchDebounceHandle);
   }
 
   // Müşteri adı araması artık sunucuya gidiyor (bkz. GET /api/audit-logs/paged?search=) —
@@ -69,7 +84,9 @@ export class AuditLogComponent implements OnInit {
   // sadece görünen sayfada arama yapardı (yanlış/eksik sonuç).
   async loadLogs(event?: TableLazyLoadEvent): Promise<void> {
     if (event) this.lastLazyEvent = event;
+    this.tableFirst.set(this.lastLazyEvent.first ?? 0);
 
+    const requestId = ++this.requestSequence;
     this.loading.set(true);
     try {
       const from = this.fromUtc ? new Date(toUtcDateOnlyIso(this.fromUtc)) : undefined;
@@ -84,12 +101,14 @@ export class AuditLogComponent implements OnInit {
       const result = await firstValueFrom(
         this.client.paged(undefined, this.actionTypeFilter ?? undefined, from, to, this.searchTerm || undefined, page, this.pageSize)
       );
+      if (requestId !== this.requestSequence) return;
       this.logs.set(result.items ?? []);
       this.totalRecords.set(result.totalCount ?? 0);
     } catch (err) {
+      if (requestId !== this.requestSequence) return;
       this.messageService.add({ severity: 'error', summary: 'Denetim kayıtları yüklenemedi', detail: describeApiError(err) });
     } finally {
-      this.loading.set(false);
+      if (requestId === this.requestSequence) this.loading.set(false);
     }
   }
 
@@ -105,6 +124,7 @@ export class AuditLogComponent implements OnInit {
   onSearchInput(): void {
     if (this.searchDebounceHandle) clearTimeout(this.searchDebounceHandle);
     this.searchDebounceHandle = setTimeout(() => {
+      this.searchDebounceHandle = null;
       this.resetToFirstPage();
       void this.loadLogs();
     }, 300);
@@ -138,7 +158,7 @@ export class AuditLogComponent implements OnInit {
       case 'occurredAtUtc':
         return new Date(event.data as string).toLocaleString('tr-TR');
       default:
-        return String(event.data);
+        return sanitizeCsvField(String(event.data));
     }
   };
 }

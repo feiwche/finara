@@ -28,6 +28,7 @@ import {
   campaignStatusLabel,
   campaignStatusSeverity,
   describeApiError,
+  sanitizeCsvField,
   spendingPropensityLabel,
   toUtcDateOnlyIso,
   transactionCategoryLabel
@@ -231,7 +232,7 @@ export class CampaignManagementComponent implements OnInit {
       case 'endDateUtc':
         return new Date(event.data as string).toLocaleDateString('tr-TR');
       default:
-        return String(event.data);
+        return sanitizeCsvField(String(event.data));
     }
   };
 }

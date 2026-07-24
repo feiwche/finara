@@ -1,6 +1,14 @@
 <div class="toolbar">
   <h1>Denetim Kaydı</h1>
-  <p-button label="Dışa Aktar" icon="pi pi-download" severity="secondary" [outlined]="true" (onClick)="dt.exportCSV()" />
+  <p-button
+    label="Sayfayı Dışa Aktar"
+    icon="pi pi-download"
+    severity="secondary"
+    [outlined]="true"
+    pTooltip="Sunucu taraflı sayfalama nedeniyle sadece o an görüntülenen sayfa (20 kayıt) dışa aktarılır, filtrelere uyan tüm kayıtlar değil."
+    tooltipPosition="bottom"
+    (onClick)="dt.exportCSV()"
+  />
 </div>
 
 <div class="filter-bar">
@@ -34,6 +42,7 @@
   [lazy]="true"
   (onLazyLoad)="loadLogs($event)"
   [totalRecords]="totalRecords()"
+  [first]="tableFirst()"
   [rows]="pageSize"
   [paginator]="true"
   [columns]="exportColumns"

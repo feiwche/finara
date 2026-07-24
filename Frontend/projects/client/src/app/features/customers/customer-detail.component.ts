@@ -352,6 +352,10 @@ export class CustomerDetailComponent implements OnInit {
     try {
       const updated = await firstValueFrom(this.client.erase(this.customerId));
       this.customer.set(updated);
+      // Backend erase sırasında tüm aktif rızaları da iptal ediyor — "Rıza" sekmesi
+      // yeniden yüklenmezse bayat "İzin Var" etiketleri kalır ve "Rızayı Kaldır" butonu
+      // (eski isGranted=true'ya bakarak) tıklanınca rızayı yanlışlıkla yeniden VERİRDİ.
+      await this.loadConsents();
       this.messageService.add({ severity: 'success', summary: 'Müşteri anonimleştirildi', detail: 'Veriler KVKK unutulma hakkı kapsamında kalıcı olarak silindi.' });
     } catch (err) {
       this.messageService.add({ severity: 'error', summary: 'Anonimleştirme başarısız', detail: describeApiError(err) });

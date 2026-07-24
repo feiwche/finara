@@ -90,15 +90,17 @@ export const FinaraPreset = definePreset(Aura, {
           950: '{stone.950}'
         }
       },
-      // ÖNEMLİ — sadece "surface" vermek yetmiyor: node_modules/@primeng/themes/aura/base
-      // kaynağından doğrulandı (canlı DOM'da --p-content-background/--p-dialog-background
-      // vb. karanlık modda hâlâ AÇIK değerde kaldığı görülünce) — definePreset burada
-      // Aura'nın TÜM "dark" nesnesini (content/text/formField/overlay/list/navigation/
-      // primary/highlight/mask) sessizce siler, sadece verdiğimiz "surface" kalır. Bu
-      // yüzden Aura'nın dark bloğu BÜTÜNÜYLE buraya kopyalandı — "surface" TERS çevrilmiş
-      // stone skalasına bağlandı (0 en koyu zemin, 950 en açık uç — PrimeNG'in dark
-      // colorScheme'lerde beklediği standart desen), geri kalanı (form alanı/liste/nav
-      // renkleri) Aura'nın kendi jenerik mekaniği olduğu için aynen bırakıldı.
+      // ÖNEMLİ — sadece "surface" vermek yetmiyordu: node_modules/@primeng/themes/aura/base
+      // kaynağıyla karşılaştırıldı (canlı DOM'da --p-content-background/--p-dialog-background
+      // vb. karanlık modda hâlâ AÇIK değerde kaldığı görülünce). Kök neden Aura'nın dark
+      // nesnesinin "silinmesi" DEĞİL (definePreset'in mergeKeys'i gerçekten recursive deep-merge
+      // yapıyor, doğrulandı) — Aura'nın kendi content/formField/text/overlay/... alt-anahtarları
+      // `{surface.900}` gibi kendi (TERS ÇEVRİLMEMİŞ) skalasına göre yazılmıştı; biz sadece
+      // "surface"i ters çevirip diğer anahtarları Aura'da bıraktığımızda, o referanslar artık
+      // BİZİM ters skalamıza göre yanlış (açık) bir tona çözümleniyordu. Çözüm: Aura'nın dark
+      // bloğu BÜTÜNÜYLE buraya kopyalandı — "surface" ters çevrilmiş stone skalasına bağlandı
+      // (0 en koyu zemin, 950 en açık uç), her `{surface.X}` referansı da bu ters çevirmeye göre
+      // simetrik eşiyle (0↔950, 50↔900, 100↔800, 200↔700, 300↔600, 400↔500) yeniden yazıldı.
       // "surface" TERS çevrilmiş (0 en koyu, 950 en açık — bkz. yukarıdaki not) — Aura'nın
       // kendi dark bloğundaki (base/index.mjs) tüm index referansları bu yüzden BİREBİR
       // kopyalanamadı, ters çevrimin simetrik eşiyle (0↔950, 50↔900, 100↔800, 200↔700,

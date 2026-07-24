@@ -10,17 +10,28 @@ using Finara.Infrastructure.Persistence;
 using Finara.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Finara.Infrastructure.Services;
 
-public class AuthService(FinaraDbContext dbContext, IConfiguration configuration, IAdminEmailSender emailSender) : IAuthService
+public class AuthService(
+    FinaraDbContext dbContext,
+    IConfiguration configuration,
+    IAdminEmailSender emailSender,
+    ILogger<AuthService> logger)
+    : IAuthService
 {
     // client (4200) ve backoffice (4300) aynı User hesaplarıyla ayrı origin'lerden giriş
-    // yapıyor — CORS'taki izinli origin listesiyle aynı (bkz. Program.cs AddCors), sıfırlama
-    // bağlantısının keyfi bir adrese yönlendirilmesini (open redirect/e-posta enjeksiyonu)
-    // önlemek için burada da doğrulanıyor.
-    private static readonly string[] AllowedResetUrlBases = ["http://localhost:4200", "http://localhost:4300"];
+    // yapıyor — CORS'taki izinli origin listesiyle aynı gerekçe (bkz. Program.cs AddCors),
+    // sıfırlama bağlantısının keyfi bir adrese yönlendirilmesini (open redirect/e-posta
+    // enjeksiyonu) önlemek için burada da doğrulanıyor. `Auth:AllowedPasswordResetOrigins`
+    // appsettings/user-secrets'tan (virgülle ayrılmış) okunuyor — üretimde gerçek domain(ler)
+    // koda dokunmadan eklenebilsin diye; hiç yapılandırılmazsa dev origin'lerine düşülüyor.
+    private string[] AllowedResetUrlBases =>
+        configuration["Auth:AllowedPasswordResetOrigins"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        ?? ["http://localhost:4200", "http://localhost:4300"];
+
     public async Task RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
     {
         PasswordPolicy.Validate(request.Password);
@@ -99,7 +110,18 @@ public class AuthService(FinaraDbContext dbContext, IConfiguration configuration
         await dbContext.SaveChangesAsync(cancellationToken);
 
         var resetUrl = $"{request.ResetUrlBase}/reset-password?token={Uri.EscapeDataString(rawToken)}";
-        await emailSender.SendPasswordResetEmailAsync(user.Email, resetUrl, cancellationToken);
+        try
+        {
+            await emailSender.SendPasswordResetEmailAsync(user.Email, resetUrl, cancellationToken);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // Bilinçli olarak yutuluyor — bir SMTP hatasının bu uçta 500'e düşmesi, "hesap
+            // var + e-posta başarısız" durumunu "hesap yok" durumundan (sessizce 200 dönen)
+            // ayırt edilebilir kılardı; bu da endpoint'in "hesap varlığını sızdırma" niyetini
+            // (bkz. yukarıdaki yorum) zamanlama/durum koduyla dolaylı olarak bozardı.
+            logger.LogWarning(ex, "Şifre sıfırlama e-postası gönderilemedi (kullanıcı: {UserId})", user.Id);
+        }
     }
 
     public async Task ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken = default)
@@ -107,13 +129,30 @@ public class AuthService(FinaraDbContext dbContext, IConfiguration configuration
         PasswordPolicy.Validate(request.NewPassword);
 
         var tokenHash = RefreshTokenHasher.Hash(request.Token);
-        var resetToken = await dbContext.PasswordResetTokens.FirstOrDefaultAsync(t => t.TokenHash == tokenHash, cancellationToken);
-        if (resetToken is null || !resetToken.IsActive)
+        var now = DateTime.UtcNow;
+
+        // Önce OKUYUP sonra AYRI bir SaveChanges ile "kullanıldı" işaretlemek TOCTOU'ya
+        // açıktı — aynı token'la eşzamanlı iki istek ikisi de IsActive=true görüp ikisi de
+        // şifreyi değiştirebiliyordu (kanıtlandı, hiçbir concurrency token yoktu). Bunun
+        // yerine "kullanılmamış mı" kontrolü ile "kullanıldı" işaretlemesi TEK bir atomik
+        // UPDATE'te birleştiriliyor — sadece gerçekten satırı güncelleyen istek (rowsAffected=1)
+        // devam eder, diğeri (rowsAffected=0) 401 alır.
+        var rowsAffected = await dbContext.Database.ExecuteSqlInterpolatedAsync(
+            $"UPDATE PasswordResetTokens SET UsedAtUtc = {now} WHERE TokenHash = {tokenHash} AND UsedAtUtc IS NULL AND ExpiresAtUtc > {now}",
+            cancellationToken);
+        if (rowsAffected == 0)
             throw new UnauthorizedAccessException("Geçersiz veya süresi dolmuş sıfırlama bağlantısı.");
 
+        var resetToken = await dbContext.PasswordResetTokens.AsNoTracking().FirstAsync(t => t.TokenHash == tokenHash, cancellationToken);
         var user = await dbContext.Users.FirstAsync(u => u.Id == resetToken.UserId, cancellationToken);
         user.SetPasswordHash(PasswordHasher.Hash(request.NewPassword));
-        resetToken.MarkUsed();
+
+        // Kullanıcının varsa BAŞKA aktif sıfırlama bağlantıları da (ör. "linki gönder"e
+        // birden fazla tıklanmışsa) geçersiz kılınıyor — biri kullanılınca diğerleri süresi
+        // dolana kadar (30 dk) hâlâ geçerli kalıp şifreyi tekrar değiştirebilirdi.
+        await dbContext.Database.ExecuteSqlInterpolatedAsync(
+            $"UPDATE PasswordResetTokens SET UsedAtUtc = {now} WHERE UserId = {user.Id} AND UsedAtUtc IS NULL",
+            cancellationToken);
 
         // Şifre sıfırlandığında tüm oturumlar da iptal edilmeli — token'ı ele geçiren biri
         // varsa (asıl sıfırlama nedeni bu olabilir), sıfırlama sonrası her yerden yeniden
