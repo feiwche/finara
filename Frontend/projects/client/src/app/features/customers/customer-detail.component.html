@@ -317,14 +317,15 @@
 
   <p-tabPanel header="AI Analiz">
     <p-card styleClass="panel">
-      @if (!authService.canWrite()) {
+      @if (authService.canWrite()) {
+        <div class="field">
+          <label>Soru (boş bırakılırsa genel özet istenir)</label>
+          <textarea pTextarea rows="2" [(ngModel)]="aiQuestion"></textarea>
+        </div>
+        <p-button label="Analiz Et" icon="pi pi-sparkles" [loading]="aiBusy()" (onClick)="runAiInsight()" />
+      } @else {
         <p-message severity="info" text="Salt-okunuz (Analist) hesaplar AI analizi başlatamaz." />
       }
-      <div class="field">
-        <label>Soru (boş bırakılırsa genel özet istenir)</label>
-        <textarea pTextarea rows="2" [(ngModel)]="aiQuestion" [disabled]="!authService.canWrite()"></textarea>
-      </div>
-      <p-button label="Analiz Et" icon="pi pi-sparkles" [loading]="aiBusy()" [disabled]="!authService.canWrite()" (onClick)="runAiInsight()" />
       @if (aiBusy()) {
         <div class="ai-loading">
           <p-progressSpinner styleClass="ai-spinner" strokeWidth="4" />
