@@ -676,11 +676,15 @@ h1, h2, h3 {
 
 .dashboard-kpi-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   align-items: stretch;
   gap: 20px;
 
-  @media (max-width: 800px) {
+  @media (max-width: 1100px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 600px) {
     grid-template-columns: 1fr;
   }
 
@@ -784,6 +788,10 @@ h1, h2, h3 {
 
   &:nth-child(3) .kpi-card {
     animation-delay: 0.12s;
+  }
+
+  &:nth-child(4) .kpi-card {
+    animation-delay: 0.18s;
   }
 }
 

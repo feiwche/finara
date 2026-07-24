@@ -40,6 +40,29 @@
       <div class="kpi-sublabel">Son 30 günde yanıtlanan teklif yok</div>
     }
   </p-card>
+
+  <p-card styleClass="panel kpi-card" pTooltip="Kural motorunun tüm zamanlar boyunca ürettiği teklif sayısı ve ortalama eşleşme güveni — 30 günlük pencereyle sınırlı değil." tooltipPosition="bottom">
+    <i class="pi pi-sparkles kpi-card-ghost-icon"></i>
+    <div class="kpi-card-head">
+      <span class="kpi-label">Otomasyon Etkisi</span>
+      <span class="kpi-icon-chip"><i class="pi pi-sparkles"></i></span>
+    </div>
+    @if (offerImpact(); as impact) {
+      <div class="kpi-value">{{ impact.totalOffersGenerated }}</div>
+      <div class="kpi-sublabel">
+        teklif üretildi
+        @if (engagementRate !== null) {
+          · %{{ engagementRate }} müşteriye ulaşıldı
+        }
+        @if (averageConfidenceScore !== null) {
+          · ort. güven %{{ averageConfidenceScore }}
+        }
+      </div>
+    } @else {
+      <div class="kpi-value muted-text">—</div>
+      <div class="kpi-sublabel">Henüz teklif üretilmedi</div>
+    }
+  </p-card>
 </div>
 
 <div class="dashboard-chart-grid">

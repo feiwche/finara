@@ -10,4 +10,6 @@ public interface IReportService
     Task<IReadOnlyList<DailyOfferTrendPoint>> GetOfferTrendAsync(int days, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<DailyCustomerGrowthPoint>> GetCustomerGrowthAsync(int days, CancellationToken cancellationToken = default);
+
+    Task<OfferImpactSummary> GetOfferImpactSummaryAsync(CancellationToken cancellationToken = default);
 }

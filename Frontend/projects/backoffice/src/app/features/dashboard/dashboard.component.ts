@@ -5,11 +5,13 @@ import { firstValueFrom } from 'rxjs';
 
 import { CardModule } from 'primeng/card';
 import { ChartModule } from 'primeng/chart';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 
 import {
   AuditActionType,
   Client,
+  OfferImpactSummary,
   RealtimeService,
   SPENDING_PROPENSITY_OPTIONS,
   describeApiError
@@ -17,7 +19,7 @@ import {
 
 @Component({
     selector: 'app-dashboard',
-    imports: [CardModule, ChartModule, DatePipe],
+    imports: [CardModule, ChartModule, TooltipModule, DatePipe],
     templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent implements OnInit {
@@ -33,6 +35,10 @@ export class DashboardComponent implements OnInit {
   protected activeCampaigns = signal(0);
   protected offerAccepted = signal(0);
   protected offerDeclined = signal(0);
+
+  // Kural motorunun/AI'ın "gerçekten ne kadar iş yaptığını" gösteren, 30 günle sınırlı
+  // olmayan tüm-zamanlar özeti — dashboard'daki anlık KPI'ların ROI hikayesini tamamlıyor.
+  protected offerImpact = signal<OfferImpactSummary | null>(null);
 
   protected chartData = signal<unknown>(null);
   protected readonly chartOptions = {
@@ -63,6 +69,17 @@ export class DashboardComponent implements OnInit {
     return this.offerTotal === 0 ? null : Math.round((this.offerAccepted() / this.offerTotal) * 100);
   }
 
+  protected get averageConfidenceScore(): number | null {
+    const impact = this.offerImpact();
+    return impact && impact.totalOffersGenerated! > 0 ? Math.round(impact.averageConfidenceScore!) : null;
+  }
+
+  protected get engagementRate(): number | null {
+    const impact = this.offerImpact();
+    const total = this.totalCustomers();
+    return impact && total > 0 ? Math.round((impact.engagedCustomers! / total) * 100) : null;
+  }
+
   async ngOnInit(): Promise<void> {
     await this.loadDashboard();
 
@@ -84,19 +101,21 @@ export class DashboardComponent implements OnInit {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-      const [customers, campaigns, accepted, declined, offerTrend, customerGrowth] = await Promise.all([
+      const [customers, campaigns, accepted, declined, offerTrend, customerGrowth, offerImpact] = await Promise.all([
         firstValueFrom(this.client.customersAll()),
         firstValueFrom(this.client.campaignsAll()),
         firstValueFrom(this.client.auditLogs(undefined, AuditActionType.CampaignOfferAccepted, thirtyDaysAgo, undefined)),
         firstValueFrom(this.client.auditLogs(undefined, AuditActionType.CampaignOfferDeclined, thirtyDaysAgo, undefined)),
         firstValueFrom(this.client.offerTrend(30)),
-        firstValueFrom(this.client.customerGrowth(30))
+        firstValueFrom(this.client.customerGrowth(30)),
+        firstValueFrom(this.client.offerImpact())
       ]);
 
       this.totalCustomers.set(customers.length);
       this.activeCampaigns.set(campaigns.filter(c => c.status === 'Active').length);
       this.offerAccepted.set(accepted.length);
       this.offerDeclined.set(declined.length);
+      this.offerImpact.set(offerImpact);
 
       const counts: Record<string, number> = {};
       for (const option of SPENDING_PROPENSITY_OPTIONS) counts[option.value] = 0;

@@ -85,6 +85,30 @@ public class ReportService : IReportService
             .ToList();
     }
 
+    public async Task<OfferImpactSummary> GetOfferImpactSummaryAsync(CancellationToken cancellationToken = default)
+    {
+        // OfferResponse.Accepted = 1 (bkz. CampaignOffer.cs enum sırası). AVG(ConfidenceScore)
+        // hiç teklif yokken NULL döner — COALESCE ile 0'a düşürülüyor.
+        const string sql = """
+            SELECT
+                COUNT(*) AS TotalOffersGenerated,
+                SUM(CASE WHEN Response = 1 THEN 1 ELSE 0 END) AS AcceptedOffers,
+                COALESCE(AVG(ConfidenceScore), 0) AS AverageConfidenceScore,
+                COUNT(DISTINCT CASE WHEN Response = 1 THEN CustomerId END) AS EngagedCustomers
+            FROM CampaignOffers
+            WHERE (@BankId IS NULL OR BankId = @BankId);
+            """;
+
+        await using var connection = new SqlConnection(_connectionString);
+        var summary = await connection.QuerySingleAsync<OfferImpactSummary>(
+            new CommandDefinition(sql, new
+            {
+                BankId = _currentUser.IsSuperAdmin ? (Guid?)null : _currentUser.BankId
+            }, cancellationToken: cancellationToken));
+
+        return summary;
+    }
+
     private static IEnumerable<DateOnly> BuildDateRange(DateTime fromUtc, int days)
     {
         var start = DateOnly.FromDateTime(fromUtc);

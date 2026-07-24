@@ -19,5 +19,9 @@ public static class ReportEndpoints
         reports.MapGet("/customer-growth", async (int? days, IReportService service, CancellationToken ct) =>
             Results.Ok(await service.GetCustomerGrowthAsync(days ?? 30, ct)))
             .Produces<IReadOnlyList<DailyCustomerGrowthPoint>>();
+
+        reports.MapGet("/offer-impact", async (IReportService service, CancellationToken ct) =>
+            Results.Ok(await service.GetOfferImpactSummaryAsync(ct)))
+            .Produces<OfferImpactSummary>();
     }
 }

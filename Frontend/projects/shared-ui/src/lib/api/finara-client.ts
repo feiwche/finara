@@ -2937,6 +2937,57 @@ export class Client {
     /**
      * @return OK
      */
+    offerImpact(): Observable<OfferImpactSummary> {
+        let url_ = this.baseUrl + "/api/reports/offer-impact";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processOfferImpact(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processOfferImpact(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<OfferImpactSummary>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<OfferImpactSummary>;
+        }));
+    }
+
+    protected processOfferImpact(response: HttpResponseBase): Observable<OfferImpactSummary> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = OfferImpactSummary.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @return OK
+     */
     recalculate(): Observable<RecalculateSegmentsResult> {
         let url_ = this.baseUrl + "/api/segmentation/recalculate";
         url_ = url_.replace(/[?&]$/, "");
@@ -4996,6 +5047,54 @@ export interface INotificationLogSummary {
     sent?: boolean;
     skippedReason?: string | undefined;
     sentAtUtc?: Date;
+}
+
+export class OfferImpactSummary implements IOfferImpactSummary {
+    totalOffersGenerated?: number;
+    acceptedOffers?: number;
+    averageConfidenceScore?: number;
+    engagedCustomers?: number;
+
+    constructor(data?: IOfferImpactSummary) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.totalOffersGenerated = _data["totalOffersGenerated"];
+            this.acceptedOffers = _data["acceptedOffers"];
+            this.averageConfidenceScore = _data["averageConfidenceScore"];
+            this.engagedCustomers = _data["engagedCustomers"];
+        }
+    }
+
+    static fromJS(data: any): OfferImpactSummary {
+        data = typeof data === 'object' ? data : {};
+        let result = new OfferImpactSummary();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["totalOffersGenerated"] = this.totalOffersGenerated;
+        data["acceptedOffers"] = this.acceptedOffers;
+        data["averageConfidenceScore"] = this.averageConfidenceScore;
+        data["engagedCustomers"] = this.engagedCustomers;
+        return data;
+    }
+}
+
+export interface IOfferImpactSummary {
+    totalOffersGenerated?: number;
+    acceptedOffers?: number;
+    averageConfidenceScore?: number;
+    engagedCustomers?: number;
 }
 
 export class OfferSummary implements IOfferSummary {
