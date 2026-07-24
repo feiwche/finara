@@ -1,19 +1,34 @@
 <div class="login-page">
-  <p-card header="Finara BackOffice — Giriş" styleClass="login-card">
-    <div class="field">
-      <label for="email">E-posta</label>
-      <input id="email" type="text" pInputText [(ngModel)]="email" (keyup.enter)="login()" />
+  <div class="auth-branding">
+    <div class="auth-branding-content">
+      <div class="auth-logo">Finara</div>
+      <span class="auth-badge"><i class="pi pi-shield"></i> BackOffice — Yönetim Paneli</span>
+      <h2>Segmentasyonu ve kampanyaları tek merkezden yönetin.</h2>
+      <p>RFM tabanlı kural motoru, yerel AI ikinci görüşü ve zamanlanmış otomasyonla bankanızın kampanya operasyonunu uçtan uca kontrol edin.</p>
+      <ul class="auth-points">
+        <li><i class="pi pi-check-circle"></i> Banka bazlı çoklu kiracı yönetimi</li>
+        <li><i class="pi pi-check-circle"></i> Yönetici hesapları ve davet akışı</li>
+        <li><i class="pi pi-check-circle"></i> Uçtan uca denetim kaydı</li>
+      </ul>
     </div>
-    <div class="field">
-      <label for="password">Şifre</label>
-      <p-password id="password" [(ngModel)]="password" [feedback]="false" [toggleMask]="true" (keyup.enter)="login()" />
-    </div>
-    @if (error()) {
-      <p-message severity="error" [text]="error()!" />
-    }
-    <p-button label="Giriş yap" [loading]="busy()" (onClick)="login()" />
-    <div class="auth-back-link">
-      <a routerLink="/forgot-password">Şifremi unuttum</a>
-    </div>
-  </p-card>
+  </div>
+  <div class="auth-form-panel">
+    <p-card header="Giriş Yap" styleClass="login-card">
+      <div class="field">
+        <label for="email">E-posta</label>
+        <input id="email" type="text" pInputText [(ngModel)]="email" (keyup.enter)="login()" />
+      </div>
+      <div class="field">
+        <label for="password">Şifre</label>
+        <p-password id="password" [(ngModel)]="password" [feedback]="false" [toggleMask]="true" (keyup.enter)="login()" />
+      </div>
+      @if (error()) {
+        <p-message severity="error" [text]="error()!" />
+      }
+      <p-button label="Giriş yap" [loading]="busy()" (onClick)="login()" />
+      <div class="auth-back-link">
+        <a routerLink="/forgot-password">Şifremi unuttum</a>
+      </div>
+    </p-card>
+  </div>
 </div>

@@ -1,5 +1,19 @@
 <div class="login-page">
-  <p-card header="Finara — Daveti Kabul Et" styleClass="login-card">
+  <div class="auth-branding">
+    <div class="auth-branding-content">
+      <div class="auth-logo">Finara</div>
+      <span class="auth-badge"><i class="pi pi-send"></i> Davetle Katılım</span>
+      <h2>Ekibinize hoş geldiniz.</h2>
+      <p>Bankanızın BackOffice ekibi sizi Finara'ya davet etti. Devam etmek için sadece bir şifre belirlemeniz yeterli.</p>
+      <ul class="auth-points">
+        <li><i class="pi pi-check-circle"></i> Tek kullanımlık, 24 saat geçerli davet bağlantısı</li>
+        <li><i class="pi pi-check-circle"></i> Şifreniz sadece sizin bileceğiniz şekilde belirlenir</li>
+        <li><i class="pi pi-check-circle"></i> Hesap oluşur oluşmaz girişe hazır olursunuz</li>
+      </ul>
+    </div>
+  </div>
+  <div class="auth-form-panel">
+  <p-card header="Daveti Kabul Et" styleClass="login-card">
     @if (previewLoading()) {
       <p>Davet doğrulanıyor…</p>
     } @else if (!hasToken) {
@@ -34,4 +48,5 @@
       <a routerLink="/login">Girişe dön</a>
     </div>
   </p-card>
+  </div>
 </div>
