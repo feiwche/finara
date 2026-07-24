@@ -11,6 +11,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { DatePickerModule } from 'primeng/datepicker';
 import { SelectModule } from 'primeng/select';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TagModule } from 'primeng/tag';
 import { MessageModule } from 'primeng/message';
@@ -46,6 +47,7 @@ import {
         TextareaModule,
         DatePickerModule,
         SelectModule,
+        MultiSelectModule,
         CheckboxModule,
         TagModule,
         MessageModule
@@ -78,7 +80,7 @@ export class CampaignListComponent implements OnInit {
     startDateUtc: null as Date | null,
     endDateUtc: null as Date | null,
     targetCategory: null as TransactionCategory | null,
-    targetPropensity: null as SpendingPropensity | null,
+    targetPropensities: [] as SpendingPropensity[],
     targetsInvestmentAccountHolders: false,
     targetsInternationalTransferUsers: false
   };
@@ -116,7 +118,7 @@ export class CampaignListComponent implements OnInit {
       startDateUtc: null,
       endDateUtc: null,
       targetCategory: null,
-      targetPropensity: null,
+      targetPropensities: [],
       targetsInvestmentAccountHolders: false,
       targetsInternationalTransferUsers: false
     };
@@ -142,7 +144,7 @@ export class CampaignListComponent implements OnInit {
             startDateUtc: new Date(toUtcDateOnlyIso(this.newCampaign.startDateUtc)),
             endDateUtc: this.newCampaign.endDateUtc ? new Date(toUtcDateOnlyIso(this.newCampaign.endDateUtc)) : undefined,
             targetCategory: this.newCampaign.targetCategory ?? undefined,
-            targetPropensity: this.newCampaign.targetPropensity ?? undefined,
+            targetPropensities: this.newCampaign.targetPropensities.length ? this.newCampaign.targetPropensities : undefined,
             targetsInvestmentAccountHolders: this.newCampaign.targetsInvestmentAccountHolders,
             targetsInternationalTransferUsers: this.newCampaign.targetsInternationalTransferUsers
           })
@@ -182,7 +184,7 @@ export class CampaignListComponent implements OnInit {
     { field: 'name', header: 'Ad' },
     { field: 'status', header: 'Durum' },
     { field: 'targetCategory', header: 'Hedef Kategori' },
-    { field: 'targetPropensity', header: 'Hedef Eğilim' },
+    { field: 'targetPropensities', header: 'Hedef Eğilimler' },
     { field: 'startDateUtc', header: 'Başlangıç' },
     { field: 'endDateUtc', header: 'Bitiş' }
   ];
@@ -194,8 +196,8 @@ export class CampaignListComponent implements OnInit {
         return campaignStatusLabel(event.data as string);
       case 'targetCategory':
         return transactionCategoryLabel(event.data as string);
-      case 'targetPropensity':
-        return spendingPropensityLabel(event.data as string);
+      case 'targetPropensities':
+        return (event.data as string[]).map(spendingPropensityLabel).join(' / ');
       case 'startDateUtc':
       case 'endDateUtc':
         return new Date(event.data as string).toLocaleDateString('tr-TR');

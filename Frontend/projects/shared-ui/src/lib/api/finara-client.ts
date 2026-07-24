@@ -3300,7 +3300,7 @@ export class CampaignSummary implements ICampaignSummary {
     status?: CampaignStatus;
     variantId?: string;
     targetCategory?: TransactionCategory;
-    targetPropensity?: SpendingPropensity;
+    targetPropensities?: SpendingPropensity[];
     targetsInvestmentAccountHolders?: boolean;
     targetsInternationalTransferUsers?: boolean;
     startDateUtc?: Date;
@@ -3323,7 +3323,11 @@ export class CampaignSummary implements ICampaignSummary {
             this.status = _data["status"];
             this.variantId = _data["variantId"];
             this.targetCategory = _data["targetCategory"];
-            this.targetPropensity = _data["targetPropensity"];
+            if (Array.isArray(_data["targetPropensities"])) {
+                this.targetPropensities = [] as any;
+                for (let item of _data["targetPropensities"])
+                    this.targetPropensities!.push(item);
+            }
             this.targetsInvestmentAccountHolders = _data["targetsInvestmentAccountHolders"];
             this.targetsInternationalTransferUsers = _data["targetsInternationalTransferUsers"];
             this.startDateUtc = _data["startDateUtc"] ? new Date(_data["startDateUtc"].toString()) : undefined as any;
@@ -3346,7 +3350,11 @@ export class CampaignSummary implements ICampaignSummary {
         data["status"] = this.status;
         data["variantId"] = this.variantId;
         data["targetCategory"] = this.targetCategory;
-        data["targetPropensity"] = this.targetPropensity;
+        if (Array.isArray(this.targetPropensities)) {
+            data["targetPropensities"] = [];
+            for (let item of this.targetPropensities)
+                data["targetPropensities"].push(item);
+        }
         data["targetsInvestmentAccountHolders"] = this.targetsInvestmentAccountHolders;
         data["targetsInternationalTransferUsers"] = this.targetsInternationalTransferUsers;
         data["startDateUtc"] = this.startDateUtc ? this.startDateUtc.toISOString() : undefined as any;
@@ -3362,7 +3370,7 @@ export interface ICampaignSummary {
     status?: CampaignStatus;
     variantId?: string;
     targetCategory?: TransactionCategory;
-    targetPropensity?: SpendingPropensity;
+    targetPropensities?: SpendingPropensity[];
     targetsInvestmentAccountHolders?: boolean;
     targetsInternationalTransferUsers?: boolean;
     startDateUtc?: Date;
@@ -3574,7 +3582,7 @@ export class CreateCampaignRequest implements ICreateCampaignRequest {
     endDateUtc?: Date | undefined;
     variantId?: string;
     targetCategory?: TransactionCategory;
-    targetPropensity?: SpendingPropensity;
+    targetPropensities?: SpendingPropensity[] | undefined;
     targetsInvestmentAccountHolders?: boolean;
     targetsInternationalTransferUsers?: boolean;
 
@@ -3595,7 +3603,11 @@ export class CreateCampaignRequest implements ICreateCampaignRequest {
             this.endDateUtc = _data["endDateUtc"] ? new Date(_data["endDateUtc"].toString()) : undefined as any;
             this.variantId = _data["variantId"];
             this.targetCategory = _data["targetCategory"];
-            this.targetPropensity = _data["targetPropensity"];
+            if (Array.isArray(_data["targetPropensities"])) {
+                this.targetPropensities = [] as any;
+                for (let item of _data["targetPropensities"])
+                    this.targetPropensities!.push(item);
+            }
             this.targetsInvestmentAccountHolders = _data["targetsInvestmentAccountHolders"];
             this.targetsInternationalTransferUsers = _data["targetsInternationalTransferUsers"];
         }
@@ -3616,7 +3628,11 @@ export class CreateCampaignRequest implements ICreateCampaignRequest {
         data["endDateUtc"] = this.endDateUtc ? this.endDateUtc.toISOString() : undefined as any;
         data["variantId"] = this.variantId;
         data["targetCategory"] = this.targetCategory;
-        data["targetPropensity"] = this.targetPropensity;
+        if (Array.isArray(this.targetPropensities)) {
+            data["targetPropensities"] = [];
+            for (let item of this.targetPropensities)
+                data["targetPropensities"].push(item);
+        }
         data["targetsInvestmentAccountHolders"] = this.targetsInvestmentAccountHolders;
         data["targetsInternationalTransferUsers"] = this.targetsInternationalTransferUsers;
         return data;
@@ -3630,7 +3646,7 @@ export interface ICreateCampaignRequest {
     endDateUtc?: Date | undefined;
     variantId?: string;
     targetCategory?: TransactionCategory;
-    targetPropensity?: SpendingPropensity;
+    targetPropensities?: SpendingPropensity[] | undefined;
     targetsInvestmentAccountHolders?: boolean;
     targetsInternationalTransferUsers?: boolean;
 }

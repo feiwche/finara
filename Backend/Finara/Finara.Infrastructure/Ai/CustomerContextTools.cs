@@ -101,7 +101,7 @@ public class CustomerContextTools(FinaraDbContext dbContext, ICurrentUserContext
         var sb = new StringBuilder();
         sb.AppendLine($"Aktif kampanyalar ({campaigns.Count} adet):");
         foreach (var c in campaigns)
-            sb.AppendLine($"- {c.Name}: {c.Description} (hedef kategori: {c.TargetCategory?.ToString() ?? "yok"}, hedef eğilim: {c.TargetPropensity?.ToString() ?? "yok"})");
+            sb.AppendLine($"- {c.Name}: {c.Description} (hedef kategori: {c.TargetCategory?.ToString() ?? "yok"}, hedef eğilim: {(c.TargetPropensities.Count > 0 ? string.Join(", ", c.TargetPropensities) : "yok")})");
 
         return sb.ToString();
     }

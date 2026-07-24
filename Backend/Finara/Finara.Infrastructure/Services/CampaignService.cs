@@ -17,7 +17,7 @@ public class CampaignService(FinaraDbContext dbContext, ICurrentUserContext curr
             request.StartDateUtc,
             request.VariantId,
             request.TargetCategory,
-            request.TargetPropensity,
+            request.TargetPropensities,
             request.EndDateUtc,
             request.TargetsInvestmentAccountHolders,
             request.TargetsInternationalTransferUsers);
@@ -73,7 +73,7 @@ public class CampaignService(FinaraDbContext dbContext, ICurrentUserContext curr
 
     private static CampaignSummary ToSummary(Campaign campaign) => new(
         campaign.Id, campaign.Name, campaign.Description, campaign.Status, campaign.VariantId,
-        campaign.TargetCategory, campaign.TargetPropensity,
+        campaign.TargetCategory, campaign.TargetPropensities,
         campaign.TargetsInvestmentAccountHolders, campaign.TargetsInternationalTransferUsers,
         campaign.StartDateUtc, campaign.EndDateUtc);
 }

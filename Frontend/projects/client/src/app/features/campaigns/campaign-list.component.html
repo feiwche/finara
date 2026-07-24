@@ -46,7 +46,7 @@
       <th>Ad</th>
       <th>Durum</th>
       <th>Hedef Kategori</th>
-      <th>Hedef Eğilim</th>
+      <th>Hedef Eğilimler</th>
       <th>Tarih Aralığı</th>
       <th></th>
     </tr>
@@ -56,7 +56,7 @@
       <td>{{ campaign.name }}</td>
       <td><p-tag [value]="statusLabel(campaign.status ?? '')" [severity]="statusSeverity(campaign.status ?? '')" /></td>
       <td>{{ campaign.targetCategory ? categoryLabel(campaign.targetCategory) : 'Tüm kategoriler' }}</td>
-      <td>{{ campaign.targetPropensity ? propensityLabel(campaign.targetPropensity) : 'Tüm eğilimler' }}</td>
+      <td>{{ campaign.targetPropensities?.length ? campaign.targetPropensities.map(propensityLabel).join(' / ') : 'Tüm eğilimler' }}</td>
       <td>
         {{ campaign.startDateUtc | date: 'yyyy-MM-dd' }}
         @if (campaign.endDateUtc) {
@@ -125,14 +125,14 @@
     />
   </div>
   <div class="field">
-    <label>Hedef Eğilim (opsiyonel)</label>
-    <p-select
+    <label>Hedef Eğilimler (opsiyonel)</label>
+    <p-multiselect
       [options]="propensities"
       optionLabel="label"
       optionValue="value"
-      [(ngModel)]="newCampaign.targetPropensity"
-      [showClear]="true"
-      placeholder="Fark etmez"
+      [(ngModel)]="newCampaign.targetPropensities"
+      display="chip"
+      placeholder="Fark etmez (tümü)"
     />
   </div>
   <div class="field-checkbox">

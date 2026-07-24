@@ -122,9 +122,6 @@ namespace Finara.Infrastructure.Persistence.Migrations
                     b.Property<int?>("TargetCategory")
                         .HasColumnType("int");
 
-                    b.Property<int?>("TargetPropensity")
-                        .HasColumnType("int");
-
                     b.Property<bool>("TargetsInternationalTransferUsers")
                         .HasColumnType("bit");
 
@@ -138,6 +135,12 @@ namespace Finara.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("_targetPropensities")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("TargetPropensities");
 
                     b.HasKey("Id");
 

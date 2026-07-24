@@ -9,7 +9,7 @@ public record CreateCampaignRequest(
     DateTime? EndDateUtc = null,
     string VariantId = "default",
     TransactionCategory? TargetCategory = null,
-    SpendingPropensity? TargetPropensity = null,
+    IReadOnlyCollection<SpendingPropensity>? TargetPropensities = null,
     bool TargetsInvestmentAccountHolders = false,
     bool TargetsInternationalTransferUsers = false);
 
@@ -20,7 +20,7 @@ public record CampaignSummary(
     CampaignStatus Status,
     string VariantId,
     TransactionCategory? TargetCategory,
-    SpendingPropensity? TargetPropensity,
+    IReadOnlyCollection<SpendingPropensity> TargetPropensities,
     bool TargetsInvestmentAccountHolders,
     bool TargetsInternationalTransferUsers,
     DateTime StartDateUtc,

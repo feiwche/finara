@@ -20,7 +20,11 @@ public class Campaign : BaseEntity
     public string VariantId { get; private set; } = "default";
 
     public TransactionCategory? TargetCategory { get; private set; }
-    public SpendingPropensity? TargetPropensity { get; private set; }
+
+    // Boş liste = herkese uygun (eskiden null tekil eğilim ile aynı anlam). Dolu liste = bu
+    // eğilimlerden HERHANGİ biriyle eşleşen müşteri hedeflenir (bkz. NextBestOfferScorer).
+    private readonly List<SpendingPropensity> _targetPropensities = new();
+    public IReadOnlyCollection<SpendingPropensity> TargetPropensities => _targetPropensities.AsReadOnly();
 
     // Next-Best-Offer motorunun "özel ürün uygunluğu" bonusu için — örn. seyahat sigortası
     // veya döviz avantajlı kart kampanyaları, yatırım hesabı/SWIFT kullanan müşterilere
@@ -43,7 +47,7 @@ public class Campaign : BaseEntity
         DateTime startDateUtc,
         string variantId = "default",
         TransactionCategory? targetCategory = null,
-        SpendingPropensity? targetPropensity = null,
+        IEnumerable<SpendingPropensity>? targetPropensities = null,
         DateTime? endDateUtc = null,
         bool targetsInvestmentAccountHolders = false,
         bool targetsInternationalTransferUsers = false)
@@ -57,20 +61,24 @@ public class Campaign : BaseEntity
         if (endDateUtc.HasValue && endDateUtc.Value <= startDateUtc)
             throw new ArgumentException("Bitiş tarihi başlangıç tarihinden sonra olmalı.", nameof(endDateUtc));
 
-        return new Campaign
+        var campaign = new Campaign
         {
             BankId = bankId,
             Name = name.Trim(),
             Description = description?.Trim() ?? string.Empty,
             VariantId = variantId,
             TargetCategory = targetCategory,
-            TargetPropensity = targetPropensity,
             StartDateUtc = startDateUtc,
             EndDateUtc = endDateUtc,
             TargetsInvestmentAccountHolders = targetsInvestmentAccountHolders,
             TargetsInternationalTransferUsers = targetsInternationalTransferUsers,
             Status = CampaignStatus.Draft
         };
+
+        if (targetPropensities is not null)
+            campaign._targetPropensities.AddRange(targetPropensities.Distinct());
+
+        return campaign;
     }
 
     public void Activate()

@@ -37,6 +37,16 @@ public class CampaignTests
     }
 
     [Fact]
+    public void Create_CokluHedefEgilimiVerilebilir()
+    {
+        var campaign = Domain.Entities.Campaign.Create(
+            ValidBankId, "Çoklu Eğilim Kampanyası", "Açıklama", DateTime.UtcNow,
+            targetPropensities: [SpendingPropensity.HighlyResponsive, SpendingPropensity.Neutral, SpendingPropensity.HighlyResponsive]);
+
+        campaign.TargetPropensities.Should().BeEquivalentTo([SpendingPropensity.HighlyResponsive, SpendingPropensity.Neutral]);
+    }
+
+    [Fact]
     public void Create_BosBankaId_ArgumentExceptionFirlatir()
     {
         var act = () => Domain.Entities.Campaign.Create(Guid.Empty, "Kampanya", "Açıklama", DateTime.UtcNow);

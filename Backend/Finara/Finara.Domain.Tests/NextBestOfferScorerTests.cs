@@ -76,7 +76,7 @@ public class NextBestOfferScorerTests
         var eTicaretKampanyasi = Campaign.Create(ValidBankId, 
             "E-ticaret Puan Kampanyası", "Açıklama", DateTime.UtcNow,
             targetCategory: TransactionCategory.ECommerce,
-            targetPropensity: SpendingPropensity.HighlyResponsive);
+            targetPropensities: [SpendingPropensity.HighlyResponsive]);
 
         var score = NextBestOfferScorer.Score(segment, customer, eTicaretKampanyasi);
 

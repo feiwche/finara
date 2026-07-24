@@ -1,5 +1,7 @@
 using Finara.Domain.Entities;
+using Finara.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Finara.Infrastructure.Persistence.Configurations;
@@ -17,6 +19,27 @@ public class CampaignConfiguration : IEntityTypeConfiguration<Campaign>
 
         builder.HasIndex(c => c.Status);
         builder.HasIndex(c => c.BankId);
+
+        // Genel salt-okunur TargetPropensities property'si EF'in kendi (JSON/array) primitive
+        // collection eşlemesine düşmesin diye yok sayılıyor; asıl kalıcılık, aşağıdaki backing
+        // field üzerinden. Ayrı bir tabloya gerek yok — az sayıda enum değeri, "IN" filtresiyle
+        // sorgulanmıyor, sadece skorlama sırasında bellekte okunuyor. Virgülle ayrılmış string
+        // olarak tek kolonda saklanıyor (BackgroundService/Dapper tercihiyle aynı minimal-bağımlılık çizgisi).
+        builder.Ignore(c => c.TargetPropensities);
+
+        builder.Property<List<SpendingPropensity>>("_targetPropensities")
+            .HasColumnName("TargetPropensities")
+            .HasMaxLength(200)
+            .HasConversion(
+                v => string.Join(',', v.Select(p => (int)p)),
+                v => string.IsNullOrEmpty(v)
+                    ? new List<SpendingPropensity>()
+                    : v.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => (SpendingPropensity)int.Parse(s)).ToList(),
+                new ValueComparer<List<SpendingPropensity>>(
+                    (a, b) => a!.SequenceEqual(b!),
+                    v => v.Aggregate(0, (hash, p) => HashCode.Combine(hash, p)),
+                    v => v.ToList()))
+            .IsRequired();
 
         builder.HasOne<Bank>()
             .WithMany()

@@ -7,7 +7,8 @@ namespace Finara.Domain.Services;
 //
 // Puan dağılımı (0-100):
 //   Kategori eşleşmesi        : +45 (kampanya kategori hedefliyorsa ve örtüşüyorsa; hedefsizse +15)
-//   Eğilim eşleşmesi           : +25 (kampanya eğilim hedefliyorsa ve örtüşüyorsa; hedefsizse +25 — herkese uygun sayılır)
+//   Eğilim eşleşmesi           : +25 (kampanya bir/daha çok eğilim hedefliyorsa ve segment bunlardan
+//                                      birine eşitse; hedef listesi boşsa +25 — herkese uygun sayılır)
 //   RFM aktiflik bonusu        : +0..20 (segmentin toplam RFM skoruna orantılı)
 //   Özel ürün uygunluğu        : +10 (yatırım hesabı/SWIFT kullanan müşteri + ilgili kampanya)
 public static class NextBestOfferScorer
@@ -28,15 +29,8 @@ public static class NextBestOfferScorer
             score += 15;
         }
 
-        if (campaign.TargetPropensity is not null)
-        {
-            if (campaign.TargetPropensity == segment.Propensity)
-                score += 25;
-        }
-        else
-        {
+        if (campaign.TargetPropensities.Count == 0 || campaign.TargetPropensities.Contains(segment.Propensity))
             score += 25;
-        }
 
         score += (int)Math.Round(segment.GetTotalScore() / 15.0 * 20);
 
