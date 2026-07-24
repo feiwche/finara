@@ -14,7 +14,7 @@
       </div>
       <p-button label="Üret" icon="pi pi-database" [loading]="mockBusy()" (onClick)="generateMockData()" />
     } @else {
-      <p-message severity="info" text="Salt-okunuz (Analist) hesaplar mock veri üretemez." />
+      <p-message severity="info" text="Salt-okunur (Analist) hesaplar mock veri üretemez." />
     }
   </p-card>
 
@@ -23,7 +23,7 @@
     @if (authService.canWrite()) {
       <p-button label="Yeniden Hesapla" icon="pi pi-refresh" [loading]="segmentationBusy()" (onClick)="recalculateSegmentation()" />
     } @else {
-      <p-message severity="info" text="Salt-okunuz (Analist) hesaplar segmentasyonu yeniden hesaplayamaz." />
+      <p-message severity="info" text="Salt-okunur (Analist) hesaplar segmentasyonu yeniden hesaplayamaz." />
     }
   </p-card>
 </div>

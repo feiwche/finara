@@ -114,7 +114,7 @@
         @if (customer()?.isErased) {
           <p-message severity="warn" text="Bu müşteri anonimleştirildiği için yeni işlem eklenemez." />
         } @else if (!authService.canWrite()) {
-          <p-message severity="info" text="Salt-okunuz (Analist) hesaplar yeni işlem ekleyemez." />
+          <p-message severity="info" text="Salt-okunur (Analist) hesaplar yeni işlem ekleyemez." />
         } @else {
           <div class="field">
             <label>Tutar (TRY) *</label>
@@ -324,7 +324,7 @@
         </div>
         <p-button label="Analiz Et" icon="pi pi-sparkles" [loading]="aiBusy()" (onClick)="runAiInsight()" />
       } @else {
-        <p-message severity="info" text="Salt-okunuz (Analist) hesaplar AI analizi başlatamaz." />
+        <p-message severity="info" text="Salt-okunur (Analist) hesaplar AI analizi başlatamaz." />
       }
       @if (aiBusy()) {
         <div class="ai-loading">
