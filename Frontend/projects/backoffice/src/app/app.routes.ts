@@ -29,6 +29,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/security/security-page.component').then(m => m.SecurityPageComponent)
   },
   {
+    path: 'nasil-calisir',
+    title: 'Finara BackOffice — Nasıl Çalışır',
+    loadComponent: () => import('./features/scenarios/scenarios-page.component').then(m => m.ScenariosPageComponent)
+  },
+  {
     path: '',
     component: AppShellComponent,
     canActivate: [authGuard],

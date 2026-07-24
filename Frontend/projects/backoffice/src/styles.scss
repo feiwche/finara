@@ -369,11 +369,17 @@ h1, h2, h3 {
   }
 }
 
+.auth-branding-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  margin-top: 1.75rem;
+}
+
 .auth-branding-link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-top: 1.75rem;
   color: rgba(255, 255, 255, 0.68);
   font-size: 0.85rem;
   text-decoration: none;
@@ -479,6 +485,121 @@ h1, h2, h3 {
 .security-card-icon {
   font-size: 1.6rem;
   color: var(--p-primary-500, #227E67);
+}
+
+// "Nasıl Çalışır" örnek senaryo sayfası — security-hero/security-content'i (üstteki
+// aynı sabit vitrin) reuse ediyor, sadece içerik farklı (kart grid'i yerine dikey liste).
+.scenario-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.scenario-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 14px;
+
+  h3 {
+    margin: 0 0 4px;
+    font-size: 1.1rem;
+  }
+}
+
+.scenario-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #175243, #227E67);
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.scenario-profile {
+  margin: 0;
+  color: var(--p-text-muted-color, #6b7280);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.scenario-rfm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.scenario-rfm-chip {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--p-surface-100, #ECF0EE);
+  border: 1px solid var(--p-content-border-color, #DCE3E0);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--p-text-color, #2C3532);
+}
+
+.scenario-rfm-chip--propensity {
+  background: var(--p-primary-50, #EEF7F4);
+  border-color: var(--p-primary-200, #AEDACD);
+  color: var(--p-primary-700, #175243);
+}
+
+.scenario-outcome {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: var(--p-content-border-radius, 12px);
+  border-left: 4px solid;
+
+  &--positive {
+    background: var(--p-primary-50, #EEF7F4);
+    border-left-color: var(--p-primary-500, #227E67);
+  }
+
+  &--negative {
+    background: var(--p-surface-100, #ECF0EE);
+    border-left-color: var(--p-text-muted-color, #6b7280);
+  }
+}
+
+.scenario-outcome-score {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  min-width: 72px;
+}
+
+.scenario-outcome-campaign {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  margin-bottom: 2px;
+
+  i.pi-check-circle {
+    color: var(--p-primary-500, #227E67);
+  }
+
+  i.pi-times-circle {
+    color: var(--p-text-muted-color, #6b7280);
+  }
+}
+
+.scenario-outcome-why {
+  color: var(--p-text-muted-color, #6b7280);
+  font-size: 0.85rem;
+  line-height: 1.5;
 }
 
 // Kampanya yaşam döngüsü aksiyon butonları — durum bazlı birden fazla buton yan yana.
