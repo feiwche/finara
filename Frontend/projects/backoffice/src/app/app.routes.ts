@@ -24,6 +24,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/accept-invitation.component').then(m => m.AcceptInvitationComponent)
   },
   {
+    path: 'guvenlik',
+    title: 'Finara BackOffice — Güvenlik ve Veri Gizliliği',
+    loadComponent: () => import('./features/security/security-page.component').then(m => m.SecurityPageComponent)
+  },
+  {
     path: '',
     component: AppShellComponent,
     canActivate: [authGuard],

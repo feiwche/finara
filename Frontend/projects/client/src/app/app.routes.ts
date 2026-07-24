@@ -19,6 +19,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/reset-password.component').then(m => m.ResetPasswordComponent)
   },
   {
+    path: 'guvenlik',
+    title: 'Finara — Güvenlik ve Veri Gizliliği',
+    loadComponent: () => import('./features/security/security-page.component').then(m => m.SecurityPageComponent)
+  },
+  {
     path: '',
     component: AppShellComponent,
     canActivate: [authGuard],

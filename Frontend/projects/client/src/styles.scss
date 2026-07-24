@@ -349,6 +349,21 @@ h1, h2, h3 {
   }
 }
 
+.auth-branding-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 1.75rem;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.85rem;
+  text-decoration: none;
+
+  &:hover {
+    color: #ffffff;
+    text-decoration: underline;
+  }
+}
+
 .auth-form-panel {
   flex: 1 1 52%;
   display: flex;
@@ -376,6 +391,71 @@ h1, h2, h3 {
   a {
     color: var(--p-primary-color, #175243);
   }
+}
+
+// backoffice styles.scss'teki aynı bloğun birebir kopyası (bkz. o dosyadaki yorum) —
+// herkese açık güvenlik/veri gizliliği sayfası.
+.security-page {
+  min-height: 100vh;
+}
+
+.security-hero {
+  padding: 4rem 1.5rem 3rem;
+  text-align: center;
+  color: #ffffff;
+  background: linear-gradient(135deg, #0D2A23 0%, #175243 55%, #227E67 100%);
+}
+
+.security-hero-content {
+  max-width: 640px;
+  margin: 0 auto;
+
+  h1 {
+    color: #ffffff;
+    font-size: 1.9rem;
+    margin: 1rem 0;
+    text-wrap: balance;
+  }
+
+  p {
+    color: rgba(255, 255, 255, 0.78);
+    line-height: 1.65;
+    margin: 0;
+  }
+}
+
+.security-content {
+  max-width: 1080px;
+  margin: -1.5rem auto 0;
+  padding: 0 1.5rem 3rem;
+}
+
+.security-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+
+  .p-card {
+    height: 100%;
+  }
+
+  h3 {
+    font-size: 1.05rem;
+    margin: 10px 0 6px;
+  }
+
+  p {
+    color: var(--p-text-muted-color, #6b7280);
+    line-height: 1.55;
+    margin: 0;
+    font-size: 0.92rem;
+  }
+}
+
+.security-card-icon {
+  font-size: 1.6rem;
+  color: var(--p-primary-500, #227E67);
 }
 
 .clickable-row {
