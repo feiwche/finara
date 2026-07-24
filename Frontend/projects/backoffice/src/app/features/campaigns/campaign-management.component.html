@@ -88,7 +88,18 @@
   </ng-template>
   <ng-template pTemplate="emptymessage">
     <tr>
-      <td colspan="6">Henüz kampanya yok. "Yeni Kampanya" ile ekleyin.</td>
+      <td colspan="6">
+        <div class="empty-state">
+          <i class="pi pi-megaphone empty-state-icon"></i>
+          <div class="empty-state-title">Henüz kampanya yok</div>
+          <p class="empty-state-text">
+            Bir hedef kitle (kategori/eğilim) ve tarih aralığı belirleyip ilk kampanyanızı oluşturun — aktifleştirdiğinizde uygun müşterilere otomatik teklif üretilir.
+          </p>
+          <div class="empty-state-actions">
+            <p-button label="Yeni Kampanya" icon="pi pi-plus" size="small" (onClick)="openCreateDialog()" />
+          </div>
+        </div>
+      </td>
     </tr>
   </ng-template>
 </p-table>

@@ -253,6 +253,10 @@ export class CustomerListComponent implements OnInit, OnDestroy {
     this.router.navigate(['/customers', customer.id]);
   }
 
+  navigateToTools(): void {
+    this.router.navigate(['/tools']);
+  }
+
   protected importBusy = signal(false);
   protected importResultDialogVisible = signal(false);
   protected importResult = signal<CustomerImportResult | null>(null);

@@ -421,6 +421,42 @@ h1, h2, h3 {
   gap: 12px;
 }
 
+// Client styles.scss'teki aynı bloğun birebir kopyası (bkz. o yorum) — ilk kurulum
+// anında "kayıt yok" yerine ne yapılacağını gösteren bir CTA.
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.empty-state-icon {
+  font-size: 2.25rem;
+  color: var(--p-primary-300, #7EC0AD);
+  margin-bottom: 6px;
+}
+
+.empty-state-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--p-text-color, #2C3532);
+}
+
+.empty-state-text {
+  color: var(--p-text-muted-color, #6b7280);
+  max-width: 420px;
+  margin: 0;
+}
+
+.empty-state-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
 .stat-chip {
   display: flex;
   align-items: center;

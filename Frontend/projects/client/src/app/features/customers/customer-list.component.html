@@ -101,7 +101,19 @@
   </ng-template>
   <ng-template pTemplate="emptymessage">
     <tr>
-      <td colspan="4">Henüz müşteri yok. "Yeni Müşteri" ile ekleyin ya da Araçlar sayfasından mock veri üretin.</td>
+      <td colspan="4">
+        <div class="empty-state">
+          <i class="pi pi-users empty-state-icon"></i>
+          <div class="empty-state-title">Henüz müşteri yok</div>
+          <p class="empty-state-text">
+            İlk müşterinizi elle ekleyin, CSV ile toplu içe aktarın ya da Araçlar sayfasından örnek (mock) veri üretip Finara'yı hemen deneyin.
+          </p>
+          <div class="empty-state-actions">
+            <p-button label="Yeni Müşteri" icon="pi pi-plus" size="small" (onClick)="openCreateDialog()" />
+            <p-button label="Örnek Veri Üret" icon="pi pi-sparkles" size="small" severity="secondary" [outlined]="true" (onClick)="navigateToTools()" />
+          </div>
+        </div>
+      </td>
     </tr>
   </ng-template>
 </p-table>
