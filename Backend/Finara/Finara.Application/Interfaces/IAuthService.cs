@@ -15,4 +15,8 @@ public interface IAuthService
     Task ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken cancellationToken = default);
 
     Task ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken = default);
+
+    Task<InvitationPreview?> GetInvitationPreviewAsync(string token, CancellationToken cancellationToken = default);
+
+    Task AcceptInvitationAsync(AcceptInvitationRequest request, CancellationToken cancellationToken = default);
 }

@@ -28,6 +28,180 @@ export class Client {
     /**
      * @return OK
      */
+    adminInvitationsAll(): Observable<InvitationSummary[]> {
+        let url_ = this.baseUrl + "/api/admin-invitations";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processAdminInvitationsAll(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processAdminInvitationsAll(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<InvitationSummary[]>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<InvitationSummary[]>;
+        }));
+    }
+
+    protected processAdminInvitationsAll(response: HttpResponseBase): Observable<InvitationSummary[]> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(InvitationSummary.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @return Created
+     */
+    adminInvitations(body: CreateInvitationRequest): Observable<InvitationSummary> {
+        let url_ = this.baseUrl + "/api/admin-invitations";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processAdminInvitations(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processAdminInvitations(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<InvitationSummary>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<InvitationSummary>;
+        }));
+    }
+
+    protected processAdminInvitations(response: HttpResponseBase): Observable<InvitationSummary> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 201) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = InvitationSummary.fromJS(resultData201);
+            return _observableOf(result201);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    cancel(invitationId: string): Observable<InvitationSummary> {
+        let url_ = this.baseUrl + "/api/admin-invitations/{invitationId}/cancel";
+        if (invitationId === undefined || invitationId === null)
+            throw new globalThis.Error("The parameter 'invitationId' must be defined.");
+        url_ = url_.replace("{invitationId}", encodeURIComponent("" + invitationId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processCancel(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processCancel(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<InvitationSummary>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<InvitationSummary>;
+        }));
+    }
+
+    protected processCancel(response: HttpResponseBase): Observable<InvitationSummary> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = InvitationSummary.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status === 404) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @return OK
+     */
     adminUsersAll(): Observable<AdminUserSummary[]> {
         let url_ = this.baseUrl + "/api/admin-users";
         url_ = url_.replace(/[?&]$/, "");
@@ -783,6 +957,119 @@ export class Client {
     }
 
     protected processResetPassword(response: HttpResponseBase): Observable<void> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return _observableOf(null as any);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    invitations(token: string): Observable<InvitationPreview> {
+        let url_ = this.baseUrl + "/api/auth/invitations?";
+        if (token === undefined || token === null)
+            throw new globalThis.Error("The parameter 'token' must be defined and cannot be null.");
+        else
+            url_ += "token=" + encodeURIComponent("" + token) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processInvitations(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processInvitations(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<InvitationPreview>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<InvitationPreview>;
+        }));
+    }
+
+    protected processInvitations(response: HttpResponseBase): Observable<InvitationPreview> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = InvitationPreview.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status === 404) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @return No Content
+     */
+    acceptInvitation(body: AcceptInvitationRequest): Observable<void> {
+        let url_ = this.baseUrl + "/api/auth/accept-invitation";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json",
+            })
+        };
+
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processAcceptInvitation(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processAcceptInvitation(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<void>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<void>;
+        }));
+    }
+
+    protected processAcceptInvitation(response: HttpResponseBase): Observable<void> {
         const status = response.status;
         const responseBlob =
             response instanceof HttpResponse ? response.body :
@@ -2828,6 +3115,46 @@ export class Client {
     }
 }
 
+export class AcceptInvitationRequest implements IAcceptInvitationRequest {
+    token?: string;
+    newPassword?: string;
+
+    constructor(data?: IAcceptInvitationRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.token = _data["token"];
+            this.newPassword = _data["newPassword"];
+        }
+    }
+
+    static fromJS(data: any): AcceptInvitationRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new AcceptInvitationRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["token"] = this.token;
+        data["newPassword"] = this.newPassword;
+        return data;
+    }
+}
+
+export interface IAcceptInvitationRequest {
+    token?: string;
+    newPassword?: string;
+}
+
 export class AdminUserSummary implements IAdminUserSummary {
     id?: string;
     email?: string;
@@ -3062,6 +3389,9 @@ export enum AuditActionType {
     AdminDeactivated = "AdminDeactivated",
     CustomerBulkImported = "CustomerBulkImported",
     CustomerErased = "CustomerErased",
+    AdminInvited = "AdminInvited",
+    AdminInvitationAccepted = "AdminInvitationAccepted",
+    AdminInvitationRevoked = "AdminInvitationRevoked",
 }
 
 export class AuditLogSummary implements IAuditLogSummary {
@@ -3715,6 +4045,54 @@ export interface ICreateCustomerRequest {
     phoneNumber?: string | undefined;
 }
 
+export class CreateInvitationRequest implements ICreateInvitationRequest {
+    email?: string;
+    inviteUrlBase?: string;
+    role?: UserRole;
+    bankId?: string | undefined;
+
+    constructor(data?: ICreateInvitationRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.email = _data["email"];
+            this.inviteUrlBase = _data["inviteUrlBase"];
+            this.role = _data["role"];
+            this.bankId = _data["bankId"];
+        }
+    }
+
+    static fromJS(data: any): CreateInvitationRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateInvitationRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["email"] = this.email;
+        data["inviteUrlBase"] = this.inviteUrlBase;
+        data["role"] = this.role;
+        data["bankId"] = this.bankId;
+        return data;
+    }
+}
+
+export interface ICreateInvitationRequest {
+    email?: string;
+    inviteUrlBase?: string;
+    role?: UserRole;
+    bankId?: string | undefined;
+}
+
 export class CustomerImportResult implements ICustomerImportResult {
     totalRows?: number;
     successCount?: number;
@@ -4261,6 +4639,114 @@ export class GenerateOffersResult implements IGenerateOffersResult {
 
 export interface IGenerateOffersResult {
     offersCreated?: number;
+}
+
+export class InvitationPreview implements IInvitationPreview {
+    email?: string;
+    role?: UserRole;
+
+    constructor(data?: IInvitationPreview) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.email = _data["email"];
+            this.role = _data["role"];
+        }
+    }
+
+    static fromJS(data: any): InvitationPreview {
+        data = typeof data === 'object' ? data : {};
+        let result = new InvitationPreview();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["email"] = this.email;
+        data["role"] = this.role;
+        return data;
+    }
+}
+
+export interface IInvitationPreview {
+    email?: string;
+    role?: UserRole;
+}
+
+export class InvitationSummary implements IInvitationSummary {
+    id?: string;
+    email?: string;
+    role?: UserRole;
+    bankId?: string | undefined;
+    expiresAtUtc?: Date;
+    acceptedAtUtc?: Date | undefined;
+    revokedAtUtc?: Date | undefined;
+    createdAtUtc?: Date;
+    invitedByUserId?: string;
+
+    constructor(data?: IInvitationSummary) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.email = _data["email"];
+            this.role = _data["role"];
+            this.bankId = _data["bankId"];
+            this.expiresAtUtc = _data["expiresAtUtc"] ? new Date(_data["expiresAtUtc"].toString()) : undefined as any;
+            this.acceptedAtUtc = _data["acceptedAtUtc"] ? new Date(_data["acceptedAtUtc"].toString()) : undefined as any;
+            this.revokedAtUtc = _data["revokedAtUtc"] ? new Date(_data["revokedAtUtc"].toString()) : undefined as any;
+            this.createdAtUtc = _data["createdAtUtc"] ? new Date(_data["createdAtUtc"].toString()) : undefined as any;
+            this.invitedByUserId = _data["invitedByUserId"];
+        }
+    }
+
+    static fromJS(data: any): InvitationSummary {
+        data = typeof data === 'object' ? data : {};
+        let result = new InvitationSummary();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["email"] = this.email;
+        data["role"] = this.role;
+        data["bankId"] = this.bankId;
+        data["expiresAtUtc"] = this.expiresAtUtc ? this.expiresAtUtc.toISOString() : undefined as any;
+        data["acceptedAtUtc"] = this.acceptedAtUtc ? this.acceptedAtUtc.toISOString() : undefined as any;
+        data["revokedAtUtc"] = this.revokedAtUtc ? this.revokedAtUtc.toISOString() : undefined as any;
+        data["createdAtUtc"] = this.createdAtUtc ? this.createdAtUtc.toISOString() : undefined as any;
+        data["invitedByUserId"] = this.invitedByUserId;
+        return data;
+    }
+}
+
+export interface IInvitationSummary {
+    id?: string;
+    email?: string;
+    role?: UserRole;
+    bankId?: string | undefined;
+    expiresAtUtc?: Date;
+    acceptedAtUtc?: Date | undefined;
+    revokedAtUtc?: Date | undefined;
+    createdAtUtc?: Date;
+    invitedByUserId?: string;
 }
 
 export class LoginRequest implements ILoginRequest {

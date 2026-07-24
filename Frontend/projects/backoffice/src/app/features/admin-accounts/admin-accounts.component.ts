@@ -9,6 +9,7 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { SelectModule } from 'primeng/select';
+import { TabViewModule } from 'primeng/tabview';
 import { TagModule } from 'primeng/tag';
 import { MessageModule } from 'primeng/message';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -19,6 +20,8 @@ import {
   BankSummary,
   Client,
   CreateAdminRequest,
+  CreateInvitationRequest,
+  InvitationSummary,
   USER_ROLE_OPTIONS,
   UserRole,
   describeApiError,
@@ -27,7 +30,7 @@ import {
 
 @Component({
     selector: 'app-admin-accounts',
-    imports: [DatePipe, FormsModule, TableModule, ButtonModule, DialogModule, InputTextModule, PasswordModule, SelectModule, TagModule, MessageModule],
+    imports: [DatePipe, FormsModule, TableModule, ButtonModule, DialogModule, InputTextModule, PasswordModule, SelectModule, TabViewModule, TagModule, MessageModule],
     templateUrl: './admin-accounts.component.html'
 })
 export class AdminAccountsComponent implements OnInit {
@@ -52,11 +55,22 @@ export class AdminAccountsComponent implements OnInit {
   protected createSubmitted = false;
   protected newAdmin = this.emptyNewAdmin();
 
+  // --- Davetler (accept-invitation akışı) ---
+  protected invitations = signal<InvitationSummary[]>([]);
+  protected invitationsLoading = signal(false);
+  protected invitationBusyId = signal<string | null>(null);
+  protected inviteDialogVisible = signal(false);
+  protected inviteBusy = signal(false);
+  protected inviteError = signal<string | null>(null);
+  protected inviteSubmitted = false;
+  protected newInvitation = this.emptyNewInvitation();
+
   async ngOnInit(): Promise<void> {
     await this.loadAdmins();
-    // Banka listesi sadece SuperAdmin'in "Yeni Yönetici" dialogunda BankAdmin için
-    // banka seçebilmesi amacıyla yükleniyor — BankAdmin zaten kendi bankasına
-    // sabitlendiği için (backend bunu zorluyor) bu isteğe hiç ihtiyaç duymaz.
+    await this.loadInvitations();
+    // Banka listesi sadece SuperAdmin'in "Yeni Yönetici"/"Yeni Davet" dialoglarında
+    // BankAdmin için banka seçebilmesi amacıyla yükleniyor — BankAdmin zaten kendi
+    // bankasına sabitlendiği için (backend bunu zorluyor) bu isteğe hiç ihtiyaç duymaz.
     if (this.authService.isSuperAdmin()) {
       await this.loadBanks();
     }
@@ -153,6 +167,91 @@ export class AdminAccountsComponent implements OnInit {
       this.messageService.add({ severity: 'error', summary: 'İşlem başarısız', detail: describeApiError(err) });
     } finally {
       this.busyId.set(null);
+    }
+  }
+
+  // --- Davetler ---
+
+  async loadInvitations(): Promise<void> {
+    this.invitationsLoading.set(true);
+    try {
+      this.invitations.set(await firstValueFrom(this.client.adminInvitationsAll()));
+    } catch (err) {
+      this.messageService.add({ severity: 'error', summary: 'Davetler yüklenemedi', detail: describeApiError(err) });
+    } finally {
+      this.invitationsLoading.set(false);
+    }
+  }
+
+  private emptyNewInvitation() {
+    return { email: '', role: UserRole.BankAdmin as UserRole | null, bankId: null as string | null };
+  }
+
+  openInviteDialog(): void {
+    this.newInvitation = this.emptyNewInvitation();
+    this.inviteError.set(null);
+    this.inviteSubmitted = false;
+    this.inviteDialogVisible.set(true);
+  }
+
+  async createInvitation(): Promise<void> {
+    this.inviteError.set(null);
+    this.inviteSubmitted = true;
+    const needsBank = this.authService.isSuperAdmin() && this.newInvitation.role === UserRole.BankAdmin;
+    if (!this.newInvitation.email || (needsBank && !this.newInvitation.bankId)) return;
+
+    this.inviteBusy.set(true);
+    try {
+      await firstValueFrom(
+        this.client.adminInvitations(new CreateInvitationRequest({
+          email: this.newInvitation.email,
+          inviteUrlBase: window.location.origin,
+          role: this.newInvitation.role ?? undefined,
+          bankId: needsBank ? this.newInvitation.bankId! : undefined
+        }))
+      );
+      this.inviteDialogVisible.set(false);
+      this.messageService.add({ severity: 'success', summary: 'Davet gönderildi', detail: this.newInvitation.email });
+      await this.loadInvitations();
+    } catch (err) {
+      this.inviteError.set(describeApiError(err));
+    } finally {
+      this.inviteBusy.set(false);
+    }
+  }
+
+  confirmRevokeInvitation(invitation: InvitationSummary): void {
+    this.confirmationService.confirm({
+      header: 'Daveti iptal et',
+      message: `"${invitation.email}" adresine gönderilen daveti iptal etmek istediğinize emin misiniz?`,
+      icon: 'pi pi-ban',
+      acceptLabel: 'İptal Et',
+      rejectLabel: 'Vazgeç',
+      accept: () => this.revokeInvitation(invitation)
+    });
+  }
+
+  invitationStatus(invitation: InvitationSummary): { label: string; severity: 'success' | 'danger' | 'warn' | 'info' } {
+    if (invitation.acceptedAtUtc) return { label: 'Kabul Edildi', severity: 'success' };
+    if (invitation.revokedAtUtc) return { label: 'İptal Edildi', severity: 'danger' };
+    if (invitation.expiresAtUtc && new Date(invitation.expiresAtUtc) <= new Date()) return { label: 'Süresi Doldu', severity: 'warn' };
+    return { label: 'Bekliyor', severity: 'info' };
+  }
+
+  isPendingInvitation(invitation: InvitationSummary): boolean {
+    return this.invitationStatus(invitation).label === 'Bekliyor';
+  }
+
+  private async revokeInvitation(invitation: InvitationSummary): Promise<void> {
+    this.invitationBusyId.set(invitation.id ?? null);
+    try {
+      await firstValueFrom(this.client.cancel(invitation.id!));
+      this.messageService.add({ severity: 'success', summary: 'Davet iptal edildi', detail: invitation.email });
+      await this.loadInvitations();
+    } catch (err) {
+      this.messageService.add({ severity: 'error', summary: 'İşlem başarısız', detail: describeApiError(err) });
+    } finally {
+      this.invitationBusyId.set(null);
     }
   }
 }

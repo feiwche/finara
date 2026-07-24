@@ -1,0 +1,37 @@
+<div class="login-page">
+  <p-card header="Finara — Daveti Kabul Et" styleClass="login-card">
+    @if (previewLoading()) {
+      <p>Davet doğrulanıyor…</p>
+    } @else if (!hasToken) {
+      <p-message severity="error" [text]="previewError() ?? 'Geçersiz veya süresi dolmuş davet bağlantısı.'" />
+    } @else if (submitted()) {
+      <p-message severity="success" text="Hesabınız oluşturuldu. Girişe yönlendiriliyorsunuz…" />
+    } @else {
+      <p class="muted-text">
+        <strong>{{ previewEmail() }}</strong> e-postası için {{ roleLabel(previewRole() ?? '') }} olarak davet edildiniz.
+        Devam etmek için bir şifre belirleyin.
+      </p>
+      <div class="field">
+        <label for="newPassword">Şifre *</label>
+        <p-password id="newPassword" [(ngModel)]="newPassword" [feedback]="true" [toggleMask]="true" (keyup.enter)="submit()" />
+        @if (formSubmitted && !newPassword) {
+          <small class="field-error">Şifre zorunlu (en az 8 karakter, harf ve rakam içermeli).</small>
+        }
+      </div>
+      <div class="field">
+        <label for="confirmPassword">Şifre (Tekrar) *</label>
+        <p-password id="confirmPassword" [(ngModel)]="confirmPassword" [feedback]="false" [toggleMask]="true" (keyup.enter)="submit()" />
+        @if (formSubmitted && newPassword !== confirmPassword) {
+          <small class="field-error">Şifreler eşleşmiyor.</small>
+        }
+      </div>
+      @if (error()) {
+        <p-message severity="error" [text]="error()!" />
+      }
+      <p-button label="Hesabı Oluştur" [loading]="busy()" (onClick)="submit()" />
+    }
+    <div class="auth-back-link">
+      <a routerLink="/login">Girişe dön</a>
+    </div>
+  </p-card>
+</div>

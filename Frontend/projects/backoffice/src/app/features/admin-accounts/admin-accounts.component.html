@@ -1,5 +1,9 @@
+<h1>Yönetici Hesapları</h1>
+
+<p-tabView>
+<p-tabPanel header="Yöneticiler">
 <div class="toolbar">
-  <h1>Yönetici Hesapları</h1>
+  <span></span>
   <div class="toolbar-actions">
     <p-button label="Yeni Yönetici" icon="pi pi-user-plus" (onClick)="openCreateDialog()" />
   </div>
@@ -77,6 +81,65 @@
     </tr>
   </ng-template>
 </p-table>
+</p-tabPanel>
+
+<p-tabPanel header="Davetler">
+<div class="toolbar">
+  <span class="muted-text">Yeni bir yönetici hesabı için e-posta davetiyesi gönderin — kişi kendi şifresini kendi belirler.</span>
+  <div class="toolbar-actions">
+    <p-button label="Yeni Davet" icon="pi pi-send" (onClick)="openInviteDialog()" />
+  </div>
+</div>
+
+<p-table [value]="invitations()" [loading]="invitationsLoading()" [rows]="20" [paginator]="invitations().length > 20" styleClass="p-datatable-sm">
+  <ng-template pTemplate="header">
+    <tr>
+      <th>E-posta</th>
+      <th>Rol</th>
+      @if (authService.isSuperAdmin()) {
+        <th>Banka</th>
+      }
+      <th>Durum</th>
+      <th>Son Geçerlilik</th>
+      <th>İşlemler</th>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="body" let-invitation>
+    <tr>
+      <td>{{ invitation.email }}</td>
+      <td>{{ roleLabel(invitation.role ?? '') }}</td>
+      @if (authService.isSuperAdmin()) {
+        <td>{{ bankName(invitation.bankId) }}</td>
+      }
+      <td>
+        <p-tag [value]="invitationStatus(invitation).label" [severity]="invitationStatus(invitation).severity" />
+      </td>
+      <td>{{ invitation.expiresAtUtc | date: 'yyyy-MM-dd HH:mm' }}</td>
+      <td>
+        @if (isPendingInvitation(invitation)) {
+          <p-button
+            label="İptal Et"
+            icon="pi pi-ban"
+            size="small"
+            severity="danger"
+            [outlined]="true"
+            [loading]="invitationBusyId() === invitation.id"
+            (onClick)="confirmRevokeInvitation(invitation)"
+          />
+        } @else {
+          <span class="muted-text">—</span>
+        }
+      </td>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="emptymessage">
+    <tr>
+      <td [attr.colspan]="authService.isSuperAdmin() ? 6 : 5">Henüz gönderilmiş bir davet yok.</td>
+    </tr>
+  </ng-template>
+</p-table>
+</p-tabPanel>
+</p-tabView>
 
 <p-dialog header="Yeni Yönetici Hesabı" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '420px' }">
   <div class="field">
@@ -121,4 +184,42 @@
     <p-message severity="error" [text]="createError()!" />
   }
   <p-button label="Oluştur" [loading]="createBusy()" (onClick)="createAdmin()" />
+</p-dialog>
+
+<p-dialog header="Yeni Davet" [(visible)]="inviteDialogVisible" [modal]="true" [style]="{ width: '420px' }">
+  <div class="field">
+    <label>E-posta *</label>
+    <input type="text" pInputText [(ngModel)]="newInvitation.email" [class.field-invalid]="inviteSubmitted && !newInvitation.email" />
+    @if (inviteSubmitted && !newInvitation.email) {
+      <small class="field-error">E-posta zorunlu.</small>
+    }
+  </div>
+  @if (authService.isSuperAdmin()) {
+    <div class="field">
+      <label>Rol</label>
+      <p-select [options]="roleOptions" optionLabel="label" optionValue="value" [(ngModel)]="newInvitation.role" />
+    </div>
+    @if (newInvitation.role === UserRole.BankAdmin) {
+      <div class="field">
+        <label>Banka *</label>
+        <p-select
+          [options]="banks()"
+          optionLabel="name"
+          optionValue="id"
+          [(ngModel)]="newInvitation.bankId"
+          placeholder="Banka seçin"
+          [class.field-invalid]="inviteSubmitted && !newInvitation.bankId"
+        />
+        @if (inviteSubmitted && !newInvitation.bankId) {
+          <small class="field-error">BankAdmin daveti için banka seçimi zorunlu.</small>
+        }
+      </div>
+    }
+  } @else {
+    <p class="muted-text">Davet, sizin bankanız için Banka Yöneticisi rolüyle gönderilecek.</p>
+  }
+  @if (inviteError()) {
+    <p-message severity="error" [text]="inviteError()!" />
+  }
+  <p-button label="Davet Gönder" icon="pi pi-send" [loading]="inviteBusy()" (onClick)="createInvitation()" />
 </p-dialog>

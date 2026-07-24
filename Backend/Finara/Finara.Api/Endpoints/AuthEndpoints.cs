@@ -48,5 +48,27 @@ public static class AuthEndpoints
             return Results.NoContent();
         })
         .Produces(StatusCodes.Status204NoContent);
+
+        // Path parametresi DEĞİL — davet token'ı base64 (RandomNumberGenerator çıktısı)
+        // olduğu için "/" içerebiliyor, bu da ASP.NET Core'un route eşleştirmesini
+        // (path segment'i böldüğü için) bozuyordu (canlı testte bulundu, 404). Query
+        // string'te bu sorun yok çünkü değer path segmentasyonuna tabi değil.
+        auth.MapGet("/invitations", async (string token, IAuthService service, CancellationToken ct) =>
+        {
+            var preview = await service.GetInvitationPreviewAsync(token, ct);
+            return preview is null
+                ? Results.Problem(statusCode: StatusCodes.Status404NotFound, title: "Davet bulunamadı",
+                    detail: "Geçersiz veya süresi dolmuş davet bağlantısı.")
+                : Results.Ok(preview);
+        })
+        .Produces<InvitationPreview>()
+        .ProducesProblem(StatusCodes.Status404NotFound);
+
+        auth.MapPost("/accept-invitation", async (AcceptInvitationRequest request, IAuthService service, CancellationToken ct) =>
+        {
+            await service.AcceptInvitationAsync(request, ct);
+            return Results.NoContent();
+        })
+        .Produces(StatusCodes.Status204NoContent);
     }
 }

@@ -56,7 +56,10 @@ const AUDIT_ACTION_TYPE_LABELS: Record<string, string> = {
   AdminCreated: 'Yönetici Oluşturuldu',
   AdminDeactivated: 'Yönetici Pasifleştirildi',
   CustomerBulkImported: 'Müşteri Toplu İçe Aktarıldı',
-  CustomerErased: 'Müşteri Verisi Anonimleştirildi (KVKK)'
+  CustomerErased: 'Müşteri Verisi Anonimleştirildi (KVKK)',
+  AdminInvited: 'Yönetici Daveti Gönderildi',
+  AdminInvitationAccepted: 'Yönetici Daveti Kabul Edildi',
+  AdminInvitationRevoked: 'Yönetici Daveti İptal Edildi'
 };
 
 const CONSENT_CHANNEL_LABELS: Record<string, string> = {

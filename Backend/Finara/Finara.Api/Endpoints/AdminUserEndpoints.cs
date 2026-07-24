@@ -41,5 +41,35 @@ public static class AdminUserEndpoints
         })
         .Produces<AdminUserSummary>()
         .ProducesProblem(StatusCodes.Status404NotFound);
+
+        var invitations = app.MapGroup("/api/admin-invitations").WithTags("AdminInvitations")
+            .RequireRateLimiting(RateLimitPolicies.Global)
+            .RequireAuthorization();
+
+        invitations.MapGet("/", async (IAdminUserService service, CancellationToken ct) =>
+            Results.Ok(await service.GetInvitationsAsync(ct)))
+            .Produces<IReadOnlyList<InvitationSummary>>();
+
+        invitations.MapPost("/", async (CreateInvitationRequest request, IAdminUserService service, CancellationToken ct) =>
+        {
+            var summary = await service.CreateInvitationAsync(request, ct);
+            return Results.Created($"/api/admin-invitations/{summary.Id}", summary);
+        })
+        .Produces<InvitationSummary>(StatusCodes.Status201Created);
+
+        // "cancel" bilinçli seçildi ("revoke" değil) — NSwag'ın ürettiği TS metod adı
+        // /api/auth/revoke ile çakışıp (aynı son segment) birinin sessizce "revoke2"
+        // olarak üretilmesine yol açıyordu, bu da frontend'de yanlış metodun çağrılmasına
+        // (tip hatasıyla derleme zamanında yakalandı) neden oluyordu.
+        invitations.MapPost("/{invitationId:guid}/cancel", async (Guid invitationId, IAdminUserService service, CancellationToken ct) =>
+        {
+            var summary = await service.RevokeInvitationAsync(invitationId, ct);
+            return summary is null
+                ? Results.Problem(statusCode: StatusCodes.Status404NotFound, title: "Davet bulunamadı",
+                    detail: $"'{invitationId}' kimlikli davet bulunamadı.")
+                : Results.Ok(summary);
+        })
+        .Produces<InvitationSummary>()
+        .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }

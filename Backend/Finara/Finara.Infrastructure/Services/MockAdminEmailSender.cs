@@ -13,4 +13,10 @@ public class MockAdminEmailSender(ILogger<MockAdminEmailSender> logger) : IAdmin
         logger.LogInformation("[Mock] Şifre sıfırlama e-postası — Alıcı: {Email}, Bağlantı: {ResetUrl}", toEmail, resetUrl);
         return Task.CompletedTask;
     }
+
+    public Task SendInvitationEmailAsync(string toEmail, string acceptUrl, CancellationToken cancellationToken = default)
+    {
+        logger.LogInformation("[Mock] Davet e-postası — Alıcı: {Email}, Bağlantı: {AcceptUrl}", toEmail, acceptUrl);
+        return Task.CompletedTask;
+    }
 }

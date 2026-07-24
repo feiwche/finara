@@ -7,4 +7,6 @@ namespace Finara.Application.Interfaces;
 public interface IAdminEmailSender
 {
     Task SendPasswordResetEmailAsync(string toEmail, string resetUrl, CancellationToken cancellationToken = default);
+
+    Task SendInvitationEmailAsync(string toEmail, string acceptUrl, CancellationToken cancellationToken = default);
 }

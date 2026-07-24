@@ -5,7 +5,9 @@ using System.Text;
 using Finara.Application.Contracts;
 using Finara.Application.Interfaces;
 using Finara.Application.Security;
+using Finara.Domain.Common;
 using Finara.Domain.Entities;
+using Finara.Domain.Enums;
 using Finara.Infrastructure.Persistence;
 using Finara.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +21,7 @@ public class AuthService(
     FinaraDbContext dbContext,
     IConfiguration configuration,
     IAdminEmailSender emailSender,
+    IAuditLogRepository auditLogRepository,
     ILogger<AuthService> logger)
     : IAuthService
 {
@@ -34,12 +37,20 @@ public class AuthService(
 
     public async Task RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
     {
-        PasswordPolicy.Validate(request.Password);
+        // Bootstrap-only: bu uç yalnızca Users tablosu tamamen boşken (ilk kurulum)
+        // çalışır — tek satır bile eklendiği an kalıcı olarak kilitlenir. Önceden bu
+        // kontrol yoktu ve auth'suz herkes User.Create'in varsayılan rolü (SuperAdmin)
+        // sayesinde tam yetkili bir hesap açabiliyordu. İlk hesaptan sonra yeni admin
+        // hesapları yalnızca davet akışıyla (UserInvitation/AcceptInvitationAsync)
+        // oluşturulabilir. (İki ayrı isteğin bu boş pencerede yarışması teorik olarak
+        // mümkün ama tek seferlik, ops tarafından kontrollü bir kurulum adımı olduğu
+        // için — bir ağ saldırganının erişebileceği bir yüzey değil — kabul edilen bir
+        // risk; e-posta benzersizlik kısıtı en azından aynı e-postayla çakışmayı önler.)
+        var anyUserExists = await dbContext.Users.AnyAsync(cancellationToken);
+        if (anyUserExists)
+            throw new InvalidOperationException("Kayıt kapalı — yeni hesaplar yalnızca davetle oluşturulabilir.");
 
-        var normalizedEmail = request.Email.Trim().ToLowerInvariant();
-        var exists = await dbContext.Users.AnyAsync(u => u.Email == normalizedEmail, cancellationToken);
-        if (exists)
-            throw new InvalidOperationException($"'{request.Email}' e-posta adresiyle kayıtlı bir kullanıcı zaten var.");
+        PasswordPolicy.Validate(request.Password);
 
         var user = User.Create(request.Email, PasswordHasher.Hash(request.Password));
         dbContext.Users.Add(user);
@@ -164,6 +175,54 @@ public class AuthService(
             refreshToken.Revoke();
 
         await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<InvitationPreview?> GetInvitationPreviewAsync(string token, CancellationToken cancellationToken = default)
+    {
+        var tokenHash = RefreshTokenHasher.Hash(token);
+        var invitation = await dbContext.UserInvitations.AsNoTracking()
+            .FirstOrDefaultAsync(i => i.TokenHash == tokenHash, cancellationToken);
+
+        if (invitation is null || !invitation.IsPending)
+            return null;
+
+        return new InvitationPreview(invitation.Email, invitation.Role);
+    }
+
+    public async Task AcceptInvitationAsync(AcceptInvitationRequest request, CancellationToken cancellationToken = default)
+    {
+        PasswordPolicy.Validate(request.NewPassword);
+
+        var tokenHash = RefreshTokenHasher.Hash(request.Token);
+        var now = DateTime.UtcNow;
+
+        // ResetPasswordAsync'teki TOCTOU önleyici desenin birebir aynısı — "hâlâ bekliyor
+        // mu" kontrolü ile "kabul edildi" işaretlemesi tek bir atomik UPDATE'te birleşiyor.
+        var rowsAffected = await dbContext.Database.ExecuteSqlInterpolatedAsync(
+            $"UPDATE UserInvitations SET AcceptedAtUtc = {now} WHERE TokenHash = {tokenHash} AND AcceptedAtUtc IS NULL AND RevokedAtUtc IS NULL AND ExpiresAtUtc > {now}",
+            cancellationToken);
+        if (rowsAffected == 0)
+            throw new UnauthorizedAccessException("Geçersiz veya süresi dolmuş davet bağlantısı.");
+
+        var invitation = await dbContext.UserInvitations.AsNoTracking().FirstAsync(i => i.TokenHash == tokenHash, cancellationToken);
+
+        // Aynı e-postaya eşzamanlı iki davet gönderilmiş olma ihtimaline karşı ikinci
+        // savunma hattı (birincisi CreateInvitationAsync'teki oluşturma-zamanı kontrolü).
+        var userExists = await dbContext.Users.AnyAsync(u => u.Email == invitation.Email, cancellationToken);
+        if (userExists)
+            throw new InvalidOperationException($"'{invitation.Email}' e-posta adresiyle kayıtlı bir kullanıcı zaten var.");
+
+        var user = User.Create(invitation.Email, PasswordHasher.Hash(request.NewPassword), invitation.Role, invitation.BankId);
+        dbContext.Users.Add(user);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        // PerformedByUserId=null — bu, kimliği doğrulanmış bir yönetici değil, daveti
+        // kabul eden kişinin kendi işlemi (bkz. AuditLog.CustomerId ile aynı "kimse
+        // yoksa null" deseni).
+        await auditLogRepository.InsertAsync(
+            AuditLog.Create(invitation.BankId ?? DefaultBank.Id, null, AuditActionType.AdminInvitationAccepted,
+                $"{user.Email} ({(invitation.Role == UserRole.SuperAdmin ? "SuperAdmin" : "BankAdmin")})", null),
+            cancellationToken);
     }
 
     private async Task<AuthResult> IssueTokensAsync(User user, CancellationToken cancellationToken)

@@ -1,3 +1,5 @@
+using Finara.Domain.Enums;
+
 namespace Finara.Application.Contracts;
 
 public record RegisterRequest(string Email, string Password);
@@ -19,3 +21,10 @@ public record ForgotPasswordRequest(string Email, string ResetUrlBase);
 public record ResetPasswordRequest(string Token, string NewPassword);
 
 public record ForgotPasswordResult(string Message);
+
+// Davet kabul sayfası, şifre alanını göstermeden önce kime davet gönderildiğini
+// gösterebilsin diye (bkz. AuthService.GetInvitationPreviewAsync) — Role dahil,
+// UI "BankAdmin/SuperAdmin olarak davet edildiniz" gibi bir bilgi gösterebilir.
+public record InvitationPreview(string Email, UserRole Role);
+
+public record AcceptInvitationRequest(string Token, string NewPassword);

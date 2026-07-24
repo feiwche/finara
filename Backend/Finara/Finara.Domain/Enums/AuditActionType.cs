@@ -22,5 +22,9 @@ public enum AuditActionType
     AdminCreated,
     AdminDeactivated,
     CustomerBulkImported,
-    CustomerErased
+    CustomerErased,
+    // Davetle-kayıt akışı (register'ın auth'suz halinin kapatılmasıyla eklendi).
+    AdminInvited,
+    AdminInvitationAccepted,
+    AdminInvitationRevoked
 }

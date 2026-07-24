@@ -26,4 +26,20 @@ public class SmtpAdminEmailSender(IOptions<SmtpOptions> options) : IAdminEmailSe
 
         await client.SendMailAsync(mail, cancellationToken);
     }
+
+    public async Task SendInvitationEmailAsync(string toEmail, string acceptUrl, CancellationToken cancellationToken = default)
+    {
+        using var client = new SmtpClient(_options.Host, _options.Port)
+        {
+            Credentials = new NetworkCredential(_options.Username, _options.Password),
+            EnableSsl = _options.EnableSsl
+        };
+        using var mail = new MailMessage(
+            _options.FromAddress,
+            toEmail,
+            "Finara — Hesap Daveti",
+            $"Finara'ya davet edildiniz. Hesabınızı oluşturmak için bağlantıya tıklayın (24 saat geçerlidir):\n\n{acceptUrl}\n\nBu daveti siz talep etmediyseniz bu e-postayı yok sayabilirsiniz.");
+
+        await client.SendMailAsync(mail, cancellationToken);
+    }
 }
