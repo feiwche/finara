@@ -71,4 +71,28 @@ public class SegmentTests
 
         segment.IsActive.Should().BeFalse();
     }
+
+    [Fact]
+    public void SetAiCommentary_GecerliMetinle_Kaydeder()
+    {
+        var segment = Domain.Entities.Segment.Create(
+            ValidBankId, ValidCustomerId, 3, 3, 3, SpendingPropensity.Neutral);
+
+        segment.SetAiCommentary("  Bu müşteri düzenli ve tutarlı harcama yapıyor.  ");
+
+        segment.AiCommentary.Should().Be("Bu müşteri düzenli ve tutarlı harcama yapıyor.");
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void SetAiCommentary_BosMetinle_ArgumentExceptionFirlatir(string commentary)
+    {
+        var segment = Domain.Entities.Segment.Create(
+            ValidBankId, ValidCustomerId, 3, 3, 3, SpendingPropensity.Neutral);
+
+        var act = () => segment.SetAiCommentary(commentary);
+
+        act.Should().Throw<ArgumentException>().WithParameterName("commentary");
+    }
 }

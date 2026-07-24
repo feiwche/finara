@@ -27,6 +27,12 @@ public class Segment : BaseEntity
     // Bir müşterinin sadece EN GÜNCEL segment kaydı "aktif" sayılır, diğerleri geçmiş/arşiv.
     public bool IsActive { get; private set; }
 
+    // RFM birincil/tek karar mekanizması olarak KALIYOR — bu sadece talep üzerine (kullanıcı
+    // butona basınca) üretilen, insan-okunur bir yorum katmanı. null ise hiç üretilmemiş
+    // demektir (segment yeniden hesaplanınca yeni bir Segment satırı oluştuğu için otomatik
+    // olarak "sıfırlanmış" olur, ayrı bir invalidation mantığı gerekmiyor).
+    public string? AiCommentary { get; private set; }
+
     private Segment() { }
 
     public static Segment Create(
@@ -67,6 +73,15 @@ public class Segment : BaseEntity
     public void Deactivate()
     {
         IsActive = false;
+        MarkUpdated();
+    }
+
+    public void SetAiCommentary(string commentary)
+    {
+        if (string.IsNullOrWhiteSpace(commentary))
+            throw new ArgumentException("AI yorumu boş olamaz.", nameof(commentary));
+
+        AiCommentary = commentary.Trim();
         MarkUpdated();
     }
 

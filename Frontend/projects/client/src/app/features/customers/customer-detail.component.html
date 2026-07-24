@@ -59,6 +59,33 @@
         <div><strong>Toplam skor:</strong> {{ s.totalScore }} / 15</div>
         <div><strong>Baskın kategori:</strong> {{ s.dominantCategory ? transactionCategoryLabel(s.dominantCategory) : 'Belirsiz' }}</div>
         <div><strong>Hesaplanma tarihi:</strong> {{ s.calculatedAtUtc | date: 'yyyy-MM-dd HH:mm' }}</div>
+
+        <div class="ai-commentary">
+          @if (s.aiCommentary) {
+            <div class="ai-commentary-label"><i class="pi pi-sparkles"></i> AI Yorumu</div>
+            <p class="ai-commentary-text">{{ s.aiCommentary }}</p>
+            <p-button
+              label="Yeniden Oluştur"
+              icon="pi pi-refresh"
+              size="small"
+              severity="secondary"
+              [outlined]="true"
+              [loading]="aiCommentaryBusy()"
+              (onClick)="generateSegmentAiCommentary()"
+            />
+          } @else {
+            <p-button
+              label="AI Yorumu Al"
+              icon="pi pi-sparkles"
+              size="small"
+              severity="secondary"
+              [outlined]="true"
+              [loading]="aiCommentaryBusy()"
+              (onClick)="generateSegmentAiCommentary()"
+            />
+          }
+          <p class="ai-hint">AI yorumu RFM'in yerine geçmez, sadece kısa bir ek açıklamadır — nihai karar her zaman RFM kuralına aittir.</p>
+        </div>
       </p-card>
     } @else if (segmentMessage()) {
       <p-message severity="info" [text]="segmentMessage()!" />

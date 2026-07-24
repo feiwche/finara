@@ -11,6 +11,8 @@ public class SegmentConfiguration : IEntityTypeConfiguration<Segment>
         builder.ToTable("Segments");
         builder.HasKey(s => s.Id);
 
+        builder.Property(s => s.AiCommentary).HasMaxLength(2000);
+
         builder.HasOne(s => s.Customer)
             .WithMany()
             .HasForeignKey(s => s.CustomerId)

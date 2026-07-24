@@ -12,4 +12,9 @@ public interface ISegmentationService
     // göre artan sırada döner — segment geçmişi grafiği için. Müşteri yoksa/başka bankadaysa null
     // (404), müşteri var ama hiç segment hesaplanmamışsa boş liste (200) döner.
     Task<IReadOnlyList<SegmentSummary>?> GetSegmentHistoryAsync(Guid customerId, CancellationToken cancellationToken = default);
+
+    // RFM birincil karar mekanizması olarak kalır — bu sadece talep üzerine üretilen, kısa
+    // bir insan-okunur yorum katmanı (bkz. Segment.AiCommentary XML yorumu). Müşteri yoksa/
+    // başka bankadaysa veya hiç aktif segmenti yoksa null (404).
+    Task<SegmentSummary?> GenerateAiCommentaryAsync(Guid customerId, CancellationToken cancellationToken = default);
 }

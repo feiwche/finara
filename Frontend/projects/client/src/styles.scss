@@ -524,6 +524,33 @@ h1, h2, h3 {
   font-size: 0.85rem;
 }
 
+// Segment (RFM) kartındaki talep-üzerine AI yorumu bloğu — RFM kartının geri kalanından
+// (düz metin satırları) hafifçe ayrışsın diye ince bir üst kenarlık + amber vurgulu etiket.
+.ai-commentary {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--p-surface-300, #C2CCC7);
+
+  .ai-hint {
+    margin: 8px 0 0;
+  }
+}
+
+.ai-commentary-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--p-amber-600, #955D22);
+  margin-bottom: 4px;
+}
+
+.ai-commentary-text {
+  margin: 0 0 10px;
+  line-height: 1.55;
+}
+
 .segment-history-chart {
   height: 220px;
 }

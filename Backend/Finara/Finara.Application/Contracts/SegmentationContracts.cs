@@ -10,6 +10,7 @@ public record SegmentSummary(
     int TotalScore,
     SpendingPropensity Propensity,
     TransactionCategory? DominantCategory,
-    DateTime CalculatedAtUtc);
+    DateTime CalculatedAtUtc,
+    string? AiCommentary);
 
 public record RecalculateSegmentsResult(int CustomersProcessed, int CustomersSkipped);

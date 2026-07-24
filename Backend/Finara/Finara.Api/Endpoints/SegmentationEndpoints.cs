@@ -43,6 +43,20 @@ public static class SegmentationEndpoints
         .Produces<IReadOnlyList<SegmentSummary>>()
         .ProducesProblem(StatusCodes.Status404NotFound);
 
+        app.MapPost("/api/customers/{customerId:guid}/segment/ai-commentary", async (Guid customerId, ISegmentationService service, CancellationToken ct) =>
+        {
+            var segment = await service.GenerateAiCommentaryAsync(customerId, ct);
+            return segment is null
+                ? Results.Problem(statusCode: StatusCodes.Status404NotFound, title: "Segment bulunamadı",
+                    detail: $"'{customerId}' kimlikli müşterinin aktif bir segmenti yok.")
+                : Results.Ok(segment);
+        })
+        .WithTags("Segmentation")
+        .RequireRateLimiting(RateLimitPolicies.Global)
+        .RequireAuthorization()
+        .Produces<SegmentSummary>()
+        .ProducesProblem(StatusCodes.Status404NotFound);
+
         var offers = app.MapGroup("/api/customers/{customerId:guid}/offers").WithTags("Offers")
             .RequireRateLimiting(RateLimitPolicies.Global)
             .RequireAuthorization();

@@ -5,10 +5,16 @@ using Finara.Domain.Enums;
 using Finara.Domain.Services;
 using Finara.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.AI;
 
 namespace Finara.Infrastructure.Services;
 
-public class SegmentationService(FinaraDbContext dbContext, IAuditLogRepository auditLogRepository, ICurrentUserContext currentUser) : ISegmentationService
+public class SegmentationService(
+    FinaraDbContext dbContext,
+    IAuditLogRepository auditLogRepository,
+    ICurrentUserContext currentUser,
+    IChatClient chatClient)
+    : ISegmentationService
 {
     // RFM ve baskın kategori hesaplaması bu pencereyle sınırlı — çok eski işlemler
     // güncel davranışı yansıtmadığı için segmentasyona dahil edilmiyor.
@@ -146,9 +152,7 @@ public class SegmentationService(FinaraDbContext dbContext, IAuditLogRepository 
 
         return segment is null || (!currentUser.IsSuperAdmin && segment.BankId != currentUser.BankId)
             ? null
-            : new SegmentSummary(
-                segment.CustomerId, segment.RecencyScore, segment.FrequencyScore, segment.MonetaryScore,
-                segment.GetTotalScore(), segment.Propensity, segment.DominantCategory, segment.CalculatedAtUtc);
+            : ToSummary(segment);
     }
 
     public async Task<IReadOnlyList<SegmentSummary>?> GetSegmentHistoryAsync(Guid customerId, CancellationToken cancellationToken = default)
@@ -163,10 +167,43 @@ public class SegmentationService(FinaraDbContext dbContext, IAuditLogRepository 
             .OrderBy(s => s.CalculatedAtUtc)
             .ToListAsync(cancellationToken);
 
-        return history
-            .Select(s => new SegmentSummary(
-                s.CustomerId, s.RecencyScore, s.FrequencyScore, s.MonetaryScore,
-                s.GetTotalScore(), s.Propensity, s.DominantCategory, s.CalculatedAtUtc))
-            .ToList();
+        return history.Select(ToSummary).ToList();
     }
+
+    public async Task<SegmentSummary?> GenerateAiCommentaryAsync(Guid customerId, CancellationToken cancellationToken = default)
+    {
+        var segment = await dbContext.Segments.FirstOrDefaultAsync(s => s.CustomerId == customerId && s.IsActive, cancellationToken);
+        if (segment is null || (!currentUser.IsSuperAdmin && segment.BankId != currentUser.BankId))
+            return null;
+
+        // Tool-calling gerekmiyor — ihtiyaç duyulan tüm veri (RFM skorları, eğilim, baskın
+        // kategori) zaten elimizde; CustomerContextTools'un aksine burada LLM'e ekstra bir
+        // sorgu turu yaptırmıyoruz, tek bir düz metin tamamlama yeterli.
+        var prompt =
+            $"""
+            Bir bankanın müşteri segmentasyon sistemisin. Sana RFM (Recency/Frequency/Monetary)
+            analiziyle hesaplanmış bir müşteri segmenti veriliyor. Bu segmenti 2-3 cümleyle, bir
+            banka çalışanının hızlıca okuyup anlayacağı şekilde YORUMLA — sayısal skorları
+            tekrar etme, ne anlama geldiğini açıkla. Kısa bir aksiyon önerisi ekleyebilirsin ama
+            bunu kesin bir karar gibi sunma; nihai karar her zaman RFM kuralına ait. Türkçe yanıt ver.
+
+            Recency skoru: {segment.RecencyScore}/5
+            Frequency skoru: {segment.FrequencyScore}/5
+            Monetary skoru: {segment.MonetaryScore}/5
+            Toplam skor: {segment.GetTotalScore()}/15
+            Eğilim: {segment.Propensity}
+            Baskın harcama kategorisi: {segment.DominantCategory?.ToString() ?? "yok"}
+            """;
+
+        var response = await chatClient.GetResponseAsync(prompt, cancellationToken: cancellationToken);
+        segment.SetAiCommentary(response.Text);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return ToSummary(segment);
+    }
+
+    private static SegmentSummary ToSummary(Segment segment) => new(
+        segment.CustomerId, segment.RecencyScore, segment.FrequencyScore, segment.MonetaryScore,
+        segment.GetTotalScore(), segment.Propensity, segment.DominantCategory, segment.CalculatedAtUtc,
+        segment.AiCommentary);
 }

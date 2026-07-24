@@ -232,6 +232,21 @@ export class CustomerDetailComponent implements OnInit {
     }
   }
 
+  protected aiCommentaryBusy = signal(false);
+
+  // RFM birincil karar mekanizması olarak kalıyor — bu sadece talep üzerine üretilen,
+  // segmentin üzerine eklenmiş kısa bir AI yorumu (bkz. backend Segment.AiCommentary).
+  async generateSegmentAiCommentary(): Promise<void> {
+    this.aiCommentaryBusy.set(true);
+    try {
+      this.segment.set(await firstValueFrom(this.client.aiCommentary(this.customerId)));
+    } catch (err) {
+      this.messageService.add({ severity: 'error', summary: 'AI yorumu oluşturulamadı', detail: describeApiError(err) });
+    } finally {
+      this.aiCommentaryBusy.set(false);
+    }
+  }
+
   private formatShortDate(value: Date | string): string {
     return new Date(value).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: '2-digit' });
   }
