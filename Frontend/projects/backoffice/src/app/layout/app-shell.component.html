@@ -4,13 +4,10 @@
     <nav class="app-shell-nav">
       <a routerLink="/dashboard" routerLinkActive="active"><i class="pi pi-chart-bar"></i> Genel Bakış</a>
       <a routerLink="/campaigns" routerLinkActive="active"><i class="pi pi-megaphone"></i> Kampanyalar</a>
-      <a routerLink="/audit-logs" routerLinkActive="active"><i class="pi pi-list"></i> Denetim Kaydı</a>
-      <a routerLink="/admin-accounts" routerLinkActive="active"><i class="pi pi-users"></i> Yönetici Hesapları</a>
-      @if (authService.isSuperAdmin()) {
-        <a routerLink="/banks" routerLinkActive="active"><i class="pi pi-building"></i> Banka Yönetimi</a>
-      }
-      <a routerLink="/cohorts" routerLinkActive="active"><i class="pi pi-sitemap"></i> Kohort Gezgini</a>
-      <a routerLink="/notifications" routerLinkActive="active"><i class="pi pi-send"></i> Bildirim Kaydı</a>
+      <a [class.active]="isManagementActive" (click)="managementMenu.toggle($event)">
+        <i class="pi pi-cog"></i> Yönetim <i class="pi pi-chevron-down app-shell-nav-caret"></i>
+      </a>
+      <p-menu #managementMenu [model]="managementMenuItems" [popup]="true" />
     </nav>
   </ng-template>
   <ng-template #end>

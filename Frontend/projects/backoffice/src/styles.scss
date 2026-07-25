@@ -139,6 +139,7 @@ h1, h2, h3 {
     color: rgba(255, 255, 255, 0.62);
     text-decoration: none;
     font-size: 0.95rem;
+    cursor: pointer;
     transition: background-color 0.15s, color 0.15s;
 
     &:hover {
@@ -151,6 +152,10 @@ h1, h2, h3 {
       color: var(--p-amber-300, #EACC9E);
       font-weight: 600;
     }
+  }
+
+  .app-shell-nav-caret {
+    font-size: 0.65rem;
   }
 }
 

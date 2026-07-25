@@ -34,6 +34,34 @@ export class AppShellComponent implements OnInit {
     ];
   }
 
+  // Sol nav 7 öğeye kadar çıkıyordu (SuperAdmin için) — sık kullanılan Genel Bakış/
+  // Kampanyalar direkt bağlantı olarak kaldı, geri kalan ikincil/yönetimsel ekranlar
+  // "Yönetim" açılır menüsüne toplandı.
+  protected get managementMenuItems(): MenuItem[] {
+    const items: MenuItem[] = [
+      { label: 'Denetim Kaydı', icon: 'pi pi-list', command: () => this.router.navigate(['/audit-logs']) },
+      { label: 'Yönetici Hesapları', icon: 'pi pi-users', command: () => this.router.navigate(['/admin-accounts']) }
+    ];
+
+    if (this.authService.isSuperAdmin()) {
+      items.push({ label: 'Banka Yönetimi', icon: 'pi pi-building', command: () => this.router.navigate(['/banks']) });
+    }
+
+    items.push(
+      { label: 'Kohort Gezgini', icon: 'pi pi-sitemap', command: () => this.router.navigate(['/cohorts']) },
+      { label: 'Bildirim Kaydı', icon: 'pi pi-send', command: () => this.router.navigate(['/notifications']) }
+    );
+
+    return items;
+  }
+
+  // "Yönetim" tetikleyicisinin kendisi bir routerLink olmadığı için routerLinkActive
+  // otomatik çalışmıyor — aktif olup olmadığı geçerli URL'e bakılarak elle hesaplanıyor.
+  protected get isManagementActive(): boolean {
+    return ['/audit-logs', '/admin-accounts', '/banks', '/cohorts', '/notifications']
+      .some(path => this.router.url.startsWith(path));
+  }
+
   // Kabuk sadece bağlantının kendisini (giriş/çıkışa bağlı) yönetiyor — hangi olaya
   // nasıl tepki verileceği (liste yenile, toast göster) ilgili feature component'lerin
   // (Dashboard, Kampanya Yönetimi, Bildirim Kaydı) kendi sorumluluğu.
