@@ -9,6 +9,9 @@
   </ng-template>
   <ng-template #end>
     <div class="app-shell-user">
+      @if (authService.isDemoAccount()) {
+        <p-tag value="Demo Modu" severity="info" />
+      }
       <p-button
         [label]="authService.email() ?? ''"
         icon="pi pi-user"

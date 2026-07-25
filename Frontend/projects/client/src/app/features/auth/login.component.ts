@@ -73,4 +73,17 @@ export class LoginComponent implements OnInit {
     this.challengeToken.set(null);
     this.step.set('credentials');
   }
+
+  async loginWithDemo(): Promise<void> {
+    this.error.set(null);
+    this.busy.set(true);
+    try {
+      await this.auth.demoLogin();
+      await this.router.navigate(['/customers']);
+    } catch (err) {
+      this.error.set(describeApiError(err));
+    } finally {
+      this.busy.set(false);
+    }
+  }
 }

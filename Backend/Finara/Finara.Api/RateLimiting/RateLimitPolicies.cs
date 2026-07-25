@@ -8,6 +8,7 @@ public static class RateLimitPolicies
     public const string Global = "global";
     public const string MockGeneration = "mock-generation";
     public const string TwoFactorVerify = "two-factor-verify";
+    public const string DemoLogin = "demo-login";
 
     // Kimliği doğrulanmış istekler kullanıcı id'sine, diğerleri IP adresine göre
     // bölümleniyor. AddFixedWindowLimiter(policyName, ...) kısayolu BİLEREK kullanılmıyor —

@@ -85,6 +85,22 @@ public class AuthService(
         return new LoginResult(null, null, null, null, true, challengeToken);
     }
 
+    // Herkese açık "Demo Hesabıyla Gir" butonu — parola/2FA akışını bilerek tamamen atlar,
+    // sabit kimlikli paylaşılan Analyst hesabını doğrudan IssueTokensAsync'e verir. Bu
+    // hesapta TwoFactorEnabled her ne durumda olursa olsun (biri /2fa/setup'ı çağırıp
+    // açmışsa bile) bu yol etkilenmez — LoginAsync'in aksine TwoFactorEnabled hiç okunmuyor.
+    public async Task<LoginResult> DemoLoginAsync(CancellationToken cancellationToken = default)
+    {
+        var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == DemoAccount.Id, cancellationToken)
+            ?? throw new InvalidOperationException("Demo hesabı bulunamadı — migration uygulanmamış olabilir.");
+
+        if (!user.IsActive)
+            throw new UnauthorizedAccessException("Demo hesabı devre dışı.");
+
+        var tokens = await IssueTokensAsync(user, cancellationToken);
+        return new LoginResult(tokens.AccessToken, tokens.AccessTokenExpiresAtUtc, tokens.RefreshToken, tokens.RefreshTokenExpiresAtUtc, false, null);
+    }
+
     public async Task<AuthResult> VerifyTwoFactorAsync(VerifyTwoFactorRequest request, CancellationToken cancellationToken = default)
     {
         var userId = ValidateTwoFactorChallengeToken(request.ChallengeToken);
@@ -126,6 +142,12 @@ public class AuthService(
 
     public async Task RevokeAllAsync(Guid userId, CancellationToken cancellationToken = default)
     {
+        // Paylaşılan demo hesabı için tüm cihazlardan çıkışı engelle — aksi halde bir
+        // ziyaretçi, o an demo hesabını kullanan TÜM diğer ziyaretçilerin oturumunu tek
+        // istekle sonlandırabilirdi.
+        if (userId == DemoAccount.Id)
+            throw new InvalidOperationException("Demo hesabında bu işlem kullanılamaz.");
+
         var activeRefreshTokens = await dbContext.RefreshTokens
             .Where(t => t.UserId == userId && t.RevokedAtUtc == null)
             .ToListAsync(cancellationToken);

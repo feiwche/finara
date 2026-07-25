@@ -28,6 +28,11 @@ export type LoginOutcome =
 // outbound kısaltma uygulanmıyor, JSON'da tam URI olarak görünüyor (canlı doğrulandı).
 const ROLE_CLAIM_KEY = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
 
+// Backend'deki Finara.Domain.Common.DemoAccount.Email ile birebir aynı olmalı — yeni bir
+// claim/backend değişikliği gerektirmeden, zaten decode edilen e-posta claim'i üzerinden
+// "bu demo hesabı mı?" tespiti için.
+const DEMO_ACCOUNT_EMAIL = 'demo@finara.dev';
+
 interface DecodedClaims {
   email: string | null;
   role: string | null;
@@ -61,6 +66,7 @@ export class AuthService {
   readonly role = this.roleSignal.asReadonly();
   readonly isSuperAdmin = computed(() => this.roleSignal() === 'SuperAdmin');
   readonly isAnalyst = computed(() => this.roleSignal() === 'Analyst');
+  readonly isDemoAccount = computed(() => this.emailSignal() === DEMO_ACCOUNT_EMAIL);
 
   // Analist (salt-okunuz) rolü hariç herkes yazma işlemi yapabilir — mutasyon
   // butonlarını göstermeden önce bu kontrol ediliyor (backend zaten "WriteAccess"
@@ -79,6 +85,13 @@ export class AuthService {
 
     this.applyTokens(result.accessToken, result.refreshToken);
     return { requiresTwoFactor: false };
+  }
+
+  // "Demo Hesabıyla Gir" butonu — login()'in "2FA gerekmiyor" dalıyla aynı şekli izler
+  // (LoginResult, TwoFactorRequired her zaman false), tek fark request body'sinin olmaması.
+  async demoLogin(): Promise<void> {
+    const result = await firstValueFrom(this.client.demoLogin());
+    this.applyTokens(result.accessToken, result.refreshToken);
   }
 
   async verifyTwoFactor(challengeToken: string, code: string): Promise<void> {

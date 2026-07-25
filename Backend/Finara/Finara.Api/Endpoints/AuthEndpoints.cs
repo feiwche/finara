@@ -23,6 +23,14 @@ public static class AuthEndpoints
             Results.Ok(await service.LoginAsync(request, ct)))
             .Produces<LoginResult>();
 
+        // Herkese açık "Demo Hesabıyla Gir" butonu — sabit, paylaşılan, salt-okunur Analyst
+        // hesabına parola olmadan doğrudan gerçek token verir. Anonim ama Global yerine
+        // daha sıkı, IP bazlı DemoLogin politikasıyla sınırlı.
+        auth.MapPost("/demo-login", async (IAuthService service, CancellationToken ct) =>
+            Results.Ok(await service.DemoLoginAsync(ct)))
+            .RequireRateLimiting(RateLimitPolicies.DemoLogin)
+            .Produces<LoginResult>();
+
         // 2FA açık kullanıcılar için login'in döndürdüğü meydan okuma token'ını gerçek
         // tokenlara çevirir — henüz gerçek bir oturum yok, bu yüzden anonim ama 6 haneli
         // kodun kaba kuvvetle denenmesine karşı sıkı bir rate limit ile korunuyor.

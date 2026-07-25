@@ -8,6 +8,8 @@ public interface IAuthService
 
     Task<LoginResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default);
 
+    Task<LoginResult> DemoLoginAsync(CancellationToken cancellationToken = default);
+
     Task<AuthResult> VerifyTwoFactorAsync(VerifyTwoFactorRequest request, CancellationToken cancellationToken = default);
 
     Task<AuthResult> RefreshAsync(RefreshRequest request, CancellationToken cancellationToken = default);

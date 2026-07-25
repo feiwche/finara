@@ -3,12 +3,13 @@ import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/rou
 import { MenubarModule } from 'primeng/menubar';
 import { ButtonModule } from 'primeng/button';
 import { MenuModule } from 'primeng/menu';
+import { TagModule } from 'primeng/tag';
 import { MenuItem } from 'primeng/api';
 import { AuthService, RealtimeService, ThemeService } from '@finara/shared-ui';
 
 @Component({
     selector: 'app-shell',
-    imports: [RouterOutlet, RouterLink, RouterLinkActive, MenubarModule, ButtonModule, MenuModule],
+    imports: [RouterOutlet, RouterLink, RouterLinkActive, MenubarModule, ButtonModule, MenuModule, TagModule],
     templateUrl: './app-shell.component.html'
 })
 export class AppShellComponent implements OnInit {

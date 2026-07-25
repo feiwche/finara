@@ -287,6 +287,19 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0
             }));
 
+    // Anonim, herkese açık, token üreten bir uç — kaba kuvvet riski yok (kimlik bilgisi
+    // istemiyor) ama paylaşılan demo hesabında gereksiz RefreshToken satırı biriktiren
+    // spam'e karşı Global'den (100/dk) daha sıkı: IP başına dakikada 15.
+    options.AddPolicy(RateLimitPolicies.DemoLogin, httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: RateLimitPolicies.GetPartitionKey(httpContext),
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 15,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+
     options.OnRejected = async (context, cancellationToken) =>
     {
         var correlationId = context.HttpContext.Items.TryGetValue(CorrelationIdMiddleware.HeaderName, out var id) ? id : null;

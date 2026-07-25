@@ -15,6 +15,7 @@ import { AuthService } from './auth.service';
 const PUBLIC_AUTH_PATHS = [
   '/api/auth/register',
   '/api/auth/login',
+  '/api/auth/demo-login',
   '/api/auth/verify-2fa',
   '/api/auth/refresh',
   '/api/auth/revoke',

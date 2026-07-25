@@ -1,5 +1,6 @@
 using Finara.Application.Contracts;
 using Finara.Application.Interfaces;
+using Finara.Domain.Common;
 using Finara.Domain.Entities;
 using Finara.Infrastructure.Persistence;
 using Microsoft.AspNetCore.DataProtection;
@@ -23,6 +24,12 @@ public class TwoFactorService : ITwoFactorService
 
     public async Task<TwoFactorSetupResult> BeginSetupAsync(Guid userId, CancellationToken cancellationToken = default)
     {
+        // Paylaşılan demo hesabında 2FA kurulumu engellenir — aksi halde bir ziyaretçi
+        // demo hesabını 2FA'yla kilitleyip diğer herkesi (yeni demo-login denemelerini
+        // etkilemese de) karışıklığa sokabilirdi.
+        if (userId == DemoAccount.Id)
+            throw new InvalidOperationException("Demo hesabında bu işlem kullanılamaz.");
+
         var user = await dbContext.Users.FirstAsync(u => u.Id == userId, cancellationToken);
 
         // Etkinken sessizce yeni sır üretilmesini engelliyoruz — bir saldırgan çalıntı bir
@@ -49,6 +56,9 @@ public class TwoFactorService : ITwoFactorService
 
     public async Task ConfirmSetupAsync(Guid userId, string code, CancellationToken cancellationToken = default)
     {
+        if (userId == DemoAccount.Id)
+            throw new InvalidOperationException("Demo hesabında bu işlem kullanılamaz.");
+
         var user = await dbContext.Users.FirstAsync(u => u.Id == userId, cancellationToken);
 
         if (!await VerifyCodeAsync(user, code, cancellationToken))
@@ -60,6 +70,9 @@ public class TwoFactorService : ITwoFactorService
 
     public async Task DisableAsync(Guid userId, string code, CancellationToken cancellationToken = default)
     {
+        if (userId == DemoAccount.Id)
+            throw new InvalidOperationException("Demo hesabında bu işlem kullanılamaz.");
+
         var user = await dbContext.Users.FirstAsync(u => u.Id == userId, cancellationToken);
 
         if (!await VerifyCodeAsync(user, code, cancellationToken))
