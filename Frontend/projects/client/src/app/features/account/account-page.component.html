@@ -28,4 +28,56 @@
       (onClick)="confirmLogoutAllDevices()"
     />
   </p-card>
+
+  <p-card header="İki Faktörlü Doğrulama" styleClass="panel">
+    @if (twoFactorError()) {
+      <p-message severity="error" [text]="twoFactorError()!" />
+    }
+
+    @if (twoFactorEnabled()) {
+      <p>İki faktörlü doğrulama şu anda <strong>etkin</strong>. Devre dışı bırakmak için authenticator uygulamanızdaki güncel kodu girin.</p>
+      <div class="field">
+        <label for="disable-code">Doğrulama Kodu</label>
+        <input id="disable-code" type="text" inputmode="numeric" maxlength="6" pInputText [(ngModel)]="disableCode" />
+      </div>
+      <p-button
+        label="Devre Dışı Bırak"
+        icon="pi pi-shield"
+        severity="danger"
+        [loading]="twoFactorBusy()"
+        (onClick)="disableTwoFactor()"
+      />
+    } @else if (setupState() === 'idle') {
+      <p>Hesabınıza giriş yaparken bir authenticator uygulamasından (ör. Google Authenticator) alınan 6 haneli bir kod da isteyerek ek bir güvenlik katmanı ekleyin.</p>
+      <p-button
+        label="Etkinleştir"
+        icon="pi pi-shield"
+        [loading]="twoFactorBusy()"
+        (onClick)="beginTwoFactorSetup()"
+      />
+    } @else {
+      @if (setupData(); as setup) {
+        <p>Authenticator uygulamanızla aşağıdaki QR kodu okutun veya sırrı elle girin, ardından uygulamanın gösterdiği kodu onaylayın.</p>
+        <img [src]="setup.qrCodeDataUri" alt="İki faktörlü doğrulama QR kodu" style="display:block; margin: 0.5rem 0;" />
+        <p><strong>Manuel sır:</strong> <code>{{ setup.secret }}</code></p>
+        <div class="field">
+          <label for="setup-code">Doğrulama Kodu</label>
+          <input id="setup-code" type="text" inputmode="numeric" maxlength="6" pInputText [(ngModel)]="setupCode" />
+        </div>
+        <p-button
+          label="Onayla"
+          icon="pi pi-check"
+          [loading]="twoFactorBusy()"
+          (onClick)="confirmTwoFactorSetup()"
+        />
+        <p-button
+          label="Vazgeç"
+          severity="secondary"
+          text
+          [disabled]="twoFactorBusy()"
+          (onClick)="cancelTwoFactorSetup()"
+        />
+      }
+    }
+  </p-card>
 </div>

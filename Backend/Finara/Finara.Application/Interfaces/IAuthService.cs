@@ -6,13 +6,17 @@ public interface IAuthService
 {
     Task RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default);
 
-    Task<AuthResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default);
+    Task<LoginResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default);
+
+    Task<AuthResult> VerifyTwoFactorAsync(VerifyTwoFactorRequest request, CancellationToken cancellationToken = default);
 
     Task<AuthResult> RefreshAsync(RefreshRequest request, CancellationToken cancellationToken = default);
 
     Task RevokeAsync(RevokeRequest request, CancellationToken cancellationToken = default);
 
     Task RevokeAllAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    Task<CurrentUserResult?> GetCurrentUserAsync(Guid userId, CancellationToken cancellationToken = default);
 
     Task ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken cancellationToken = default);
 

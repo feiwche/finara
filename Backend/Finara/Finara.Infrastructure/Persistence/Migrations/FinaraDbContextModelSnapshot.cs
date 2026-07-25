@@ -561,6 +561,15 @@ namespace Finara.Infrastructure.Persistence.Migrations
                     b.Property<int>("Role")
                         .HasColumnType("int");
 
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("TwoFactorEnabledAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TwoFactorSecretEncrypted")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("datetime2");
 

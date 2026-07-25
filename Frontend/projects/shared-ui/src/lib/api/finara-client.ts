@@ -711,7 +711,7 @@ export class Client {
     /**
      * @return OK
      */
-    login(body: LoginRequest): Observable<AuthResult> {
+    login(body: LoginRequest): Observable<LoginResult> {
         let url_ = this.baseUrl + "/api/auth/login";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -734,6 +734,61 @@ export class Client {
                 try {
                     return this.processLogin(response_ as any);
                 } catch (e) {
+                    return _observableThrow(e) as any as Observable<LoginResult>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<LoginResult>;
+        }));
+    }
+
+    protected processLogin(response: HttpResponseBase): Observable<LoginResult> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = LoginResult.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    verify2fa(body: VerifyTwoFactorRequest): Observable<AuthResult> {
+        let url_ = this.baseUrl + "/api/auth/verify-2fa";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processVerify2fa(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processVerify2fa(response_ as any);
+                } catch (e) {
                     return _observableThrow(e) as any as Observable<AuthResult>;
                 }
             } else
@@ -741,7 +796,7 @@ export class Client {
         }));
     }
 
-    protected processLogin(response: HttpResponseBase): Observable<AuthResult> {
+    protected processVerify2fa(response: HttpResponseBase): Observable<AuthResult> {
         const status = response.status;
         const responseBlob =
             response instanceof HttpResponse ? response.body :
@@ -898,6 +953,238 @@ export class Client {
     }
 
     protected processRevokeAll(response: HttpResponseBase): Observable<void> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return _observableOf(null as any);
+            }));
+        } else if (status === 401) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    me(): Observable<CurrentUserResult> {
+        let url_ = this.baseUrl + "/api/auth/me";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processMe(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processMe(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<CurrentUserResult>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<CurrentUserResult>;
+        }));
+    }
+
+    protected processMe(response: HttpResponseBase): Observable<CurrentUserResult> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CurrentUserResult.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status === 401) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    setup(): Observable<TwoFactorSetupResult> {
+        let url_ = this.baseUrl + "/api/auth/2fa/setup";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processSetup(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processSetup(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<TwoFactorSetupResult>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<TwoFactorSetupResult>;
+        }));
+    }
+
+    protected processSetup(response: HttpResponseBase): Observable<TwoFactorSetupResult> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = TwoFactorSetupResult.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status === 401) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @return No Content
+     */
+    confirm(body: ConfirmTwoFactorRequest): Observable<void> {
+        let url_ = this.baseUrl + "/api/auth/2fa/confirm";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json",
+            })
+        };
+
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processConfirm(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processConfirm(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<void>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<void>;
+        }));
+    }
+
+    protected processConfirm(response: HttpResponseBase): Observable<void> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return _observableOf(null as any);
+            }));
+        } else if (status === 401) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @return No Content
+     */
+    disable(body: DisableTwoFactorRequest): Observable<void> {
+        let url_ = this.baseUrl + "/api/auth/2fa/disable";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json",
+            })
+        };
+
+        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processDisable(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processDisable(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<void>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<void>;
+        }));
+    }
+
+    protected processDisable(response: HttpResponseBase): Observable<void> {
         const status = response.status;
         const responseBlob =
             response instanceof HttpResponse ? response.body :
@@ -3929,6 +4216,42 @@ export interface ICohortSummary {
     isOther?: boolean;
 }
 
+export class ConfirmTwoFactorRequest implements IConfirmTwoFactorRequest {
+    code?: string;
+
+    constructor(data?: IConfirmTwoFactorRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.code = _data["code"];
+        }
+    }
+
+    static fromJS(data: any): ConfirmTwoFactorRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ConfirmTwoFactorRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["code"] = this.code;
+        return data;
+    }
+}
+
+export interface IConfirmTwoFactorRequest {
+    code?: string;
+}
+
 export enum ConsentChannel {
     Sms = "Sms",
     Email = "Email",
@@ -4257,6 +4580,58 @@ export interface ICreateInvitationRequest {
     inviteUrlBase?: string;
     role?: UserRole;
     bankId?: string | undefined;
+}
+
+export class CurrentUserResult implements ICurrentUserResult {
+    id?: string;
+    email?: string;
+    role?: UserRole;
+    bankId?: string | undefined;
+    twoFactorEnabled?: boolean;
+
+    constructor(data?: ICurrentUserResult) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.email = _data["email"];
+            this.role = _data["role"];
+            this.bankId = _data["bankId"];
+            this.twoFactorEnabled = _data["twoFactorEnabled"];
+        }
+    }
+
+    static fromJS(data: any): CurrentUserResult {
+        data = typeof data === 'object' ? data : {};
+        let result = new CurrentUserResult();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["email"] = this.email;
+        data["role"] = this.role;
+        data["bankId"] = this.bankId;
+        data["twoFactorEnabled"] = this.twoFactorEnabled;
+        return data;
+    }
+}
+
+export interface ICurrentUserResult {
+    id?: string;
+    email?: string;
+    role?: UserRole;
+    bankId?: string | undefined;
+    twoFactorEnabled?: boolean;
 }
 
 export class CustomerImportResult implements ICustomerImportResult {
@@ -4611,6 +4986,42 @@ export interface IDailyOfferTrendPoint {
     declined?: number;
 }
 
+export class DisableTwoFactorRequest implements IDisableTwoFactorRequest {
+    code?: string;
+
+    constructor(data?: IDisableTwoFactorRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.code = _data["code"];
+        }
+    }
+
+    static fromJS(data: any): DisableTwoFactorRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new DisableTwoFactorRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["code"] = this.code;
+        return data;
+    }
+}
+
+export interface IDisableTwoFactorRequest {
+    code?: string;
+}
+
 export class DistributeOfferRequest implements IDistributeOfferRequest {
     channel?: ConsentChannel;
 
@@ -4953,6 +5364,62 @@ export class LoginRequest implements ILoginRequest {
 export interface ILoginRequest {
     email?: string;
     password?: string;
+}
+
+export class LoginResult implements ILoginResult {
+    accessToken?: string | undefined;
+    accessTokenExpiresAtUtc?: Date | undefined;
+    refreshToken?: string | undefined;
+    refreshTokenExpiresAtUtc?: Date | undefined;
+    twoFactorRequired?: boolean;
+    challengeToken?: string | undefined;
+
+    constructor(data?: ILoginResult) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.accessToken = _data["accessToken"];
+            this.accessTokenExpiresAtUtc = _data["accessTokenExpiresAtUtc"] ? new Date(_data["accessTokenExpiresAtUtc"].toString()) : undefined as any;
+            this.refreshToken = _data["refreshToken"];
+            this.refreshTokenExpiresAtUtc = _data["refreshTokenExpiresAtUtc"] ? new Date(_data["refreshTokenExpiresAtUtc"].toString()) : undefined as any;
+            this.twoFactorRequired = _data["twoFactorRequired"];
+            this.challengeToken = _data["challengeToken"];
+        }
+    }
+
+    static fromJS(data: any): LoginResult {
+        data = typeof data === 'object' ? data : {};
+        let result = new LoginResult();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["accessToken"] = this.accessToken;
+        data["accessTokenExpiresAtUtc"] = this.accessTokenExpiresAtUtc ? this.accessTokenExpiresAtUtc.toISOString() : undefined as any;
+        data["refreshToken"] = this.refreshToken;
+        data["refreshTokenExpiresAtUtc"] = this.refreshTokenExpiresAtUtc ? this.refreshTokenExpiresAtUtc.toISOString() : undefined as any;
+        data["twoFactorRequired"] = this.twoFactorRequired;
+        data["challengeToken"] = this.challengeToken;
+        return data;
+    }
+}
+
+export interface ILoginResult {
+    accessToken?: string | undefined;
+    accessTokenExpiresAtUtc?: Date | undefined;
+    refreshToken?: string | undefined;
+    refreshTokenExpiresAtUtc?: Date | undefined;
+    twoFactorRequired?: boolean;
+    challengeToken?: string | undefined;
 }
 
 export class MockGenerationResult implements IMockGenerationResult {
@@ -5675,6 +6142,50 @@ export interface ITransactionSummary {
     isInternational?: boolean;
 }
 
+export class TwoFactorSetupResult implements ITwoFactorSetupResult {
+    secret?: string;
+    otpAuthUri?: string;
+    qrCodeDataUri?: string;
+
+    constructor(data?: ITwoFactorSetupResult) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.secret = _data["secret"];
+            this.otpAuthUri = _data["otpAuthUri"];
+            this.qrCodeDataUri = _data["qrCodeDataUri"];
+        }
+    }
+
+    static fromJS(data: any): TwoFactorSetupResult {
+        data = typeof data === 'object' ? data : {};
+        let result = new TwoFactorSetupResult();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["secret"] = this.secret;
+        data["otpAuthUri"] = this.otpAuthUri;
+        data["qrCodeDataUri"] = this.qrCodeDataUri;
+        return data;
+    }
+}
+
+export interface ITwoFactorSetupResult {
+    secret?: string;
+    otpAuthUri?: string;
+    qrCodeDataUri?: string;
+}
+
 export class UpdateConsentRequest implements IUpdateConsentRequest {
     channel?: ConsentChannel;
     isGranted?: boolean;
@@ -5719,6 +6230,46 @@ export enum UserRole {
     SuperAdmin = "SuperAdmin",
     BankAdmin = "BankAdmin",
     Analyst = "Analyst",
+}
+
+export class VerifyTwoFactorRequest implements IVerifyTwoFactorRequest {
+    challengeToken?: string;
+    code?: string;
+
+    constructor(data?: IVerifyTwoFactorRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.challengeToken = _data["challengeToken"];
+            this.code = _data["code"];
+        }
+    }
+
+    static fromJS(data: any): VerifyTwoFactorRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new VerifyTwoFactorRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["challengeToken"] = this.challengeToken;
+        data["code"] = this.code;
+        return data;
+    }
+}
+
+export interface IVerifyTwoFactorRequest {
+    challengeToken?: string;
+    code?: string;
 }
 
 export interface FileParameter {

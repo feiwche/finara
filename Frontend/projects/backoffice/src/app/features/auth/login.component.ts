@@ -21,6 +21,9 @@ export class LoginComponent implements OnInit {
 
   protected email = 'admin@finara.dev';
   protected password = '';
+  protected code = '';
+  protected step = signal<'credentials' | 'twoFactor'>('credentials');
+  protected challengeToken = signal<string | null>(null);
   protected busy = signal(false);
   protected error = signal<string | null>(null);
 
@@ -37,12 +40,37 @@ export class LoginComponent implements OnInit {
     this.error.set(null);
     this.busy.set(true);
     try {
-      await this.auth.login(this.email, this.password);
+      const outcome = await this.auth.login(this.email, this.password);
+      if (outcome.requiresTwoFactor) {
+        this.challengeToken.set(outcome.challengeToken);
+        this.step.set('twoFactor');
+      } else {
+        await this.router.navigate(['/dashboard']);
+      }
+    } catch (err) {
+      this.error.set(describeApiError(err));
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  async verifyCode(): Promise<void> {
+    this.error.set(null);
+    this.busy.set(true);
+    try {
+      await this.auth.verifyTwoFactor(this.challengeToken()!, this.code);
       await this.router.navigate(['/dashboard']);
     } catch (err) {
       this.error.set(describeApiError(err));
     } finally {
       this.busy.set(false);
     }
+  }
+
+  backToCredentials(): void {
+    this.error.set(null);
+    this.code = '';
+    this.challengeToken.set(null);
+    this.step.set('credentials');
   }
 }

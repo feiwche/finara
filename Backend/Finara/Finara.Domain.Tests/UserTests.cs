@@ -134,4 +134,87 @@ public class UserTests
         user.LastWeeklyDigestSentAtUtc.Should().NotBeNull();
         user.LastWeeklyDigestSentAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
     }
+
+    [Fact]
+    public void SetPendingTwoFactorSecret_GecerliSirla_PendingDurumaGecirir()
+    {
+        var user = Domain.Entities.User.Create("admin@example.com", "hashed-value");
+
+        user.SetPendingTwoFactorSecret("encrypted-secret");
+
+        user.TwoFactorSecretEncrypted.Should().Be("encrypted-secret");
+        user.TwoFactorEnabled.Should().BeFalse();
+        user.TwoFactorEnabledAtUtc.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void SetPendingTwoFactorSecret_BosSir_ArgumentExceptionFirlatir(string secret)
+    {
+        var user = Domain.Entities.User.Create("admin@example.com", "hashed-value");
+
+        var act = () => user.SetPendingTwoFactorSecret(secret);
+
+        act.Should().Throw<ArgumentException>().WithParameterName("encryptedSecret");
+    }
+
+    [Fact]
+    public void ConfirmTwoFactor_SirYokken_InvalidOperationFirlatir()
+    {
+        var user = Domain.Entities.User.Create("admin@example.com", "hashed-value");
+
+        var act = () => user.ConfirmTwoFactor();
+
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void ConfirmTwoFactor_PendingSirla_EtkinlestirirVeTarihDoldurur()
+    {
+        var user = Domain.Entities.User.Create("admin@example.com", "hashed-value");
+        user.SetPendingTwoFactorSecret("encrypted-secret");
+
+        user.ConfirmTwoFactor();
+
+        user.TwoFactorEnabled.Should().BeTrue();
+        user.TwoFactorEnabledAtUtc.Should().NotBeNull();
+        user.TwoFactorEnabledAtUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+    }
+
+    [Fact]
+    public void ConfirmTwoFactor_ZatenEtkinken_InvalidOperationFirlatir()
+    {
+        var user = Domain.Entities.User.Create("admin@example.com", "hashed-value");
+        user.SetPendingTwoFactorSecret("encrypted-secret");
+        user.ConfirmTwoFactor();
+
+        var act = () => user.ConfirmTwoFactor();
+
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void DisableTwoFactor_EtkinKullanicida_SirSilerVeDevreDisiBirakir()
+    {
+        var user = Domain.Entities.User.Create("admin@example.com", "hashed-value");
+        user.SetPendingTwoFactorSecret("encrypted-secret");
+        user.ConfirmTwoFactor();
+
+        user.DisableTwoFactor();
+
+        user.TwoFactorEnabled.Should().BeFalse();
+        user.TwoFactorSecretEncrypted.Should().BeNull();
+        user.TwoFactorEnabledAtUtc.Should().BeNull();
+    }
+
+    [Fact]
+    public void DisableTwoFactor_ZatenDevreDisiyken_InvalidOperationFirlatir()
+    {
+        var user = Domain.Entities.User.Create("admin@example.com", "hashed-value");
+
+        var act = () => user.DisableTwoFactor();
+
+        act.Should().Throw<InvalidOperationException>();
+    }
 }

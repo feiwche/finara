@@ -28,6 +28,13 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddDbContext<FinaraDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Varsayılan anahtar deposu tek-makine bazlı (%LOCALAPPDATA%/~/.aspnet altında) — çoklu-instance
+// veya container'ın her yeniden dağıtımda anahtarları kaybettiği bir senaryoda 2FA sırları
+// çözülemez hale gelir (kullanıcılar yeniden kurulum yapmak zorunda kalır). Tek-instance güncel
+// dağıtım için kabul edilebilir; paylaşımlı anahtar halkası (ör. DB/Blob) ertelenen bir
+// sertleştirme maddesi (bkz. @angular/ssr CVE notuyla aynı desen).
+builder.Services.AddDataProtection();
+
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddScoped<IReportService, ReportService>();
 
@@ -65,6 +72,7 @@ builder.Services.AddSingleton<IGarantiTokenProvider, GarantiTokenProvider>();
 builder.Services.AddKeyedScoped<IBankDataProvider, GarantiBankDataProvider>(Finara.Domain.Enums.BankDataProviderType.GarantiSandbox);
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ITwoFactorService, TwoFactorService>();
 builder.Services.AddScoped<IAdminUserService, AdminUserService>();
 builder.Services.AddScoped<IBankService, BankService>();
 builder.Services.AddScoped<ICampaignService, CampaignService>();
@@ -258,6 +266,18 @@ builder.Services.AddRateLimiter(options =>
 
     // Toplu mock veri üretimi ağır bir işlem (çok sayıda insert) — istemci başına dakikada 5.
     options.AddPolicy(RateLimitPolicies.MockGeneration, httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: RateLimitPolicies.GetPartitionKey(httpContext),
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+
+    // 6 haneli kod 1e6 kombinasyon — kaba kuvvete karşı Global'den (100/dk) çok daha sıkı
+    // bir limit: istemci başına dakikada 5.
+    options.AddPolicy(RateLimitPolicies.TwoFactorVerify, httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: RateLimitPolicies.GetPartitionKey(httpContext),
             factory: _ => new FixedWindowRateLimiterOptions

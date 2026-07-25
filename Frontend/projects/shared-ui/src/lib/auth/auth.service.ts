@@ -1,9 +1,27 @@
 import { Injectable, PLATFORM_ID, inject, signal, computed } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
-import { Client, LoginRequest, RefreshRequest, RevokeRequest } from '../api/finara-client';
+import {
+  Client,
+  ConfirmTwoFactorRequest,
+  CurrentUserResult,
+  DisableTwoFactorRequest,
+  LoginRequest,
+  RefreshRequest,
+  RevokeRequest,
+  TwoFactorSetupResult,
+  VerifyTwoFactorRequest
+} from '../api/finara-client';
 
 const REFRESH_TOKEN_KEY = 'finara_refresh_token';
+
+// login() artık iki şekilde sonuçlanabilir: 2FA kapalıysa doğrudan oturum açılır; açıksa
+// gerçek token yerine bir meydan okuma token'ı döner ve çağıran taraf (login ekranı) kod
+// girişi adımına geçmeli. Bu bir hata değil, bu yüzden exception yerine bir sonuç tipiyle
+// modellendi.
+export type LoginOutcome =
+  | { requiresTwoFactor: false }
+  | { requiresTwoFactor: true; challengeToken: string };
 
 // AuthService.IssueTokensAsync (backend) claim'i new Claim(ClaimTypes.Role, ...) ile
 // ekliyor — JwtSecurityToken doğrudan (handler.CreateToken değil) oluşturulduğu için
@@ -53,9 +71,37 @@ export class AuthService {
     return this.accessTokenSignal();
   }
 
-  async login(email: string, password: string): Promise<void> {
+  async login(email: string, password: string): Promise<LoginOutcome> {
     const result = await firstValueFrom(this.client.login(new LoginRequest({ email, password })));
+    if (result.twoFactorRequired) {
+      return { requiresTwoFactor: true, challengeToken: result.challengeToken! };
+    }
+
     this.applyTokens(result.accessToken, result.refreshToken);
+    return { requiresTwoFactor: false };
+  }
+
+  async verifyTwoFactor(challengeToken: string, code: string): Promise<void> {
+    const result = await firstValueFrom(
+      this.client.verify2fa(new VerifyTwoFactorRequest({ challengeToken, code }))
+    );
+    this.applyTokens(result.accessToken, result.refreshToken);
+  }
+
+  async fetchCurrentUser(): Promise<CurrentUserResult> {
+    return firstValueFrom(this.client.me());
+  }
+
+  async beginTwoFactorSetup(): Promise<TwoFactorSetupResult> {
+    return firstValueFrom(this.client.setup());
+  }
+
+  async confirmTwoFactorSetup(code: string): Promise<void> {
+    await firstValueFrom(this.client.confirm(new ConfirmTwoFactorRequest({ code })));
+  }
+
+  async disableTwoFactor(code: string): Promise<void> {
+    await firstValueFrom(this.client.disable(new DisableTwoFactorRequest({ code })));
   }
 
   async logout(): Promise<void> {

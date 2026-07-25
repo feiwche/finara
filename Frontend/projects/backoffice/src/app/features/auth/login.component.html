@@ -17,22 +17,39 @@
     </div>
   </div>
   <div class="auth-form-panel">
-    <p-card header="Giriş Yap" styleClass="login-card">
-      <div class="field">
-        <label for="email">E-posta</label>
-        <input id="email" type="text" pInputText [(ngModel)]="email" (keyup.enter)="login()" />
-      </div>
-      <div class="field">
-        <label for="password">Şifre</label>
-        <p-password id="password" [(ngModel)]="password" [feedback]="false" [toggleMask]="true" (keyup.enter)="login()" />
-      </div>
-      @if (error()) {
-        <p-message severity="error" [text]="error()!" />
-      }
-      <p-button label="Giriş yap" [loading]="busy()" (onClick)="login()" />
-      <div class="auth-back-link">
-        <a routerLink="/forgot-password">Şifremi unuttum</a>
-      </div>
-    </p-card>
+    @if (step() === 'credentials') {
+      <p-card header="Giriş Yap" styleClass="login-card">
+        <div class="field">
+          <label for="email">E-posta</label>
+          <input id="email" type="text" pInputText [(ngModel)]="email" (keyup.enter)="login()" />
+        </div>
+        <div class="field">
+          <label for="password">Şifre</label>
+          <p-password id="password" [(ngModel)]="password" [feedback]="false" [toggleMask]="true" (keyup.enter)="login()" />
+        </div>
+        @if (error()) {
+          <p-message severity="error" [text]="error()!" />
+        }
+        <p-button label="Giriş yap" [loading]="busy()" (onClick)="login()" />
+        <div class="auth-back-link">
+          <a routerLink="/forgot-password">Şifremi unuttum</a>
+        </div>
+      </p-card>
+    } @else {
+      <p-card header="İki Faktörlü Doğrulama" styleClass="login-card">
+        <p>Authenticator uygulamanızdaki 6 haneli kodu girin.</p>
+        <div class="field">
+          <label for="code">Doğrulama Kodu</label>
+          <input id="code" type="text" inputmode="numeric" maxlength="6" pInputText [(ngModel)]="code" (keyup.enter)="verifyCode()" />
+        </div>
+        @if (error()) {
+          <p-message severity="error" [text]="error()!" />
+        }
+        <p-button label="Doğrula" [loading]="busy()" (onClick)="verifyCode()" />
+        <div class="auth-back-link">
+          <a (click)="backToCredentials()">Geri dön</a>
+        </div>
+      </p-card>
+    }
   </div>
 </div>

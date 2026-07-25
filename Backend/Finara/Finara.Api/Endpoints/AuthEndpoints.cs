@@ -21,6 +21,14 @@ public static class AuthEndpoints
 
         auth.MapPost("/login", async (LoginRequest request, IAuthService service, CancellationToken ct) =>
             Results.Ok(await service.LoginAsync(request, ct)))
+            .Produces<LoginResult>();
+
+        // 2FA açık kullanıcılar için login'in döndürdüğü meydan okuma token'ını gerçek
+        // tokenlara çevirir — henüz gerçek bir oturum yok, bu yüzden anonim ama 6 haneli
+        // kodun kaba kuvvetle denenmesine karşı sıkı bir rate limit ile korunuyor.
+        auth.MapPost("/verify-2fa", async (VerifyTwoFactorRequest request, IAuthService service, CancellationToken ct) =>
+            Results.Ok(await service.VerifyTwoFactorAsync(request, ct)))
+            .RequireRateLimiting(RateLimitPolicies.TwoFactorVerify)
             .Produces<AuthResult>();
 
         auth.MapPost("/refresh", async (RefreshRequest request, IAuthService service, CancellationToken ct) =>
@@ -46,6 +54,60 @@ public static class AuthEndpoints
             return Results.NoContent();
         })
         .RequireAuthorization()
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesProblem(StatusCodes.Status401Unauthorized);
+
+        // Hesabım sayfasının JWT claim'lerine güvenmeden taze durumu (özellikle TwoFactorEnabled)
+        // okuyabilmesi için — access token 15 dk'ya kadar bayat kalabilir.
+        auth.MapGet("/me", async (ICurrentUserContext currentUser, IAuthService service, CancellationToken ct) =>
+        {
+            if (currentUser.UserId is not { } userId)
+                return Results.Unauthorized();
+
+            var me = await service.GetCurrentUserAsync(userId, ct);
+            return me is null ? Results.NotFound() : Results.Ok(me);
+        })
+        .RequireAuthorization()
+        .Produces<CurrentUserResult>()
+        .ProducesProblem(StatusCodes.Status401Unauthorized);
+
+        // İki faktörlü doğrulama kurulum/onay/devre-dışı uçları — üçü de self-servis hesap
+        // işlemi (WriteAccess DEĞİL), 6 haneli kodun kaba kuvvetle denenmesine karşı
+        // TwoFactorVerify politikasıyla korunuyor (setup hariç, o kod almıyor).
+        auth.MapPost("/2fa/setup", async (ICurrentUserContext currentUser, ITwoFactorService twoFactorService, CancellationToken ct) =>
+        {
+            if (currentUser.UserId is not { } userId)
+                return Results.Unauthorized();
+
+            return Results.Ok(await twoFactorService.BeginSetupAsync(userId, ct));
+        })
+        .RequireAuthorization()
+        .Produces<TwoFactorSetupResult>()
+        .ProducesProblem(StatusCodes.Status401Unauthorized);
+
+        auth.MapPost("/2fa/confirm", async (ConfirmTwoFactorRequest request, ICurrentUserContext currentUser, ITwoFactorService twoFactorService, CancellationToken ct) =>
+        {
+            if (currentUser.UserId is not { } userId)
+                return Results.Unauthorized();
+
+            await twoFactorService.ConfirmSetupAsync(userId, request.Code, ct);
+            return Results.NoContent();
+        })
+        .RequireAuthorization()
+        .RequireRateLimiting(RateLimitPolicies.TwoFactorVerify)
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesProblem(StatusCodes.Status401Unauthorized);
+
+        auth.MapPost("/2fa/disable", async (DisableTwoFactorRequest request, ICurrentUserContext currentUser, ITwoFactorService twoFactorService, CancellationToken ct) =>
+        {
+            if (currentUser.UserId is not { } userId)
+                return Results.Unauthorized();
+
+            await twoFactorService.DisableAsync(userId, request.Code, ct);
+            return Results.NoContent();
+        })
+        .RequireAuthorization()
+        .RequireRateLimiting(RateLimitPolicies.TwoFactorVerify)
         .Produces(StatusCodes.Status204NoContent)
         .ProducesProblem(StatusCodes.Status401Unauthorized);
 

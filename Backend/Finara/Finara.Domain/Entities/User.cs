@@ -21,6 +21,18 @@ public class User : BaseEntity
     // başlarsa (ör. bir Pazartesi kaçırılırsa) kırılgan olmasın diye.
     public DateTime? LastWeeklyDigestSentAtUtc { get; private set; }
 
+    // TOTP sırrı Data Protection ile şifrelenmiş halde saklanır (bkz. Infrastructure/Services/
+    // TwoFactorService) — RefreshTokenHasher'daki "hash'le, asla geri çözme" deseninin aksine,
+    // sunucunun her kod doğrulamasında düz metne geri dönmesi gerekiyor.
+    public string? TwoFactorSecretEncrypted { get; private set; }
+
+    // Kurulum akışı iki aşamalı: sır üretilip hemen saklanır ama TwoFactorEnabled true olana
+    // kadar (kullanıcı en az bir geçerli kod girene kadar) devre dışı sayılır — yarım kalmış/
+    // bozuk bir QR taramasının kullanıcıyı kilitli bir durumda bırakmaması için.
+    public bool TwoFactorEnabled { get; private set; }
+
+    public DateTime? TwoFactorEnabledAtUtc { get; private set; }
+
     private User() { }
 
     public static User Create(string email, string passwordHash, UserRole role = UserRole.SuperAdmin, Guid? bankId = null)
@@ -68,6 +80,43 @@ public class User : BaseEntity
             throw new ArgumentException("Şifre hash'i boş olamaz.", nameof(newPasswordHash));
 
         PasswordHash = newPasswordHash;
+        MarkUpdated();
+    }
+
+    public void SetPendingTwoFactorSecret(string encryptedSecret)
+    {
+        if (string.IsNullOrWhiteSpace(encryptedSecret))
+            throw new ArgumentException("Şifrelenmiş sır boş olamaz.", nameof(encryptedSecret));
+
+        // Yeniden kurulum başlatmak önceki sırrın üzerine yazar — eski, kullanılmayan bir sır
+        // kalıcı bir güvenlik riski oluşturmaz, sadece atıl kalır. Etkinken sessizce yeni sır
+        // üretilmesini engellemek servis katmanının sorumluluğu (önce DisableTwoFactor şart).
+        TwoFactorSecretEncrypted = encryptedSecret;
+        TwoFactorEnabled = false;
+        TwoFactorEnabledAtUtc = null;
+        MarkUpdated();
+    }
+
+    public void ConfirmTwoFactor()
+    {
+        if (TwoFactorSecretEncrypted is null)
+            throw new InvalidOperationException("Önce bir sır üretilmeden iki faktörlü doğrulama onaylanamaz.");
+        if (TwoFactorEnabled)
+            throw new InvalidOperationException("İki faktörlü doğrulama zaten etkin.");
+
+        TwoFactorEnabled = true;
+        TwoFactorEnabledAtUtc = DateTime.UtcNow;
+        MarkUpdated();
+    }
+
+    public void DisableTwoFactor()
+    {
+        if (!TwoFactorEnabled)
+            throw new InvalidOperationException("İki faktörlü doğrulama zaten devre dışı.");
+
+        TwoFactorSecretEncrypted = null;
+        TwoFactorEnabled = false;
+        TwoFactorEnabledAtUtc = null;
         MarkUpdated();
     }
 

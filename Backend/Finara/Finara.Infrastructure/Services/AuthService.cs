@@ -22,9 +22,14 @@ public class AuthService(
     IConfiguration configuration,
     IAdminEmailSender emailSender,
     IAuditLogRepository auditLogRepository,
+    ITwoFactorService twoFactorService,
     ILogger<AuthService> logger)
     : IAuthService
 {
+    // 2FA meydan okuma token'ını gerçek access token'dan ayırt eden claim adı — bu token'da
+    // rol/bankId/jti YOK (sadece sub), yanlışlıkla gerçek bir oturum gibi kullanılamaz.
+    private const string TwoFactorChallengeClaimType = "purpose";
+    private const string TwoFactorChallengeClaimValue = "2fa_challenge";
     // client (4200) ve backoffice (4300) aynı User hesaplarıyla ayrı origin'lerden giriş
     // yapıyor — CORS'taki izinli origin listesiyle aynı gerekçe (bkz. Program.cs AddCors),
     // sıfırlama bağlantısının keyfi bir adrese yönlendirilmesini (open redirect/e-posta
@@ -57,7 +62,7 @@ public class AuthService(
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<AuthResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
+    public async Task<LoginResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
     {
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
         var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail, cancellationToken);
@@ -69,6 +74,24 @@ public class AuthService(
         var passwordValid = user is not null && PasswordHasher.Verify(request.Password, user.PasswordHash);
         if (user is null || !passwordValid || !user.IsActive)
             throw new UnauthorizedAccessException("E-posta veya şifre hatalı.");
+
+        if (!user.TwoFactorEnabled)
+        {
+            var tokens = await IssueTokensAsync(user, cancellationToken);
+            return new LoginResult(tokens.AccessToken, tokens.AccessTokenExpiresAtUtc, tokens.RefreshToken, tokens.RefreshTokenExpiresAtUtc, false, null);
+        }
+
+        var challengeToken = IssueTwoFactorChallengeToken(user);
+        return new LoginResult(null, null, null, null, true, challengeToken);
+    }
+
+    public async Task<AuthResult> VerifyTwoFactorAsync(VerifyTwoFactorRequest request, CancellationToken cancellationToken = default)
+    {
+        var userId = ValidateTwoFactorChallengeToken(request.ChallengeToken);
+        var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+        if (user is null || !user.IsActive || !user.TwoFactorEnabled || !await twoFactorService.VerifyCodeAsync(user, request.Code, cancellationToken))
+            throw new UnauthorizedAccessException("Kod geçersiz veya süresi dolmuş.");
 
         return await IssueTokensAsync(user, cancellationToken);
     }
@@ -279,5 +302,79 @@ public class AuthService(
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return new AuthResult(accessToken, accessTokenExpires, refreshTokenValue, refreshTokenExpires);
+    }
+
+    // Gerçek bir refresh token gerektirmeyen, stateless, 5 dakikalık, tek amaçlı bir JWT —
+    // ayrı bir DB tablosu/iptal mekanizması gerekmiyor çünkü kısa ömrü kendi kendine yetiyor
+    // (refresh token'ın aksine, bu token'ın 7 gün yaşaması ya da tekil olarak iptal
+    // edilebilmesi gerekmiyor). Bilerek sadece "sub" claim'i taşıyor — rol/bankId/jti YOK,
+    // gerçek bir access token'la asla karıştırılamaz.
+    private string IssueTwoFactorChallengeToken(User user)
+    {
+        var jwtSection = configuration.GetSection("Jwt");
+        var key = jwtSection["Key"] ?? throw new InvalidOperationException("Jwt:Key yapılandırılmamış (user-secrets kontrol edin).");
+        var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+        var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
+
+        var token = new JwtSecurityToken(
+            issuer: jwtSection["Issuer"],
+            audience: jwtSection["Audience"],
+            claims: [
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(TwoFactorChallengeClaimType, TwoFactorChallengeClaimValue)
+            ],
+            expires: DateTime.UtcNow.AddMinutes(5),
+            signingCredentials: credentials);
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    private Guid ValidateTwoFactorChallengeToken(string challengeToken)
+    {
+        var jwtSection = configuration.GetSection("Jwt");
+        var key = jwtSection["Key"] ?? throw new InvalidOperationException("Jwt:Key yapılandırılmamış (user-secrets kontrol edin).");
+
+        var validationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = jwtSection["Issuer"],
+            ValidateAudience = true,
+            ValidAudience = jwtSection["Audience"],
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
+        };
+
+        ClaimsPrincipal principal;
+        try
+        {
+            principal = new JwtSecurityTokenHandler().ValidateToken(challengeToken, validationParameters, out _);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            throw new UnauthorizedAccessException("Meydan okuma token'ı geçersiz veya süresi dolmuş.");
+        }
+
+        // "purpose" claim kontrolü — bu, gerçek bir access token'ın (ki onda bu claim hiç
+        // yok) burada yanlışlıkla kabul edilmesini engelleyen asıl savunma hattı.
+        var purpose = principal.FindFirst(TwoFactorChallengeClaimType)?.Value;
+        if (purpose != TwoFactorChallengeClaimValue)
+            throw new UnauthorizedAccessException("Meydan okuma token'ı geçersiz.");
+
+        // JwtSecurityTokenHandler varsayılan olarak "sub" claim'ini ClaimTypes.NameIdentifier'a
+        // yeniden eşliyor (bkz. Api/Security/CurrentUserContext.cs'teki aynı fallback) — bu
+        // yüzden ikisi de kontrol ediliyor.
+        var sub = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+            ?? principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(sub) || !Guid.TryParse(sub, out var userId))
+            throw new UnauthorizedAccessException("Meydan okuma token'ı geçersiz.");
+
+        return userId;
+    }
+
+    public async Task<CurrentUserResult?> GetCurrentUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var user = await dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+        return user is null ? null : new CurrentUserResult(user.Id, user.Email, user.Role, user.BankId, user.TwoFactorEnabled);
     }
 }
