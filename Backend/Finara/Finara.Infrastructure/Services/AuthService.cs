@@ -101,6 +101,17 @@ public class AuthService(
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task RevokeAllAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var activeRefreshTokens = await dbContext.RefreshTokens
+            .Where(t => t.UserId == userId && t.RevokedAtUtc == null)
+            .ToListAsync(cancellationToken);
+        foreach (var refreshToken in activeRefreshTokens)
+            refreshToken.Revoke();
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken cancellationToken = default)
     {
         if (!AllowedResetUrlBases.Contains(request.ResetUrlBase, StringComparer.OrdinalIgnoreCase))

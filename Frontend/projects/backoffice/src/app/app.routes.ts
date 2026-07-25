@@ -74,6 +74,11 @@ export const routes: Routes = [
         path: 'notifications',
         title: 'Finara BackOffice — Bildirim Kaydı',
         loadComponent: () => import('./features/notifications/notification-log.component').then(m => m.NotificationLogComponent)
+      },
+      {
+        path: 'hesabim',
+        title: 'Finara BackOffice — Hesabım',
+        loadComponent: () => import('./features/account/account-page.component').then(m => m.AccountPageComponent)
       }
     ]
   },

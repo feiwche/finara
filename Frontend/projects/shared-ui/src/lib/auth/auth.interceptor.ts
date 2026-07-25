@@ -4,12 +4,28 @@ import { Router } from '@angular/router';
 import { catchError, from, switchMap, throwError } from 'rxjs';
 import { AuthService } from './auth.service';
 
-// /api/auth/* uçları (login/register/refresh/revoke) bilerek hariç tutuluyor —
-// bunlar için henüz bir access token olmayabilir, olsa bile gerekmiyor.
+// Bu uçlar bilerek hariç tutuluyor — çağrıldıklarında henüz bir access token
+// olmayabilir, olsa bile gerekmiyor (kimlik doğrulama kendi içinde farklı bir
+// kanıtla — parola, refresh token, davet/sıfırlama token'ı — yapılıyor).
+// "/api/auth/revoke-all" bilinçli olarak bu listede DEĞİL — o kendi hesabını JWT'den
+// (Authorization header) bulduğu için tam tersine bu interceptor'ın eklediği token'a
+// ihtiyaç duyuyor.
+const PUBLIC_AUTH_PATHS = [
+  '/api/auth/register',
+  '/api/auth/login',
+  '/api/auth/refresh',
+  '/api/auth/revoke',
+  '/api/auth/forgot-password',
+  '/api/auth/reset-password',
+  '/api/auth/invitations',
+  '/api/auth/accept-invitation'
+];
+
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
-  const isAuthEndpoint = req.url.includes('/api/auth/');
+  const requestPath = req.url.split('?')[0];
+  const isAuthEndpoint = PUBLIC_AUTH_PATHS.some(path => requestPath.endsWith(path));
   const token = authService.accessToken;
 
   const authedReq = !token || isAuthEndpoint

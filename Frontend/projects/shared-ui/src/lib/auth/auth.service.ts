@@ -60,14 +60,26 @@ export class AuthService {
 
   async logout(): Promise<void> {
     const refreshToken = this.isBrowser ? localStorage.getItem(REFRESH_TOKEN_KEY) : null;
+    this.clearLocalSession();
+    if (refreshToken) {
+      await firstValueFrom(this.client.revoke(new RevokeRequest({ refreshToken })));
+    }
+  }
+
+  // Kendi tüm oturumlarını (tüm cihazlardaki refresh token'ları) sonlandırır — backend
+  // kullanıcıyı JWT'den (ICurrentUserContext) tanıdığı için ayrı bir refreshToken
+  // parametresi gerekmiyor, sadece geçerli bir access token yeterli.
+  async logoutAllDevices(): Promise<void> {
+    await firstValueFrom(this.client.revokeAll());
+    this.clearLocalSession();
+  }
+
+  private clearLocalSession(): void {
     this.accessTokenSignal.set(null);
     this.emailSignal.set(null);
     this.roleSignal.set(null);
     if (this.isBrowser) {
       localStorage.removeItem(REFRESH_TOKEN_KEY);
-    }
-    if (refreshToken) {
-      await firstValueFrom(this.client.revoke(new RevokeRequest({ refreshToken })));
     }
   }
 
@@ -102,10 +114,7 @@ export class AuthService {
         this.applyTokens(result.accessToken, result.refreshToken);
         return result.accessToken ?? null;
       } catch (err) {
-        this.accessTokenSignal.set(null);
-        this.emailSignal.set(null);
-        this.roleSignal.set(null);
-        if (this.isBrowser) localStorage.removeItem(REFRESH_TOKEN_KEY);
+        this.clearLocalSession();
         throw err;
       } finally {
         this.refreshPromise = null;

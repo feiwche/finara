@@ -54,6 +54,11 @@ export const routes: Routes = [
         path: 'tools',
         title: 'Finara — Araçlar',
         loadComponent: () => import('./features/tools/tools.component').then(m => m.ToolsComponent)
+      },
+      {
+        path: 'hesabim',
+        title: 'Finara — Hesabım',
+        loadComponent: () => import('./features/account/account-page.component').then(m => m.AccountPageComponent)
       }
     ]
   },

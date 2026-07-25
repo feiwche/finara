@@ -34,6 +34,21 @@ public static class AuthEndpoints
         })
         .Produces(StatusCodes.Status204NoContent);
 
+        // Kendi tüm oturumlarını sonlandırma (tüm cihazlardan çıkış) — self-servis bir
+        // hesap işlemi olduğu için WriteAccess DEĞİL, düz RequireAuthorization: Analyst
+        // dahil her rol kendi oturumlarını kapatabilmeli.
+        auth.MapPost("/revoke-all", async (ICurrentUserContext currentUser, IAuthService service, CancellationToken ct) =>
+        {
+            if (currentUser.UserId is not { } userId)
+                return Results.Unauthorized();
+
+            await service.RevokeAllAsync(userId, ct);
+            return Results.NoContent();
+        })
+        .RequireAuthorization()
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesProblem(StatusCodes.Status401Unauthorized);
+
         auth.MapPost("/forgot-password", async (ForgotPasswordRequest request, IAuthService service, CancellationToken ct) =>
         {
             await service.ForgotPasswordAsync(request, ct);

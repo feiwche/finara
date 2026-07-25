@@ -161,9 +161,19 @@ h1, h2, h3 {
   gap: 0.75rem;
   padding-right: 0.5rem;
 
-  span {
+  a, span {
     color: rgba(255, 255, 255, 0.75);
     font-size: 0.9rem;
+    text-decoration: none;
+
+    &:hover {
+      color: #ffffff;
+    }
+
+    &.active {
+      color: var(--p-amber-300, #EACC9E);
+      font-weight: 600;
+    }
   }
 
   .p-button {

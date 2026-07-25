@@ -1,0 +1,31 @@
+<h1>Hesabım</h1>
+
+<div class="grid">
+  <p-card header="Hesap Bilgileri" styleClass="panel">
+    <p><strong>E-posta:</strong> {{ authService.email() }}</p>
+    <p><strong>Rol:</strong> {{ roleLabel() }}</p>
+  </p-card>
+
+  <p-card header="Oturum Güvenliği" styleClass="panel">
+    <p>Bu cihazdaki oturumu kapatıp giriş ekranına dönebilirsiniz.</p>
+    <p-button
+      label="Bu Cihazdan Çıkış Yap"
+      icon="pi pi-sign-out"
+      severity="secondary"
+      [loading]="logoutBusy()"
+      (onClick)="logoutThisDevice()"
+    />
+
+    <p style="margin-top: 1.5rem;">
+      Şüpheli bir giriş fark ettiyseniz veya kullanılmayan bir cihazda oturumunuz açık kaldıysa, bu hesapla giriş
+      yapılmış tüm oturumları tek seferde sonlandırabilirsiniz.
+    </p>
+    <p-button
+      label="Tüm Cihazlardan Çıkış Yap"
+      icon="pi pi-sign-out"
+      severity="danger"
+      [loading]="logoutAllBusy()"
+      (onClick)="confirmLogoutAllDevices()"
+    />
+  </p-card>
+</div>

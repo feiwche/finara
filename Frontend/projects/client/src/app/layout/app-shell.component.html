@@ -9,7 +9,7 @@
   </ng-template>
   <ng-template #end>
     <div class="app-shell-user">
-      <span>{{ authService.email() }}</span>
+      <a routerLink="/hesabim" routerLinkActive="active"><i class="pi pi-user"></i> {{ authService.email() }}</a>
       <p-button
         [icon]="themeService.isDark() ? 'pi pi-sun' : 'pi pi-moon'"
         severity="secondary"
