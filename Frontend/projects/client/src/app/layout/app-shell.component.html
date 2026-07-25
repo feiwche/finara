@@ -9,15 +9,14 @@
   </ng-template>
   <ng-template #end>
     <div class="app-shell-user">
-      <a routerLink="/hesabim" routerLinkActive="active"><i class="pi pi-user"></i> {{ authService.email() }}</a>
       <p-button
-        [icon]="themeService.isDark() ? 'pi pi-sun' : 'pi pi-moon'"
+        [label]="authService.email() ?? ''"
+        icon="pi pi-user"
         severity="secondary"
         text
-        [attr.aria-label]="themeService.isDark() ? 'Açık moda geç' : 'Karanlık moda geç'"
-        (onClick)="themeService.toggle()"
+        (onClick)="userMenu.toggle($event)"
       />
-      <p-button icon="pi pi-sign-out" severity="secondary" text label="Çıkış" (onClick)="logout()" />
+      <p-menu #userMenu [model]="userMenuItems" [popup]="true" />
     </div>
   </ng-template>
 </p-menubar>
