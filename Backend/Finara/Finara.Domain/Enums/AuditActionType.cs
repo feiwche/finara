@@ -26,5 +26,9 @@ public enum AuditActionType
     // Davetle-kayıt akışı (register'ın auth'suz halinin kapatılmasıyla eklendi).
     AdminInvited,
     AdminInvitationAccepted,
-    AdminInvitationRevoked
+    AdminInvitationRevoked,
+    // Bir yöneticinin başka bir kullanıcının oturumlarını uzaktan sonlandırması —
+    // hesabı tamamen pasifleştirmekten (AdminDeactivated) daha ölçülü bir ara adım
+    // (ör. şüpheli bir oturum fark edildiğinde, hesabı kapatmadan önce).
+    AdminSessionsRevoked
 }

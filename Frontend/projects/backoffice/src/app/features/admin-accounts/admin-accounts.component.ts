@@ -43,6 +43,7 @@ export class AdminAccountsComponent implements OnInit {
   protected banks = signal<BankSummary[]>([]);
   protected loading = signal(false);
   protected busyId = signal<string | null>(null);
+  protected sessionRevokeBusyId = signal<string | null>(null);
 
   protected readonly activeCount = computed(() => this.admins().filter(a => a.isActive).length);
   protected readonly inactiveCount = computed(() => this.admins().filter(a => !a.isActive).length);
@@ -172,6 +173,29 @@ export class AdminAccountsComponent implements OnInit {
       this.messageService.add({ severity: 'error', summary: 'İşlem başarısız', detail: describeApiError(err) });
     } finally {
       this.busyId.set(null);
+    }
+  }
+
+  confirmRevokeSessions(admin: AdminUserSummary): void {
+    this.confirmationService.confirm({
+      header: 'Kullanıcının oturumlarını sonlandır',
+      message: `"${admin.email}" hesabıyla giriş yapılmış tüm cihazlar/tarayıcılar oturumdan çıkarılacak. Hesap aktif kalır, sadece yeniden giriş yapması gerekecek. Devam edilsin mi?`,
+      icon: 'pi pi-sign-out',
+      acceptLabel: 'Oturumları Sonlandır',
+      rejectLabel: 'Vazgeç',
+      accept: () => this.revokeSessions(admin)
+    });
+  }
+
+  private async revokeSessions(admin: AdminUserSummary): Promise<void> {
+    this.sessionRevokeBusyId.set(admin.id ?? null);
+    try {
+      await firstValueFrom(this.client.revokeSessions(admin.id!));
+      this.messageService.add({ severity: 'success', summary: 'Oturumlar sonlandırıldı', detail: admin.email });
+    } catch (err) {
+      this.messageService.add({ severity: 'error', summary: 'İşlem başarısız', detail: describeApiError(err) });
+    } finally {
+      this.sessionRevokeBusyId.set(null);
     }
   }
 

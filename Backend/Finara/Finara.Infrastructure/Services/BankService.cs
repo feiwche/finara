@@ -23,6 +23,16 @@ public class BankService(FinaraDbContext dbContext, ICurrentUserContext currentU
         return banks.Select(ToSummary).ToList();
     }
 
+    public async Task<BankSummary?> GetMyBankAsync(CancellationToken cancellationToken = default)
+    {
+        if (currentUser.BankId is null)
+            return null;
+
+        var bank = await dbContext.Banks.AsNoTracking()
+            .FirstOrDefaultAsync(b => b.Id == currentUser.BankId, cancellationToken);
+        return bank is null ? null : ToSummary(bank);
+    }
+
     public async Task<BankSummary> CreateBankAsync(CreateBankRequest request, CancellationToken cancellationToken = default)
     {
         if (!currentUser.IsSuperAdmin)

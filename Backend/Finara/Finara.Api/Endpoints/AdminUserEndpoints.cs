@@ -44,6 +44,21 @@ public static class AdminUserEndpoints
         .ProducesProblem(StatusCodes.Status404NotFound)
         .RequireAuthorization("WriteAccess");
 
+        admins.MapPost("/{userId:guid}/revoke-sessions", async (Guid userId, ClaimsPrincipal principal, IAdminUserService service, CancellationToken ct) =>
+        {
+            var currentUserIdClaim = principal.FindFirstValue(JwtRegisteredClaimNames.Sub)
+                ?? principal.FindFirstValue(ClaimTypes.NameIdentifier);
+            var currentUserId = Guid.Parse(currentUserIdClaim!);
+            var summary = await service.RevokeSessionsAsync(userId, currentUserId, ct);
+            return summary is null
+                ? Results.Problem(statusCode: StatusCodes.Status404NotFound, title: "Kullanıcı bulunamadı",
+                    detail: $"'{userId}' kimlikli kullanıcı bulunamadı.")
+                : Results.Ok(summary);
+        })
+        .Produces<AdminUserSummary>()
+        .ProducesProblem(StatusCodes.Status404NotFound)
+        .RequireAuthorization("WriteAccess");
+
         var invitations = app.MapGroup("/api/admin-invitations").WithTags("AdminInvitations")
             .RequireRateLimiting(RateLimitPolicies.Global)
             .RequireAuthorization();

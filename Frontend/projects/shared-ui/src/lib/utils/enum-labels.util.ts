@@ -60,7 +60,8 @@ const AUDIT_ACTION_TYPE_LABELS: Record<string, string> = {
   CustomerErased: 'Müşteri Verisi Anonimleştirildi (KVKK)',
   AdminInvited: 'Yönetici Daveti Gönderildi',
   AdminInvitationAccepted: 'Yönetici Daveti Kabul Edildi',
-  AdminInvitationRevoked: 'Yönetici Daveti İptal Edildi'
+  AdminInvitationRevoked: 'Yönetici Daveti İptal Edildi',
+  AdminSessionsRevoked: 'Yönetici Oturumları Sonlandırıldı'
 };
 
 const CONSENT_CHANNEL_LABELS: Record<string, string> = {

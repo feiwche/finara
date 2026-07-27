@@ -18,6 +18,7 @@ public class AdminUserService(
     IAuditLogRepository auditLogRepository,
     IAdminEmailSender emailSender,
     IConfiguration configuration,
+    IAuthService authService,
     ILogger<AdminUserService> logger)
     : IAdminUserService
 {
@@ -106,6 +107,25 @@ public class AdminUserService(
 
         await auditLogRepository.InsertAsync(
             AuditLog.Create(user.BankId ?? DefaultBank.Id, null, AuditActionType.AdminDeactivated, user.Email, currentUserId),
+            cancellationToken);
+
+        return ToSummary(user);
+    }
+
+    public async Task<AdminUserSummary?> RevokeSessionsAsync(Guid userId, Guid currentUserId, CancellationToken cancellationToken = default)
+    {
+        var user = await dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+        // DeactivateAdminAsync'teki aynı bilgi-sızdırmama deseni.
+        if (user is null || (!currentUser.IsSuperAdmin && user.BankId != currentUser.BankId))
+            return null;
+
+        // Token iptal mantığını tekrar yazmak yerine self-servis akışta zaten var olan
+        // AuthService.RevokeAllAsync yeniden kullanılıyor — demo hesabı muhafazası
+        // (DemoAccount.Id kontrolü) da otomatik olarak buradan miras alınıyor.
+        await authService.RevokeAllAsync(userId, cancellationToken);
+
+        await auditLogRepository.InsertAsync(
+            AuditLog.Create(user.BankId ?? DefaultBank.Id, null, AuditActionType.AdminSessionsRevoked, user.Email, currentUserId),
             cancellationToken);
 
         return ToSummary(user);

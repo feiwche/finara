@@ -61,17 +61,28 @@
       <td>{{ admin.createdAtUtc | date: 'yyyy-MM-dd' }}</td>
       <td>
         @if (admin.isActive && !isSelf(admin) && authService.canWrite()) {
-          <p-button
-            label="Pasifleştir"
-            icon="pi pi-user-minus"
-            size="small"
-            severity="danger"
-            [outlined]="true"
-            [loading]="busyId() === admin.id"
-            (onClick)="confirmDeactivate(admin)"
-          />
+          <div class="row-actions">
+            <p-button
+              label="Oturumları Sonlandır"
+              icon="pi pi-sign-out"
+              size="small"
+              severity="secondary"
+              [outlined]="true"
+              [loading]="sessionRevokeBusyId() === admin.id"
+              (onClick)="confirmRevokeSessions(admin)"
+            />
+            <p-button
+              label="Pasifleştir"
+              icon="pi pi-user-minus"
+              size="small"
+              severity="danger"
+              [outlined]="true"
+              [loading]="busyId() === admin.id"
+              (onClick)="confirmDeactivate(admin)"
+            />
+          </div>
         }
-        @if (!admin.isActive || !authService.canWrite()) {
+        @if (!admin.isActive || isSelf(admin) || !authService.canWrite()) {
           <span class="muted-text">—</span>
         }
       </td>

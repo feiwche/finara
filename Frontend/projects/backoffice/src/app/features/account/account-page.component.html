@@ -10,6 +10,18 @@
     <p><strong>Rol:</strong> {{ roleLabel() }}</p>
   </p-card>
 
+  @if (bank(); as b) {
+    <p-card styleClass="panel account-card">
+      <div class="account-card-head">
+        <span class="account-icon-chip"><i class="pi pi-building"></i></span>
+        <span class="account-card-title">Banka Profilim</span>
+      </div>
+      <p><strong>Banka Adı:</strong> {{ b.name }}</p>
+      <p><strong>Banka Kodu:</strong> {{ b.code }}</p>
+      <p><strong>Veri Sağlayıcı:</strong> {{ bankDataProviderTypeLabel(b.dataProviderType ?? '') }}</p>
+    </p-card>
+  }
+
   <p-card styleClass="panel account-card">
     <div class="account-card-head">
       <span class="account-icon-chip account-icon-chip--danger"><i class="pi pi-shield"></i></span>

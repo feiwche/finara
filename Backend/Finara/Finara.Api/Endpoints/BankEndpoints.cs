@@ -16,6 +16,22 @@ public static class BankEndpoints
             Results.Ok(await service.GetBanksAsync(ct)))
             .Produces<IReadOnlyList<BankSummary>>();
 
+        // "/mine" — GetBanksAsync'in aksine SuperAdmin kısıtlaması yok, sade
+        // RequireAuthorization() yeterli (BankAdmin/Analyst kendi bankasını görebilir).
+        // Route sırası önemli: "/mine" içeren istek "/{id:guid}" ile karışmasın diye
+        // spesifik segment önce tanımlanmalı — ama burada zaten farklı bir HTTP metodu/
+        // segment olduğu için (banks/mine vs banks/{id}/deactivate) çakışma yok.
+        banks.MapGet("/mine", async (IBankService service, CancellationToken ct) =>
+        {
+            var summary = await service.GetMyBankAsync(ct);
+            return summary is null
+                ? Results.Problem(statusCode: StatusCodes.Status404NotFound, title: "Banka bulunamadı",
+                    detail: "Hesabınıza bağlı bir banka bulunamadı.")
+                : Results.Ok(summary);
+        })
+        .Produces<BankSummary>()
+        .ProducesProblem(StatusCodes.Status404NotFound);
+
         banks.MapPost("/", async (CreateBankRequest request, IBankService service, CancellationToken ct) =>
         {
             var summary = await service.CreateBankAsync(request, ct);

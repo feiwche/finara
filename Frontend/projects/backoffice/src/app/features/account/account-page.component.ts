@@ -8,7 +8,9 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { ConfirmationService, MessageService } from 'primeng/api';
 
-import { AuthService, RealtimeService, TwoFactorSetupResult, describeApiError, userRoleLabel } from '@finara/shared-ui';
+import { firstValueFrom } from 'rxjs';
+
+import { AuthService, BankSummary, Client, RealtimeService, TwoFactorSetupResult, bankDataProviderTypeLabel, describeApiError, userRoleLabel } from '@finara/shared-ui';
 
 @Component({
     selector: 'app-account-page',
@@ -20,12 +22,18 @@ export class AccountPageComponent implements OnInit {
   private readonly realtimeService = inject(RealtimeService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
+  private readonly client = inject(Client);
   protected readonly authService = inject(AuthService);
 
   protected readonly roleLabel = computed(() => {
     const role = this.authService.role();
     return role ? userRoleLabel(role) : '';
   });
+
+  // SuperAdmin'in bağlı bir bankası olmadığı için /banks/mine 404 döner — bu beklenen,
+  // hataya değer bir durum değil, kart sessizce gösterilmez (bkz. ngOnInit).
+  protected bank = signal<BankSummary | null>(null);
+  protected readonly bankDataProviderTypeLabel = bankDataProviderTypeLabel;
 
   protected logoutAllBusy = signal(false);
 
@@ -40,6 +48,13 @@ export class AccountPageComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     const me = await this.authService.fetchCurrentUser();
     this.twoFactorEnabled.set(me.twoFactorEnabled ?? false);
+
+    try {
+      this.bank.set(await firstValueFrom(this.client.mine()));
+    } catch {
+      // 404 = hesabın bağlı bir bankası yok (SuperAdmin) — kart zaten gösterilmeyecek.
+      this.bank.set(null);
+    }
   }
 
   confirmLogoutAllDevices(): void {

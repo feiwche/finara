@@ -1086,6 +1086,14 @@ h1, h2, h3 {
   margin-bottom: 0.75rem;
 }
 
+// Bir tablo satırında birden fazla eylem butonu yan yana dururken (ör. Yönetici
+// Hesapları'ndaki "Oturumları Sonlandır" + "Pasifleştir") aralarında tutarlı boşluk.
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .account-icon-chip {
   display: flex;
   align-items: center;
