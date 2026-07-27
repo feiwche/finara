@@ -1,6 +1,7 @@
 using System.Text;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.RateLimiting;
 using Finara.Api.Endpoints;
 using Finara.Api.ExceptionHandling;
@@ -19,14 +20,41 @@ using Microsoft.Extensions.AI;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Polly;
+using Polly.Extensions.Http;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Garanti/Ollama gibi gerçek dış HTTP bağımlılıklarının GEÇİCİ (transient) hatalarında
+// (5xx, 408, ağ kopması) 3 kez üstel geri çekilmeyle yeniden denenir; devrede kalan bir
+// hata art arda 5 kez tekrarlanırsa devre kesici (circuit breaker) 30 saniye boyunca
+// isteği hiç denemeden hızlıca başarısız sayar — çökmüş bir dış servise karşı sürekli
+// bekleyerek kaynak tüketmemek için. SMTP/Twilio bu HttpClient tabanlı politikayı
+// KULLANAMIYOR (kendi SDK'ları IHttpClientFactory üzerinden çalışmıyor) — onlar için
+// aynı zamanlamayı tekrar eden düz Polly policy'leri Finara.Infrastructure/Resilience'ta.
+static IAsyncPolicy<HttpResponseMessage> BuildHttpRetryPolicy() =>
+    HttpPolicyExtensions
+        .HandleTransientHttpError()
+        .WaitAndRetryAsync(3, attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt)));
+
+static IAsyncPolicy<HttpResponseMessage> BuildHttpCircuitBreakerPolicy() =>
+    HttpPolicyExtensions
+        .HandleTransientHttpError()
+        .CircuitBreakerAsync(5, TimeSpan.FromSeconds(30));
 
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 builder.Services.AddDbContext<FinaraDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Liveness (/health/live): sürecin ayakta olup olmadığını kontrol eder, hiçbir dış
+// bağımlılığa bakmaz. Readiness (/health/ready): trafiğe hazır olup olmadığını,
+// yani DB bağlantısının kurulabildiğini kontrol eder — "ready" tag'iyle işaretlenen
+// kontroller ikinci uçta, hiçbiri birincisinde çalışır (orkestrasyon araçlarının
+// standart liveness/readiness ayrımı).
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<FinaraDbContext>("database", tags: ["ready"]);
 
 // Varsayılan anahtar deposu tek-makine bazlı (%LOCALAPPDATA%/~/.aspnet altında) — çoklu-instance
 // veya container'ın her yeniden dağıtımda anahtarları kaybettiği bir senaryoda 2FA sırları
@@ -66,7 +94,9 @@ builder.Services.AddScoped<IBankDataProviderFactory, BankDataProviderFactory>();
 // bağlanan gerçek banka entegrasyonu — GarantiTokenProvider token'ı önbelleğe aldığı
 // için Singleton, "Garanti" adlı named HttpClient üzerinden IHttpClientFactory ile
 // paylaşılıyor (bkz. GarantiTokenProvider XML yorumu).
-builder.Services.AddHttpClient("Garanti");
+builder.Services.AddHttpClient("Garanti")
+    .AddPolicyHandler(BuildHttpRetryPolicy())
+    .AddPolicyHandler(BuildHttpCircuitBreakerPolicy());
 builder.Services.Configure<GarantiApiOptions>(builder.Configuration.GetSection("Garanti"));
 builder.Services.AddSingleton<IGarantiTokenProvider, GarantiTokenProvider>();
 builder.Services.AddKeyedScoped<IBankDataProvider, GarantiBankDataProvider>(Finara.Domain.Enums.BankDataProviderType.GarantiSandbox);
@@ -128,12 +158,17 @@ builder.Services.AddScoped<INextBestOfferService, NextBestOfferService>();
 // kaydediliyor, AiChatService ve AiInsightService bunu paylaşıyor — öncesinde
 // AiInsightService her çağrıda kendi client'ını oluşturup hiç Dispose etmiyordu
 // (denetimde bulunan kaynak sızıntısı).
+builder.Services.AddHttpClient("Ollama")
+    .AddPolicyHandler(BuildHttpRetryPolicy())
+    .AddPolicyHandler(BuildHttpCircuitBreakerPolicy());
+
 builder.Services.AddSingleton<IChatClient>(sp =>
 {
     var config = sp.GetRequiredService<IConfiguration>();
     var baseUrl = config["Ollama:BaseUrl"] ?? "http://localhost:11434";
     var model = config["Ollama:Model"] ?? "llama3.1:8b";
-    return new OllamaChatClient(new Uri(baseUrl), model)
+    var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient("Ollama");
+    return new OllamaChatClient(new Uri(baseUrl), model, httpClient)
         .AsBuilder()
         .UseFunctionInvocation()
         .Build();
@@ -342,6 +377,17 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapGet("/", () => "Hello World!");
+
+// Predicate = _ => false: hiçbir kayıtlı kontrolü çalıştırmaz, sadece HTTP host'un
+// isteklere yanıt verebildiğini doğrular (klasik liveness probe).
+app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
+// Sadece "ready" etiketli kontrolleri (şu an: DB) çalıştırır — DB'ye erişemiyorsa
+// 503 döner, orkestrasyon/monitoring bu instance'a trafik göndermemesi gerektiğini anlar.
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready")
+});
+
 app.MapAuthEndpoints();
 app.MapCustomerEndpoints();
 app.MapCampaignEndpoints();

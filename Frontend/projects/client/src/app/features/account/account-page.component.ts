@@ -27,7 +27,6 @@ export class AccountPageComponent implements OnInit {
     return role ? userRoleLabel(role) : '';
   });
 
-  protected logoutBusy = signal(false);
   protected logoutAllBusy = signal(false);
 
   protected twoFactorEnabled = signal(false);
@@ -41,18 +40,6 @@ export class AccountPageComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     const me = await this.authService.fetchCurrentUser();
     this.twoFactorEnabled.set(me.twoFactorEnabled ?? false);
-  }
-
-  async logoutThisDevice(): Promise<void> {
-    this.logoutBusy.set(true);
-    try {
-      await this.realtimeService.disconnect();
-      await this.authService.logout();
-      await this.router.navigate(['/login']);
-    } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'İşlem başarısız', detail: describeApiError(err) });
-      this.logoutBusy.set(false);
-    }
   }
 
   confirmLogoutAllDevices(): void {

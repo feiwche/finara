@@ -3,8 +3,10 @@ using Finara.Application.Interfaces;
 using Finara.Domain.Entities;
 using Finara.Domain.Enums;
 using Finara.Infrastructure.Persistence;
+using Finara.Infrastructure.Resilience;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Polly;
 using Twilio.Rest.Api.V2010.Account;
 using Twilio.Types;
 
@@ -17,6 +19,10 @@ namespace Finara.Infrastructure.Services;
 public class TwilioSmsDispatcher(FinaraDbContext dbContext, IConsentGate consentGate, IOptions<TwilioOptions> options) : INotificationDispatcher
 {
     private readonly TwilioOptions _options = options.Value;
+
+    private static readonly IAsyncPolicy RetryPolicy = Policy
+        .Handle<Exception>(ex => ex.GetType().Namespace?.StartsWith("Twilio") == true)
+        .WaitAndRetryAsync(TransientRetry.Delays);
 
     public ConsentChannel Channel => ConsentChannel.Sms;
 
@@ -48,10 +54,10 @@ public class TwilioSmsDispatcher(FinaraDbContext dbContext, IConsentGate consent
 
         try
         {
-            await MessageResource.CreateAsync(
+            await RetryPolicy.ExecuteAsync(() => MessageResource.CreateAsync(
                 body: message,
                 from: new PhoneNumber(_options.FromNumber),
-                to: new PhoneNumber(phoneNumber));
+                to: new PhoneNumber(phoneNumber)));
 
             return new NotificationDispatchResult(true, null);
         }

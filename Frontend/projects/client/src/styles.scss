@@ -227,6 +227,46 @@ h1, h2, h3 {
   gap: 4px;
 }
 
+// Hesabım sayfasının bölüm başlıkları — customer-list'teki .stat-chip-icon ile aynı
+// "dairesel ikon + birincil renk" dili, ayrı bir sayfaya özel varyant olarak (KPI
+// verisi değil, sadece bölüm başlığı olduğu için .stat-chip'in kendisi uygun değil).
+.account-card {
+  box-shadow: 0 1px 2px 0 rgba(8, 30, 25, 0.04), 0 10px 24px -14px rgba(8, 30, 25, 0.18);
+}
+
+.account-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 0.75rem;
+}
+
+.account-icon-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--p-primary-50, #EEF7F4);
+  color: var(--p-primary-600, #1B6553);
+
+  i {
+    font-size: 1rem;
+  }
+}
+
+.account-icon-chip--danger {
+  background: var(--p-red-50, #FDF0EF);
+  color: var(--p-red-600, #A6474A);
+}
+
+.account-card-title {
+  font-weight: 650;
+  font-size: 1.05rem;
+}
+
 // Giriş/şifre akışlarının ortak "vitrin" iskeleti — backoffice styles.scss'teki
 // aynı bloğun birebir kopyası (bkz. o dosyadaki yorum), iki app aynı marka vitrinini
 // paylaşıyor, sadece component şablonlarındaki metin/rozet farklı.

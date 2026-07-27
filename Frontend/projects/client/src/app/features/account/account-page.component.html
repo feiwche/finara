@@ -1,24 +1,24 @@
 <h1>Hesabım</h1>
 
-<div class="grid">
-  <p-card header="Hesap Bilgileri" styleClass="panel">
+<div class="grid account-grid">
+  <p-card styleClass="panel account-card">
+    <div class="account-card-head">
+      <span class="account-icon-chip"><i class="pi pi-user"></i></span>
+      <span class="account-card-title">Hesap Bilgileri</span>
+    </div>
     <p><strong>E-posta:</strong> {{ authService.email() }}</p>
     <p><strong>Rol:</strong> {{ roleLabel() }}</p>
   </p-card>
 
-  <p-card header="Oturum Güvenliği" styleClass="panel">
-    <p>Bu cihazdaki oturumu kapatıp giriş ekranına dönebilirsiniz.</p>
-    <p-button
-      label="Bu Cihazdan Çıkış Yap"
-      icon="pi pi-sign-out"
-      severity="secondary"
-      [loading]="logoutBusy()"
-      (onClick)="logoutThisDevice()"
-    />
-
-    <p style="margin-top: 1.5rem;">
+  <p-card styleClass="panel account-card">
+    <div class="account-card-head">
+      <span class="account-icon-chip account-icon-chip--danger"><i class="pi pi-shield"></i></span>
+      <span class="account-card-title">Oturum Güvenliği</span>
+    </div>
+    <p>
       Şüpheli bir giriş fark ettiyseniz veya kullanılmayan bir cihazda oturumunuz açık kaldıysa, bu hesapla giriş
-      yapılmış tüm oturumları tek seferde sonlandırabilirsiniz.
+      yapılmış tüm oturumları tek seferde sonlandırabilirsiniz. Bu cihazdaki oturumunuzu kapatmak için sağ üstteki
+      menüden "Çıkış"ı kullanabilirsiniz.
     </p>
     <p-button
       label="Tüm Cihazlardan Çıkış Yap"
@@ -29,7 +29,11 @@
     />
   </p-card>
 
-  <p-card header="İki Faktörlü Doğrulama" styleClass="panel">
+  <p-card styleClass="panel account-card">
+    <div class="account-card-head">
+      <span class="account-icon-chip"><i class="pi pi-lock"></i></span>
+      <span class="account-card-title">İki Faktörlü Doğrulama</span>
+    </div>
     @if (twoFactorError()) {
       <p-message severity="error" [text]="twoFactorError()!" />
     }

@@ -5,8 +5,10 @@ using Finara.Application.Interfaces;
 using Finara.Domain.Entities;
 using Finara.Domain.Enums;
 using Finara.Infrastructure.Persistence;
+using Finara.Infrastructure.Resilience;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Polly;
 
 namespace Finara.Infrastructure.Services;
 
@@ -54,8 +56,11 @@ public class SmtpEmailDispatcher(FinaraDbContext dbContext, IConsentGate consent
                 EnableSsl = _options.EnableSsl
             };
             using var mail = new MailMessage(_options.FromAddress, email, "Finara — Kampanya Teklifi", message);
+            mail.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(
+                EmailTemplates.Wrap($"<p>{System.Net.WebUtility.HtmlEncode(message)}</p>"), null, "text/html"));
 
-            await client.SendMailAsync(mail, cancellationToken);
+            var retryPolicy = Policy.Handle<SmtpException>().WaitAndRetryAsync(TransientRetry.Delays);
+            await retryPolicy.ExecuteAsync(ct => client.SendMailAsync(mail, ct), cancellationToken);
             return new NotificationDispatchResult(true, null);
         }
         catch (Exception ex) when (ex is SmtpException or InvalidOperationException)
