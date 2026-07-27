@@ -75,9 +75,14 @@ builder.Services.AddHealthChecks()
 
 // Varsayılan anahtar deposu tek-makine bazlı (%LOCALAPPDATA%/~/.aspnet altında) — çoklu-instance
 // veya container'ın her yeniden dağıtımda anahtarları kaybettiği bir senaryoda 2FA sırları
-// çözülemez hale gelir (kullanıcılar yeniden kurulum yapmak zorunda kalır). Tek-instance güncel
-// dağıtım için kabul edilebilir; paylaşımlı anahtar halkası (ör. DB/Blob) ertelenen bir
-// sertleştirme maddesi (bkz. @angular/ssr CVE notuyla aynı desen).
+// çözülemez hale gelir. Bu turda PersistKeysToFileSystem/PersistKeysToDbContext ile paylaşımlı
+// bir depoya geçirilmeye çalışıldı ama bu ortamda (net8.0 Web SDK + Microsoft.AspNetCore.App.Ref
+// 8.0.29) IDataProtectionBuilder'ın NuGet'ten gelen genişletme metotlarıyla (hem
+// .Extensions hem .EntityFrameworkCore paketleri) CS1061 ile çözülemeyen, muhtemelen
+// FrameworkReference/PackageReference tip kimliği çakışmasından kaynaklanan garip bir
+// derleme sorunu bulundu — birden fazla paket/kombinasyon denendi, kökü bu oturumda
+// çözülemedi. Bilinçli olarak ertelendi (bkz. PRODUCTION.md), tek-instance güncel dağıtım
+// için mevcut hâliyle kabul edilebilir.
 builder.Services.AddDataProtection();
 
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
