@@ -582,8 +582,13 @@ h1, h2, h3 {
   border-radius: var(--p-content-border-radius, 12px);
   border-left: 4px solid;
 
+  // Pozitif/negatif ayrımı artık zeminde DEĞİL (ikisi de aynı, temaya göre uyarlanan
+  // --p-surface-100 üzerinde) — sadece kenar çizgisi + skor rengiyle yapılıyor. Önceki
+  // sürümde pozitif kutu --p-primary-50 (karanlık modda da hep AÇIK yeşil kalan, temaya
+  // uyarlanmayan bir marka rengi) kullanıyordu; bu hem karanlık modda göz yoran parlak bir
+  // kutuya hem de üç karttan ikisinin üçüncüsünden (Zeynep) görsel olarak kopmasına yol açıyordu.
   &--positive {
-    background: var(--p-primary-50, #EEF7F4);
+    background: var(--p-surface-100, #ECF0EE);
     border-left-color: var(--p-primary-500, #227E67);
   }
 
@@ -599,12 +604,11 @@ h1, h2, h3 {
   font-weight: 700;
   flex-shrink: 0;
   min-width: 72px;
-  // Rengi açıkça set etmezsek sayfanın karanlık moddaki (açık renkli) varsayılan
-  // metin rengini miras alıyor — ama bu kutunun zemini (--p-primary-50) her iki
-  // modda da AÇIK yeşil kalıyor (marka rengi karanlık modda ters çevrilmiyor,
-  // sadece surface token'ları çevriliyor) — bu da karanlık modda neredeyse
-  // okunamayan, düşük kontrastlı bir sayı ile sonuçlanıyordu.
-  color: var(--p-primary-700, #175243);
+  // --p-primary-color, tema önceden tanımlı bir semantik alias — açık modda koyu,
+  // karanlık modda otomatik olarak daha açık bir pine tonuna çözümleniyor (bkz.
+  // finara-preset.ts'teki dark.primary.color), bu yüzden burada sabit bir tona
+  // (ör. primary-700) bağlı kalmak yerine bilerek bu alias kullanılıyor.
+  color: var(--p-primary-color, #227E67);
 }
 
 .scenario-outcome--negative .scenario-outcome-score {
