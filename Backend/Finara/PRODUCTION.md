@@ -34,6 +34,29 @@ Proje şu an tek-instance (tek sunucu/container) varsayımıyla çalışıyor. B
 1. **Hız sınırlama (rate limiting) bellek-içi** — `Program.cs`'teki `AddRateLimiter` yapılandırması `FixedWindowRateLimiter` kullanıyor, sayaçlar her instance'ın kendi belleğinde tutuluyor. İki instance arkasına bir load balancer konursa, gerçek limit (ör. dakikada 100) instance sayısına bölünmüş gibi davranır — kullanıcı fark etmeden daha erken 429 alabilir ya da (round-robin dağılıma göre) daha gevşek bir limitle karşılaşabilir. Gerçek bir çözüm dağıtık bir sayaç deposu (ör. Redis) gerektirir — bu, yeni bir altyapı bağımlılığı eklemek anlamına geldiği için bilinçli olarak ertelendi.
 2. **Data Protection anahtar deposu tek-makine bazlı** — 2FA sırlarını şifreleyen anahtar halkası varsayılan olarak `%LOCALAPPDATA%/~/.aspnet` altında, sadece o makinede duruyor. Bir container yeniden dağıtılırsa ya da ikinci bir instance açılırsa, o instance'ın ürettiği/okuduğu şifreli 2FA sırları diğer instance'larla eşleşmez. Bu turda `PersistKeysToFileSystem`/`PersistKeysToDbContext` ile paylaşımlı bir depoya geçirilmeye çalışıldı ama net8.0 Web SDK + `Microsoft.AspNetCore.App.Ref 8.0.29` kombinasyonunda `IDataProtectionBuilder`'ın bu genişletme metotlarıyla CS1061 hatasıyla çözülemediği bulundu (muhtemelen FrameworkReference/PackageReference tip kimliği çakışması) — kökü bu oturumda bulunamadı, geri alındı. **Sıradaki adım:** ya bu derleme sorununu ayrı bir oturumda araştırıp çözmek, ya da doğrudan `ProtectKeysWithCertificate` + paylaşımlı bir volume ile ilerlemek.
 
+## Veritabanı yedekleme ve felaket kurtarma
+
+Veri, Docker'da adlandırılmış bir volume'de tutuluyor (`docker/docker-compose.yml` → `finara-mssql-data`). Bu volume container'lar arasında kalıcıdır ama tek makineye bağlıdır — o makine/disk kaybedilirse veri de kaybedilir. Bu yüzden ayrı, taşınabilir bir yedekleme mekanizması gerekli.
+
+**Araçlar:** `docker/backup-db.ps1` ve `docker/restore-db.ps1`.
+
+- `backup-db.ps1`: konteyner içinde `sqlcmd` ile SQL Server'ın kendi `BACKUP DATABASE` komutunu çalıştırır (canlı, bağlantıları kesmeden alınan bir "hot backup"; docker-compose'daki `MSSQL_PID=Express` sıkıştırmayı desteklemediği için `WITH COMPRESSION` kullanılmadı), üretilen `.bak` dosyasını `docker cp` ile `docker/backups/` altına taşır ve konteynerdeki geçici kopyayı siler. `-KeepLast` parametresiyle (varsayılan 14) eski yedekleri otomatik temizler.
+- `restore-db.ps1 -BakFile <yol>`: seçilen `.bak` dosyasını konteynere kopyalar, veritabanını `SINGLE_USER` moduna alıp `WITH REPLACE` ile geri yükler. **Hedef veritabanının üzerine yazar** — bu yüzden çalıştırmadan önce bir onay bekletir.
+
+```powershell
+# Manuel yedek
+./docker/backup-db.ps1
+
+# Geri yükleme (dikkat: FinaraDb'nin üzerine yazar)
+./docker/restore-db.ps1 -BakFile ./docker/backups/FinaraDb_20260727_153000.bak
+```
+
+`docker/backups/` gerçek veri içerdiği için `.gitignore`'a eklendi — repoya hiç girmez.
+
+**Otomatik zamanlama:** Şu an script'ler manuel çalıştırılıyor. Üretimde Windows Task Scheduler (`schtasks /create /sc daily ...`) veya Linux'ta bir `cron` girdisiyle `backup-db.ps1`'in günlük çalıştırılması yeterli; ek bir yedekleme servisi/aracı (ör. Azure Backup, Velero) şu an tek bir dağıtım hedefi netleşmeden erken bir yatırım olurdu — [Neden bu kadar basit tutuldu](#neden-bu-kadar-basit-tutuldu) bölümündeki gerekçeyle aynı mantık.
+
+**Kapsam dışı (bilinçli):** Yedekler bu haliyle konteynerin bulunduğu makinede tutuluyor — coğrafi olarak ayrı bir depoya (ör. S3/Blob Storage) otomatik yükleme yapılmıyor. Gerçek bir üretim ortamında `docker/backups/` klasörünün düzenli olarak uzak bir depoya senkronize edilmesi (ör. `rclone`, `azcopy`) eklenmeli; bu adım somut bir bulut sağlayıcısı seçilene kadar ertelendi.
+
 ## Kontrol listesi (yeni bir ortama dağıtımdan önce)
 
 - [ ] Yukarıdaki tüm ortam değişkenleri, dağıtım ortamının kendi mekanizmasıyla (Docker secrets, App Service Configuration, CI/CD secret store vb.) ayarlandı — hiçbiri dosyaya yazılmadı.
