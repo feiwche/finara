@@ -1,7 +1,10 @@
 using System.Text;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Finara.Api.Persistence;
 using Microsoft.AspNetCore.RateLimiting;
 using Finara.Api.Endpoints;
 using Finara.Api.ExceptionHandling;
@@ -65,6 +68,11 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddDbContext<FinaraDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Data Protection anahtar halkasının deposu — bkz. DataProtectionKeysDbContext'teki not
+// (neden ayrı bir DbContext, neden bu proje içinde tanımlı).
+builder.Services.AddDbContext<DataProtectionKeysDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 // Liveness (/health/live): sürecin ayakta olup olmadığını kontrol eder, hiçbir dış
 // bağımlılığa bakmaz. Readiness (/health/ready): trafiğe hazır olup olmadığını,
 // yani DB bağlantısının kurulabildiğini kontrol eder — "ready" tag'iyle işaretlenen
@@ -73,17 +81,12 @@ builder.Services.AddDbContext<FinaraDbContext>(options =>
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<FinaraDbContext>("database", tags: ["ready"]);
 
-// Varsayılan anahtar deposu tek-makine bazlı (%LOCALAPPDATA%/~/.aspnet altında) — çoklu-instance
-// veya container'ın her yeniden dağıtımda anahtarları kaybettiği bir senaryoda 2FA sırları
-// çözülemez hale gelir. Bu turda PersistKeysToFileSystem/PersistKeysToDbContext ile paylaşımlı
-// bir depoya geçirilmeye çalışıldı ama bu ortamda (net8.0 Web SDK + Microsoft.AspNetCore.App.Ref
-// 8.0.29) IDataProtectionBuilder'ın NuGet'ten gelen genişletme metotlarıyla (hem
-// .Extensions hem .EntityFrameworkCore paketleri) CS1061 ile çözülemeyen, muhtemelen
-// FrameworkReference/PackageReference tip kimliği çakışmasından kaynaklanan garip bir
-// derleme sorunu bulundu — birden fazla paket/kombinasyon denendi, kökü bu oturumda
-// çözülemedi. Bilinçli olarak ertelendi (bkz. PRODUCTION.md), tek-instance güncel dağıtım
-// için mevcut hâliyle kabul edilebilir.
-builder.Services.AddDataProtection();
+// Anahtar halkası artık dosya sistemi yerine veritabanında (zaten tüm instance'lar arasında
+// paylaşılan tek kaynak) tutuluyor — bkz. DataProtectionKeysDbContext'teki not (önceki
+// oturumdaki CS1061 derleme sorununun kökü ve çözümü orada belgelendi).
+builder.Services.AddDataProtection()
+    .SetApplicationName("Finara")
+    .PersistKeysToDbContext<DataProtectionKeysDbContext>();
 
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddScoped<IReportService, ReportService>();
