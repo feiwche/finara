@@ -113,6 +113,8 @@
       <p-card header="Yeni İşlem Ekle" styleClass="panel">
         @if (customer()?.isErased) {
           <p-message severity="warn" text="Bu müşteri anonimleştirildiği için yeni işlem eklenemez." />
+        } @else if (!authService.canWrite() && authService.isDemoAccount()) {
+          <p-message severity="info" text="Demo hesaplar yeni işlem ekleyemez." />
         } @else if (!authService.canWrite()) {
           <p-message severity="info" text="Analist hesaplar yeni işlem ekleyemez." />
         } @else {
@@ -323,6 +325,8 @@
           <textarea pTextarea rows="2" [(ngModel)]="aiQuestion"></textarea>
         </div>
         <p-button label="Analiz Et" icon="pi pi-sparkles" [loading]="aiBusy()" (onClick)="runAiInsight()" />
+      } @else if (authService.isDemoAccount()) {
+        <p-message severity="info" text="Demo hesaplar AI analizi başlatamaz." />
       } @else {
         <p-message severity="info" text="Analist hesaplar AI analizi başlatamaz." />
       }

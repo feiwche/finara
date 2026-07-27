@@ -13,6 +13,8 @@
         <p-inputnumber [(ngModel)]="mockTransactionsPerCustomer" [min]="1" [max]="200" />
       </div>
       <p-button label="Üret" icon="pi pi-database" [loading]="mockBusy()" (onClick)="generateMockData()" />
+    } @else if (authService.isDemoAccount()) {
+      <p-message severity="info" text="Demo hesaplar mock veri üretemez." />
     } @else {
       <p-message severity="info" text="Analist hesaplar mock veri üretemez." />
     }
@@ -22,6 +24,8 @@
     <p>Son 90 günlük harcama penceresine göre tüm müşteriler için RFM segmentini yeniden hesaplar.</p>
     @if (authService.canWrite()) {
       <p-button label="Yeniden Hesapla" icon="pi pi-refresh" [loading]="segmentationBusy()" (onClick)="recalculateSegmentation()" />
+    } @else if (authService.isDemoAccount()) {
+      <p-message severity="info" text="Demo hesaplar segmentasyonu yeniden hesaplayamaz." />
     } @else {
       <p-message severity="info" text="Analist hesaplar segmentasyonu yeniden hesaplayamaz." />
     }

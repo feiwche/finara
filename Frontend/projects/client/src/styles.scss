@@ -230,6 +230,15 @@ h1, h2, h3 {
 // Hesabım sayfasının bölüm başlıkları — customer-list'teki .stat-chip-icon ile aynı
 // "dairesel ikon + birincil renk" dili, ayrı bir sayfaya özel varyant olarak (KPI
 // verisi değil, sadece bölüm başlığı olduğu için .stat-chip'in kendisi uygun değil).
+// Hesabım tek sütunlu bir "ayarlar sayfası" iskeleti kullanıyor — 2 sütunlu .grid'de üç
+// kart eşit dağılmayıp sağ altta boş bir hücre bırakıyordu (dağınık/dengesiz görünüm).
+.account-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 640px;
+}
+
 .account-card {
   box-shadow: 0 1px 2px 0 rgba(8, 30, 25, 0.04), 0 10px 24px -14px rgba(8, 30, 25, 0.18);
 }
