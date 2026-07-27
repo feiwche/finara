@@ -6,7 +6,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
 
-import { TabViewModule } from 'primeng/tabview';
+import { TabsModule } from 'primeng/tabs';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -78,7 +78,7 @@ const CATEGORY_ICONS: Record<string, string> = {
         DatePipe,
         NgClass,
         FormsModule,
-        TabViewModule,
+        TabsModule,
         TableModule,
         ButtonModule,
         CardModule,

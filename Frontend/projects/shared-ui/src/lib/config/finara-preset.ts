@@ -3,7 +3,12 @@ import Aura from '@primeng/themes/aura';
 
 // Finara marka kimliği — Aura'nın üzerine kurulu ince bir katman, yeni bir tema
 // kütüphanesi değil. Üç isimli palet:
-// - "pine": marka rengi, koyu bir defter-mürekkebi çam-yeşili teal (buton/link/odak halkası).
+// - "teal" (markanın kendi dilinde "pine"): marka rengi, koyu bir defter-mürekkebi
+//   çam-yeşili teal (buton/link/odak halkası). PrimeNG 20'de Primitive arayüzü artık
+//   kapalı bir tip (sadece sabit Tailwind-tarzı renk adları kabul ediyor, ör. "teal",
+//   "amber", "stone") — önceden kullanılan özel "pine" adı artık tip hatası veriyor,
+//   bu yüzden en yakın kabul edilen isme (teal) taşındı. Marka kavramı/rengi DEĞİŞMEDİ,
+//   sadece token anahtarının adı değişti.
 // - "amber": eski defter altın yaldızı — PrimeNG'in "primary" sistemine hiç bağlanmıyor,
 //   sadece KPI/vurgu anlarında elle (--p-amber-500 vb.) kullanılan ikincil bir aksan.
 // - "stone": varsayılan Aura'nın "slate" (mavi-gri) nötrü yerine, çam yeşiline hafif
@@ -18,7 +23,7 @@ export const FinaraPreset = definePreset(Aura, {
       lg: '14px',
       xl: '20px'
     },
-    pine: {
+    teal: {
       50: '#EEF7F4',
       100: '#D7ECE5',
       200: '#AEDACD',
@@ -61,17 +66,17 @@ export const FinaraPreset = definePreset(Aura, {
   },
   semantic: {
     primary: {
-      50: '{pine.50}',
-      100: '{pine.100}',
-      200: '{pine.200}',
-      300: '{pine.300}',
-      400: '{pine.400}',
-      500: '{pine.500}',
-      600: '{pine.600}',
-      700: '{pine.700}',
-      800: '{pine.800}',
-      900: '{pine.900}',
-      950: '{pine.950}'
+      50: '{teal.50}',
+      100: '{teal.100}',
+      200: '{teal.200}',
+      300: '{teal.300}',
+      400: '{teal.400}',
+      500: '{teal.500}',
+      600: '{teal.600}',
+      700: '{teal.700}',
+      800: '{teal.800}',
+      900: '{teal.900}',
+      950: '{teal.950}'
     },
     colorScheme: {
       light: {
@@ -285,7 +290,7 @@ export const FinaraPreset = definePreset(Aura, {
               // butonlar artık ışık alan, "tıklanası" bir yüzey hissi veriyor.
               background: 'linear-gradient(135deg, #2A9179 0%, #175243 100%)',
               hoverBackground: 'linear-gradient(135deg, #227E67 0%, #134338 100%)',
-              activeBackground: '{pine.800}',
+              activeBackground: '{teal.800}',
               borderColor: 'transparent',
               hoverBorderColor: 'transparent',
               activeBorderColor: 'transparent'
@@ -297,7 +302,7 @@ export const FinaraPreset = definePreset(Aura, {
             primary: {
               background: 'linear-gradient(135deg, #2A9179 0%, #175243 100%)',
               hoverBackground: 'linear-gradient(135deg, #227E67 0%, #134338 100%)',
-              activeBackground: '{pine.800}',
+              activeBackground: '{teal.800}',
               borderColor: 'transparent',
               hoverBorderColor: 'transparent',
               activeBorderColor: 'transparent'

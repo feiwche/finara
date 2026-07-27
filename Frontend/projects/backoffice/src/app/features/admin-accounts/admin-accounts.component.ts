@@ -9,7 +9,7 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { SelectModule } from 'primeng/select';
-import { TabViewModule } from 'primeng/tabview';
+import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
 import { MessageModule } from 'primeng/message';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -30,7 +30,7 @@ import {
 
 @Component({
     selector: 'app-admin-accounts',
-    imports: [DatePipe, FormsModule, TableModule, ButtonModule, DialogModule, InputTextModule, PasswordModule, SelectModule, TabViewModule, TagModule, MessageModule],
+    imports: [DatePipe, FormsModule, TableModule, ButtonModule, DialogModule, InputTextModule, PasswordModule, SelectModule, TabsModule, TagModule, MessageModule],
     templateUrl: './admin-accounts.component.html'
 })
 export class AdminAccountsComponent implements OnInit {

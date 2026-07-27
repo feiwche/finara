@@ -13,8 +13,16 @@
   </h1>
 </div>
 
-<p-tabView>
-  <p-tabPanel header="Profil">
+<p-tabs value="0">
+  <p-tablist>
+    <p-tab value="0">Profil</p-tab>
+    <p-tab value="1">İşlemler</p-tab>
+    <p-tab value="2">Teklifler</p-tab>
+    <p-tab value="3">Rıza</p-tab>
+    <p-tab value="4">AI Analiz</p-tab>
+  </p-tablist>
+  <p-tabpanels>
+  <p-tabpanel value="0">
     @if (customer(); as c) {
       @if (c.isErased) {
         <p-message
@@ -106,9 +114,9 @@
         </p>
       </p-card>
     }
-  </p-tabPanel>
+  </p-tabpanel>
 
-  <p-tabPanel header="İşlemler">
+  <p-tabpanel value="1">
     <div class="grid">
       <p-card header="Yeni İşlem Ekle" styleClass="panel">
         @if (customer()?.isErased) {
@@ -183,9 +191,9 @@
         </p-table>
       </p-card>
     </div>
-  </p-tabPanel>
+  </p-tabpanel>
 
-  <p-tabPanel header="Teklifler">
+  <p-tabpanel value="2">
     <div class="toolbar">
       <span>Bu müşteriye sunulan kampanya teklifleri</span>
       @if (authService.canWrite()) {
@@ -268,9 +276,9 @@
         </tr>
       </ng-template>
     </p-table>
-  </p-tabPanel>
+  </p-tabpanel>
 
-  <p-tabPanel header="Rıza">
+  <p-tabpanel value="3">
     <p class="consent-hint">
       KVKK/İYS gereği, bir kanaldan bildirim gönderilebilmesi için müşterinin o kanal için açık rızası olmalı.
     </p>
@@ -315,9 +323,9 @@
         </tr>
       </ng-template>
     </p-table>
-  </p-tabPanel>
+  </p-tabpanel>
 
-  <p-tabPanel header="AI Analiz">
+  <p-tabpanel value="4">
     <p-card styleClass="panel">
       @if (authService.canWrite()) {
         <div class="field">
@@ -346,5 +354,6 @@
         </div>
       }
     </p-card>
-  </p-tabPanel>
-</p-tabView>
+  </p-tabpanel>
+  </p-tabpanels>
+</p-tabs>
