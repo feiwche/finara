@@ -15,6 +15,9 @@ dist/
 npm-debug.log*
 Frontend/swagger.json
 
+# ---- Backend Serilog dosya günlükleri ----
+Backend/Finara/Finara.Api/logs/
+
 # ---- IDE ----
 .idea/
 *.swp

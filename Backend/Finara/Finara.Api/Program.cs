@@ -22,8 +22,25 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Polly;
 using Polly.Extensions.Http;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Varsayılan ILogger (sadece konsol, yapılandırılmamış) Serilog ile değiştiriliyor —
+// yapılandırılmış (structured) alanlar, dosyaya kalıcı yazma ve appsettings'teki
+// "Serilog" bölümünden log seviyesi kontrolü sağlıyor. CorrelationIdMiddleware'in
+// logger.BeginScope ile eklediği "CorrelationId" alanı, Serilog'un Microsoft.Extensions.Logging
+// köprüsü tarafından otomatik olarak bir log özelliğine (property) dönüştürülüyor —
+// ekstra bir bağlama kodu gerekmedi.
+// {CorrelationId} — CorrelationIdMiddleware'in BeginScope ile eklediği alan; istek
+// kapsamı dışındaki loglarda (ör. arka plan servisleri) bu alan yok, Serilog eksik bir
+// property'i sessizce boş render eder (hata vermez, şablon bozulmaz).
+const string logOutputTemplate = "{Timestamp:HH:mm:ss} [{Level:u3}] {CorrelationId} {Message:lj}{NewLine}{Exception}";
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .Enrich.FromLogContext()
+    .WriteTo.Console(outputTemplate: logOutputTemplate)
+    .WriteTo.File("logs/finara-.log", outputTemplate: logOutputTemplate, rollingInterval: RollingInterval.Day, retainedFileCountLimit: 14));
 
 // Garanti/Ollama gibi gerçek dış HTTP bağımlılıklarının GEÇİCİ (transient) hatalarında
 // (5xx, 408, ağ kopması) 3 kez üstel geri çekilmeyle yeniden denenir; devrede kalan bir
@@ -357,6 +374,10 @@ var app = builder.Build();
 
 app.UseExceptionHandler();
 app.UseMiddleware<CorrelationIdMiddleware>();
+// Her isteğe tek satır, yapılandırılmış bir özet log kaydı (yol, durum kodu, süre) —
+// CorrelationIdMiddleware'DEN SONRA kayıtlı olmalı ki CorrelationId scope'u içinde çalışsın
+// ve bu özet satır da CorrelationId alanını taşısın.
+app.UseSerilogRequestLogging();
 app.UseMiddleware<PayloadGuardMiddleware>();
 app.UseCors("AllowFrontendApps");
 app.UseAuthentication();

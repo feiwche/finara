@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "start-all": "concurrently \"ng serve backoffice\" \"ng serve client\"",
+    "start-all": "concurrently \"ng serve backoffice --port 4300\" \"ng serve client --port 4200\"",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test client && ng test backoffice && ng test shared-ui",
