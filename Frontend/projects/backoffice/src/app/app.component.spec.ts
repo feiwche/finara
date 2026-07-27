@@ -1,10 +1,13 @@
 import { TestBed } from '@angular/core/testing';
+import { MessageService, ConfirmationService } from 'primeng/api';
 import { AppComponent } from './app.component';
 
+// client'taki app.component.spec.ts ile aynı gerekçe — bkz. o dosyadaki yorum.
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
+      providers: [MessageService, ConfirmationService]
     }).compileComponents();
   });
 
@@ -20,10 +23,8 @@ describe('AppComponent', () => {
     expect(app.title).toEqual('backoffice');
   });
 
-  it('should render title', () => {
+  it('should render without errors', () => {
     const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, backoffice');
+    expect(() => fixture.detectChanges()).not.toThrow();
   });
 });

@@ -1,10 +1,16 @@
 import { TestBed } from '@angular/core/testing';
+import { MessageService, ConfirmationService } from 'primeng/api';
 import { AppComponent } from './app.component';
 
+// AppComponent artık ToastModule/ConfirmDialogModule kullanıyor (bkz. app.component.html:
+// <p-toast/><p-confirmdialog/><router-outlet/>, "Hello, client" başlığı yok) — bu component'ler
+// MessageService/ConfirmationService'e ihtiyaç duyuyor, TestBed'e sağlanmazsa
+// NullInjectorError fırlatıyor.
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
+      providers: [MessageService, ConfirmationService]
     }).compileComponents();
   });
 
@@ -20,10 +26,8 @@ describe('AppComponent', () => {
     expect(app.title).toEqual('client');
   });
 
-  it('should render title', () => {
+  it('should render without errors', () => {
     const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, client');
+    expect(() => fixture.detectChanges()).not.toThrow();
   });
 });

@@ -4,4 +4,5 @@
   <Project Path="Finara.Domain.Tests/Finara.Domain.Tests.csproj" />
   <Project Path="Finara.Domain/Finara.Domain.csproj" />
   <Project Path="Finara.Infrastructure/Finara.Infrastructure.csproj" />
+  <Project Path="Finara.Infrastructure.Tests/Finara.Infrastructure.Tests.csproj" />
 </Solution>
