@@ -4,9 +4,15 @@
     <nav class="app-shell-nav">
       <a routerLink="/dashboard" routerLinkActive="active"><i class="pi pi-chart-bar"></i> Genel Bakış</a>
       <a routerLink="/campaigns" routerLinkActive="active"><i class="pi pi-megaphone"></i> Kampanyalar</a>
-      <a [class.active]="isManagementActive" (click)="managementMenu.toggle($event)">
+      <button
+        type="button"
+        [class.active]="isManagementActive"
+        aria-haspopup="true"
+        [attr.aria-expanded]="!!managementMenu.visible"
+        (click)="managementMenu.toggle($event)"
+      >
         <i class="pi pi-cog"></i> Yönetim <i class="pi pi-chevron-down app-shell-nav-caret"></i>
-      </a>
+      </button>
       <p-menu #managementMenu [model]="managementMenuItems" [popup]="true" />
     </nav>
   </ng-template>

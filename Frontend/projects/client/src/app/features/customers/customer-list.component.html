@@ -88,7 +88,15 @@
     </tr>
   </ng-template>
   <ng-template pTemplate="body" let-customer>
-    <tr class="clickable-row" (click)="openDetail(customer)">
+    <tr
+      class="clickable-row"
+      tabindex="0"
+      role="button"
+      [attr.aria-label]="'Müşteri detayını aç: ' + customer.firstName + ' ' + customer.lastName"
+      (click)="openDetail(customer)"
+      (keydown.enter)="openDetail(customer)"
+      (keydown.space)="$event.preventDefault(); openDetail(customer)"
+    >
       <td>
         <div class="detail-header">
           <span class="avatar-circle">{{ initials(customer) }}</span>
@@ -126,33 +134,34 @@
 
 <p-dialog header="Yeni Müşteri" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '420px' }">
   <div class="field">
-    <label>Ad *</label>
-    <input type="text" pInputText [(ngModel)]="newCustomer.firstName" [class.field-invalid]="createSubmitted && !newCustomer.firstName" />
+    <label for="customer-firstName">Ad *</label>
+    <input id="customer-firstName" type="text" pInputText [(ngModel)]="newCustomer.firstName" [class.field-invalid]="createSubmitted && !newCustomer.firstName" />
     @if (createSubmitted && !newCustomer.firstName) {
       <small class="field-error">Ad zorunlu.</small>
     }
   </div>
   <div class="field">
-    <label>Soyad *</label>
-    <input type="text" pInputText [(ngModel)]="newCustomer.lastName" [class.field-invalid]="createSubmitted && !newCustomer.lastName" />
+    <label for="customer-lastName">Soyad *</label>
+    <input id="customer-lastName" type="text" pInputText [(ngModel)]="newCustomer.lastName" [class.field-invalid]="createSubmitted && !newCustomer.lastName" />
     @if (createSubmitted && !newCustomer.lastName) {
       <small class="field-error">Soyad zorunlu.</small>
     }
   </div>
   <div class="field">
-    <label>E-posta *</label>
-    <input type="text" pInputText [(ngModel)]="newCustomer.email" [class.field-invalid]="createSubmitted && !newCustomer.email" />
+    <label for="customer-email">E-posta *</label>
+    <input id="customer-email" type="text" pInputText [(ngModel)]="newCustomer.email" [class.field-invalid]="createSubmitted && !newCustomer.email" />
     @if (createSubmitted && !newCustomer.email) {
       <small class="field-error">E-posta zorunlu.</small>
     }
   </div>
   <div class="field">
-    <label>Telefon (SMS için, E.164 — ör. +905551234567)</label>
-    <input type="text" pInputText [(ngModel)]="newCustomer.phoneNumber" placeholder="+905551234567" />
+    <label for="customer-phone">Telefon (SMS için, E.164 — ör. +905551234567)</label>
+    <input id="customer-phone" type="text" pInputText [(ngModel)]="newCustomer.phoneNumber" placeholder="+905551234567" />
   </div>
   <div class="field">
-    <label>Doğum Tarihi *</label>
+    <label for="customer-dob">Doğum Tarihi *</label>
     <p-datepicker
+      inputId="customer-dob"
       [(ngModel)]="newCustomer.dateOfBirth"
       dateFormat="yy-mm-dd"
       [showIcon]="true"
@@ -163,8 +172,9 @@
     }
   </div>
   <div class="field">
-    <label>Eğitim Durumu</label>
+    <label for="customer-education">Eğitim Durumu</label>
     <p-select
+      inputId="customer-education"
       [(ngModel)]="newCustomer.educationLevel"
       [options]="educationLevelOptions"
       optionLabel="label"

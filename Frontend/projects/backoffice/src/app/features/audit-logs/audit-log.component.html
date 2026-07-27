@@ -13,8 +13,9 @@
 
 <div class="filter-bar">
   <div class="field">
-    <label>Aksiyon Tipi</label>
+    <label for="audit-action-type">Aksiyon Tipi</label>
     <p-select
+      inputId="audit-action-type"
       [options]="actionTypes"
       optionLabel="label"
       optionValue="value"
@@ -26,12 +27,12 @@
     />
   </div>
   <div class="field">
-    <label>Başlangıç Tarihi</label>
-    <p-datepicker [(ngModel)]="fromUtc" dateFormat="yy-mm-dd" [showIcon]="true" [showButtonBar]="true" (onSelect)="onFilterChange()" (onClearClick)="onFilterChange()" />
+    <label for="audit-from">Başlangıç Tarihi</label>
+    <p-datepicker inputId="audit-from" [(ngModel)]="fromUtc" dateFormat="yy-mm-dd" [showIcon]="true" [showButtonBar]="true" (onSelect)="onFilterChange()" (onClearClick)="onFilterChange()" />
   </div>
   <div class="field">
-    <label>Bitiş Tarihi</label>
-    <p-datepicker [(ngModel)]="toUtc" dateFormat="yy-mm-dd" [showIcon]="true" [showButtonBar]="true" (onSelect)="onFilterChange()" (onClearClick)="onFilterChange()" />
+    <label for="audit-to">Bitiş Tarihi</label>
+    <p-datepicker inputId="audit-to" [(ngModel)]="toUtc" dateFormat="yy-mm-dd" [showIcon]="true" [showButtonBar]="true" (onSelect)="onFilterChange()" (onClearClick)="onFilterChange()" />
   </div>
   <p-button label="Filtreleri Temizle" severity="secondary" [outlined]="true" size="small" (onClick)="clearFilters()" />
 </div>

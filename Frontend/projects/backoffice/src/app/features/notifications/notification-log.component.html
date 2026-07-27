@@ -5,8 +5,9 @@
 
 <div class="filter-bar">
   <div class="field">
-    <label>Kanal</label>
+    <label for="notif-channel">Kanal</label>
     <p-select
+      inputId="notif-channel"
       [options]="channels"
       optionLabel="label"
       optionValue="value"
@@ -18,12 +19,12 @@
     />
   </div>
   <div class="field">
-    <label>Başlangıç Tarihi</label>
-    <p-datepicker [(ngModel)]="fromUtc" dateFormat="yy-mm-dd" [showIcon]="true" [showButtonBar]="true" (onSelect)="loadLogs()" (onClearClick)="loadLogs()" />
+    <label for="notif-from">Başlangıç Tarihi</label>
+    <p-datepicker inputId="notif-from" [(ngModel)]="fromUtc" dateFormat="yy-mm-dd" [showIcon]="true" [showButtonBar]="true" (onSelect)="loadLogs()" (onClearClick)="loadLogs()" />
   </div>
   <div class="field">
-    <label>Bitiş Tarihi</label>
-    <p-datepicker [(ngModel)]="toUtc" dateFormat="yy-mm-dd" [showIcon]="true" [showButtonBar]="true" (onSelect)="loadLogs()" (onClearClick)="loadLogs()" />
+    <label for="notif-to">Bitiş Tarihi</label>
+    <p-datepicker inputId="notif-to" [(ngModel)]="toUtc" dateFormat="yy-mm-dd" [showIcon]="true" [showButtonBar]="true" (onSelect)="loadLogs()" (onClearClick)="loadLogs()" />
   </div>
   <p-button label="Filtreleri Temizle" severity="secondary" [outlined]="true" size="small" (onClick)="clearFilters(dt)" />
 </div>

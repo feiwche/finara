@@ -50,7 +50,7 @@
       <th>Hedef Kategori</th>
       <th>Hedef Eğilimler</th>
       <th>Tarih Aralığı</th>
-      <th></th>
+      <th><span class="sr-only">İşlemler</span></th>
     </tr>
   </ng-template>
   <ng-template pTemplate="body" let-campaign>
@@ -99,22 +99,23 @@
 
 <p-dialog header="Yeni Kampanya" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '480px' }">
   <div class="field">
-    <label>Ad *</label>
-    <input type="text" pInputText [(ngModel)]="newCampaign.name" [class.field-invalid]="createSubmitted && !newCampaign.name" />
+    <label for="campaign-name">Ad *</label>
+    <input id="campaign-name" type="text" pInputText [(ngModel)]="newCampaign.name" [class.field-invalid]="createSubmitted && !newCampaign.name" />
     @if (createSubmitted && !newCampaign.name) {
       <small class="field-error">Kampanya adı zorunlu.</small>
     }
   </div>
   <div class="field">
-    <label>Açıklama *</label>
-    <textarea pTextarea rows="2" [(ngModel)]="newCampaign.description" [class.field-invalid]="createSubmitted && !newCampaign.description"></textarea>
+    <label for="campaign-description">Açıklama *</label>
+    <textarea id="campaign-description" pTextarea rows="2" [(ngModel)]="newCampaign.description" [class.field-invalid]="createSubmitted && !newCampaign.description"></textarea>
     @if (createSubmitted && !newCampaign.description) {
       <small class="field-error">Açıklama zorunlu.</small>
     }
   </div>
   <div class="field">
-    <label>Başlangıç Tarihi *</label>
+    <label for="campaign-start">Başlangıç Tarihi *</label>
     <p-datepicker
+      inputId="campaign-start"
       [(ngModel)]="newCampaign.startDateUtc"
       dateFormat="yy-mm-dd"
       [showIcon]="true"
@@ -125,12 +126,13 @@
     }
   </div>
   <div class="field">
-    <label>Bitiş Tarihi (opsiyonel)</label>
-    <p-datepicker [(ngModel)]="newCampaign.endDateUtc" dateFormat="yy-mm-dd" [showIcon]="true" />
+    <label for="campaign-end">Bitiş Tarihi (opsiyonel)</label>
+    <p-datepicker inputId="campaign-end" [(ngModel)]="newCampaign.endDateUtc" dateFormat="yy-mm-dd" [showIcon]="true" />
   </div>
   <div class="field">
-    <label>Hedef Kategori (opsiyonel)</label>
+    <label for="campaign-category">Hedef Kategori (opsiyonel)</label>
     <p-select
+      inputId="campaign-category"
       [options]="categories"
       optionLabel="label"
       optionValue="value"
@@ -140,8 +142,9 @@
     />
   </div>
   <div class="field">
-    <label>Hedef Eğilimler (opsiyonel)</label>
+    <label for="campaign-propensities">Hedef Eğilimler (opsiyonel)</label>
     <p-multiselect
+      inputId="campaign-propensities"
       [options]="propensities"
       optionLabel="label"
       optionValue="value"

@@ -5,12 +5,12 @@
     <p>Test amaçlı rastgele müşteri ve harcama verisi üretir (dakikada en fazla 5 kez kullanılabilir).</p>
     @if (authService.canWrite()) {
       <div class="field">
-        <label>Müşteri Sayısı</label>
-        <p-inputnumber [(ngModel)]="mockCustomerCount" [min]="1" [max]="500" />
+        <label for="mock-customer-count">Müşteri Sayısı</label>
+        <p-inputnumber inputId="mock-customer-count" [(ngModel)]="mockCustomerCount" [min]="1" [max]="500" />
       </div>
       <div class="field">
-        <label>Müşteri Başına İşlem Sayısı</label>
-        <p-inputnumber [(ngModel)]="mockTransactionsPerCustomer" [min]="1" [max]="200" />
+        <label for="mock-tx-per-customer">Müşteri Başına İşlem Sayısı</label>
+        <p-inputnumber inputId="mock-tx-per-customer" [(ngModel)]="mockTransactionsPerCustomer" [min]="1" [max]="200" />
       </div>
       <p-button label="Üret" icon="pi pi-database" [loading]="mockBusy()" (onClick)="generateMockData()" />
     } @else if (authService.isDemoAccount()) {

@@ -27,14 +27,14 @@
       </p>
       <div class="field">
         <label for="newPassword">Şifre *</label>
-        <p-password id="newPassword" [(ngModel)]="newPassword" [feedback]="true" [toggleMask]="true" (keyup.enter)="submit()" />
+        <p-password inputId="newPassword" [(ngModel)]="newPassword" [feedback]="true" [toggleMask]="true" (keyup.enter)="submit()" />
         @if (formSubmitted && !newPassword) {
           <small class="field-error">Şifre zorunlu (en az 8 karakter, harf ve rakam içermeli).</small>
         }
       </div>
       <div class="field">
         <label for="confirmPassword">Şifre (Tekrar) *</label>
-        <p-password id="confirmPassword" [(ngModel)]="confirmPassword" [feedback]="false" [toggleMask]="true" (keyup.enter)="submit()" />
+        <p-password inputId="confirmPassword" [(ngModel)]="confirmPassword" [feedback]="false" [toggleMask]="true" (keyup.enter)="submit()" />
         @if (formSubmitted && newPassword !== confirmPassword) {
           <small class="field-error">Şifreler eşleşmiyor.</small>
         }

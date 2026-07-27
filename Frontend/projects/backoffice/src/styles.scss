@@ -33,6 +33,20 @@
   --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Menlo, monospace;
 }
 
+// Sadece ekran okuyucular için — görsel olarak gizli ama erişilebilirlik ağacında kalır
+// (ör. sadece ikon/aksiyon butonu içeren tablo başlıkları).
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 // Client'takiyle aynı gerekçe/geçmiş — artık '.app-dark' sınıfına göre koşullu
 // (bkz. client styles.scss'teki aynı bloğun yorumu).
 :root {
@@ -130,15 +144,19 @@ h1, h2, h3 {
   align-items: center;
   gap: 4px;
 
-  a {
+  a,
+  button {
     display: flex;
     align-items: center;
     gap: 6px;
     padding: 0.5rem 0.9rem;
+    border: none;
+    background: none;
     border-radius: 8px;
     color: rgba(255, 255, 255, 0.62);
     text-decoration: none;
     font-size: 0.95rem;
+    font-family: inherit;
     cursor: pointer;
     transition: background-color 0.15s, color 0.15s;
 
@@ -416,8 +434,18 @@ h1, h2, h3 {
   margin-top: 12px;
   font-size: 0.85rem;
 
-  a {
+  a,
+  .link-button {
     color: var(--p-primary-color, #175243);
+  }
+
+  .link-button {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+    text-decoration: underline;
   }
 }
 

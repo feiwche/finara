@@ -73,15 +73,15 @@
 
 <p-dialog header="Yeni Banka" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '420px' }">
   <div class="field">
-    <label>Ad *</label>
-    <input type="text" pInputText [(ngModel)]="newBank.name" [class.field-invalid]="createSubmitted && !newBank.name" />
+    <label for="bank-name">Ad *</label>
+    <input id="bank-name" type="text" pInputText [(ngModel)]="newBank.name" [class.field-invalid]="createSubmitted && !newBank.name" />
     @if (createSubmitted && !newBank.name) {
       <small class="field-error">Banka adı zorunlu.</small>
     }
   </div>
   <div class="field">
-    <label>Kod *</label>
-    <input type="text" pInputText [(ngModel)]="newBank.code" [class.field-invalid]="createSubmitted && !newBank.code" />
+    <label for="bank-code">Kod *</label>
+    <input id="bank-code" type="text" pInputText [(ngModel)]="newBank.code" [class.field-invalid]="createSubmitted && !newBank.code" />
     @if (createSubmitted && !newBank.code) {
       <small class="field-error">Banka kodu zorunlu.</small>
     }

@@ -127,8 +127,9 @@
           <p-message severity="info" text="Analist hesaplar yeni işlem ekleyemez." />
         } @else {
           <div class="field">
-            <label>Tutar (TRY) *</label>
+            <label for="tx-amount">Tutar (TRY) *</label>
             <p-inputnumber
+              inputId="tx-amount"
               [(ngModel)]="newTransaction.amount"
               mode="decimal"
               [minFractionDigits]="2"
@@ -139,12 +140,13 @@
             }
           </div>
           <div class="field">
-            <label>Kategori</label>
-            <p-select [options]="categories" optionLabel="label" optionValue="value" [(ngModel)]="newTransaction.category" />
+            <label for="tx-category">Kategori</label>
+            <p-select inputId="tx-category" [options]="categories" optionLabel="label" optionValue="value" [(ngModel)]="newTransaction.category" />
           </div>
           <div class="field">
-            <label>İşyeri *</label>
+            <label for="tx-merchant">İşyeri *</label>
             <input
+              id="tx-merchant"
               type="text"
               pInputText
               [(ngModel)]="newTransaction.merchantName"
@@ -155,8 +157,9 @@
             }
           </div>
           <div class="field">
-            <label>Tarih *</label>
+            <label for="tx-date">Tarih *</label>
             <p-datepicker
+              inputId="tx-date"
               [(ngModel)]="newTransaction.occurredAtUtc"
               dateFormat="yy-mm-dd"
               [showIcon]="true"
@@ -214,7 +217,7 @@
           <th style="width: 160px">Güven Skoru</th>
           <th>Durum</th>
           <th>Sunulma Tarihi</th>
-          <th></th>
+          <th><span class="sr-only">İşlemler</span></th>
         </tr>
       </ng-template>
       <ng-template pTemplate="body" let-offer>
@@ -296,7 +299,7 @@
           <th>Durum</th>
           <th>Rıza Tarihi</th>
           <th>Kaldırılma Tarihi</th>
-          <th></th>
+          <th><span class="sr-only">İşlemler</span></th>
         </tr>
       </ng-template>
       <ng-template pTemplate="body" let-consent>
@@ -329,8 +332,8 @@
     <p-card styleClass="panel">
       @if (authService.canWrite()) {
         <div class="field">
-          <label>Soru (boş bırakılırsa genel özet istenir)</label>
-          <textarea pTextarea rows="2" [(ngModel)]="aiQuestion"></textarea>
+          <label for="ai-question">Soru (boş bırakılırsa genel özet istenir)</label>
+          <textarea id="ai-question" pTextarea rows="2" [(ngModel)]="aiQuestion"></textarea>
         </div>
         <p-button label="Analiz Et" icon="pi pi-sparkles" [loading]="aiBusy()" (onClick)="runAiInsight()" />
       } @else if (authService.isDemoAccount()) {

@@ -164,22 +164,23 @@
 
 <p-dialog header="Yeni Yönetici Hesabı" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '420px' }">
   <div class="field">
-    <label>E-posta *</label>
-    <input type="text" pInputText [(ngModel)]="newAdmin.email" [class.field-invalid]="createSubmitted && !newAdmin.email" />
+    <label for="admin-email">E-posta *</label>
+    <input id="admin-email" type="text" pInputText [(ngModel)]="newAdmin.email" [class.field-invalid]="createSubmitted && !newAdmin.email" />
     @if (createSubmitted && !newAdmin.email) {
       <small class="field-error">E-posta zorunlu.</small>
     }
   </div>
   <div class="field">
-    <label>Şifre *</label>
-    <p-password [(ngModel)]="newAdmin.password" [toggleMask]="true" [feedback]="true" [class.field-invalid]="createSubmitted && !newAdmin.password" />
+    <label for="admin-password">Şifre *</label>
+    <p-password inputId="admin-password" [(ngModel)]="newAdmin.password" [toggleMask]="true" [feedback]="true" [class.field-invalid]="createSubmitted && !newAdmin.password" />
     @if (createSubmitted && !newAdmin.password) {
       <small class="field-error">Şifre zorunlu (en az 8 karakter, harf ve rakam içermeli).</small>
     }
   </div>
   <div class="field">
-    <label>Rol</label>
+    <label for="admin-role">Rol</label>
     <p-select
+      inputId="admin-role"
       [options]="authService.isSuperAdmin() ? roleOptions : bankScopedRoleOptions"
       optionLabel="label"
       optionValue="value"
@@ -188,8 +189,9 @@
   </div>
   @if (authService.isSuperAdmin() && newAdmin.role !== UserRole.SuperAdmin) {
     <div class="field">
-      <label>Banka *</label>
+      <label for="admin-bank">Banka *</label>
       <p-select
+        inputId="admin-bank"
         [options]="banks()"
         optionLabel="name"
         optionValue="id"
@@ -213,15 +215,16 @@
 
 <p-dialog header="Yeni Davet" [(visible)]="inviteDialogVisible" [modal]="true" [style]="{ width: '420px' }">
   <div class="field">
-    <label>E-posta *</label>
-    <input type="text" pInputText [(ngModel)]="newInvitation.email" [class.field-invalid]="inviteSubmitted && !newInvitation.email" />
+    <label for="invite-email">E-posta *</label>
+    <input id="invite-email" type="text" pInputText [(ngModel)]="newInvitation.email" [class.field-invalid]="inviteSubmitted && !newInvitation.email" />
     @if (inviteSubmitted && !newInvitation.email) {
       <small class="field-error">E-posta zorunlu.</small>
     }
   </div>
   <div class="field">
-    <label>Rol</label>
+    <label for="invite-role">Rol</label>
     <p-select
+      inputId="invite-role"
       [options]="authService.isSuperAdmin() ? roleOptions : bankScopedRoleOptions"
       optionLabel="label"
       optionValue="value"
@@ -230,8 +233,9 @@
   </div>
   @if (authService.isSuperAdmin() && newInvitation.role !== UserRole.SuperAdmin) {
     <div class="field">
-      <label>Banka *</label>
+      <label for="invite-bank">Banka *</label>
       <p-select
+        inputId="invite-bank"
         [options]="banks()"
         optionLabel="name"
         optionValue="id"

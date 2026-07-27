@@ -25,7 +25,7 @@
         </div>
         <div class="field">
           <label for="password">Şifre</label>
-          <p-password id="password" [(ngModel)]="password" [feedback]="false" [toggleMask]="true" (keyup.enter)="login()" />
+          <p-password inputId="password" [(ngModel)]="password" [feedback]="false" [toggleMask]="true" (keyup.enter)="login()" />
         </div>
         @if (error()) {
           <p-message severity="error" [text]="error()!" />
@@ -47,7 +47,7 @@
         }
         <p-button label="Doğrula" [loading]="busy()" (onClick)="verifyCode()" />
         <div class="auth-back-link">
-          <a (click)="backToCredentials()">Geri dön</a>
+          <button type="button" class="link-button" (click)="backToCredentials()">Geri dön</button>
         </div>
       </p-card>
     }
