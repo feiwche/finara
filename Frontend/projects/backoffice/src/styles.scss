@@ -578,6 +578,16 @@ h1, h2, h3 {
   font-weight: 700;
   flex-shrink: 0;
   min-width: 72px;
+  // Rengi açıkça set etmezsek sayfanın karanlık moddaki (açık renkli) varsayılan
+  // metin rengini miras alıyor — ama bu kutunun zemini (--p-primary-50) her iki
+  // modda da AÇIK yeşil kalıyor (marka rengi karanlık modda ters çevrilmiyor,
+  // sadece surface token'ları çevriliyor) — bu da karanlık modda neredeyse
+  // okunamayan, düşük kontrastlı bir sayı ile sonuçlanıyordu.
+  color: var(--p-primary-700, #175243);
+}
+
+.scenario-outcome--negative .scenario-outcome-score {
+  color: var(--p-text-muted-color, #6b7280);
 }
 
 .scenario-outcome-campaign {
