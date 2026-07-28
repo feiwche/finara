@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  EF Core migration'ları (Migrations/*.cs, ModelSnapshot) hiçbir zaman elle test edilecek
+  gerçek iş mantığı içermiyor — kapsam hesabına dahil edilirlerse (hepsi 0% kapsanmış
+  görünür) gerçek kod tabanının kapsamını yapay olarak düşürüp yanıltıcı bir yüzde
+  üretiyorlardı (bulundu: bu dosya olmadan Finara.Infrastructure %4.4 gösteriyordu,
+  oysa gerçek servis katmanının kapsamı çok daha anlamlıydı).
+-->
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat code coverage">
+        <Configuration>
+          <Exclude>[*]*.Migrations.*</Exclude>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

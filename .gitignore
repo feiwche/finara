@@ -18,6 +18,10 @@ Frontend/swagger.json
 # ---- Backend Serilog dosya günlükleri ----
 Backend/Finara/Finara.Api/logs/
 
+# ---- Test coverage çıktıları (yerelde/CI'da üretilir, repoya girmez) ----
+Backend/Finara/**/TestResults/
+Backend/Finara/coverage-report/
+
 # ---- IDE ----
 .idea/
 *.swp
