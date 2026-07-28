@@ -1,0 +1,120 @@
+{
+  "nav": {
+    "customers": "Customers",
+    "campaigns": "Campaigns",
+    "tools": "Tools",
+    "account": "My Account",
+    "settings": "Settings",
+    "logout": "Log Out",
+    "demoMode": "Demo Mode",
+    "toggleDark": "Switch to Dark Mode",
+    "toggleLight": "Switch to Light Mode"
+  },
+  "auth": {
+    "login": {
+      "cardHeader": "Log In",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Log in",
+      "demoLogin": "Continue with Demo Account",
+      "forgotPassword": "Forgot my password",
+      "twoFactorHeader": "Two-Factor Authentication",
+      "twoFactorHint": "Enter the 6-digit code from your authenticator app.",
+      "twoFactorCode": "Verification Code",
+      "verify": "Verify",
+      "backToCredentials": "Go back"
+    },
+    "forgotPassword": {
+      "cardHeader": "Forgot Password",
+      "success": "If an account is registered with this email address, a password reset link has been sent.",
+      "email": "Email",
+      "submit": "Send Reset Link",
+      "backToLogin": "Back to login"
+    },
+    "resetPassword": {
+      "cardHeader": "Reset Password",
+      "success": "Your password has been updated. Redirecting to login…",
+      "newPassword": "New Password *",
+      "confirmPassword": "New Password (Confirm) *",
+      "submit": "Update Password",
+      "backToLogin": "Back to login",
+      "invalidToken": "Invalid reset link — please use the link from your email again.",
+      "newPasswordRequired": "New password is required (at least 8 characters, including a letter and a number).",
+      "passwordMismatch": "Passwords do not match."
+    }
+  },
+  "account": {
+    "title": "My Account",
+    "info": {
+      "header": "Account Information",
+      "email": "Email",
+      "role": "Role"
+    },
+    "bank": {
+      "header": "My Bank Profile",
+      "name": "Bank Name",
+      "code": "Bank Code",
+      "dataProvider": "Data Provider"
+    },
+    "security": {
+      "header": "Session Security",
+      "description": "If you notice a suspicious login or left a session open on an unused device, you can end all sessions logged in with this account at once. To log out of this device only, use \"Log Out\" from the menu at the top right.",
+      "logoutAllDevices": "Log Out of All Devices",
+      "confirmHeader": "Log out of all devices",
+      "confirmMessage": "All devices/browsers logged in with this account will be signed out, including yourself — everyone will need to log in again. Continue?",
+      "confirmAccept": "Log Out",
+      "confirmReject": "Cancel",
+      "actionFailed": "Action failed"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "language": {
+      "header": "Language",
+      "description": "Choose the language of the application interface.",
+      "label": "Interface Language"
+    },
+    "twoFactor": {
+      "header": "Two-Factor Authentication",
+      "enabledDescription": "Two-factor authentication is currently enabled. Enter the current code from your authenticator app to disable it.",
+      "idleDescription": "Add an extra layer of security by also requiring a 6-digit code from an authenticator app (e.g. Google Authenticator) when logging in.",
+      "setupDescription": "Scan the QR code below with your authenticator app or enter the secret manually, then confirm the code shown by the app.",
+      "manualSecret": "Manual secret:",
+      "code": "Verification Code",
+      "enable": "Enable",
+      "disable": "Disable",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "qrAlt": "Two-factor authentication QR code"
+    },
+    "notifications": {
+      "header": "Notification Preferences",
+      "description": "Choose whether to receive the weekly summary email about your bank.",
+      "weeklyDigest": "Receive weekly summary email"
+    },
+    "dateTime": {
+      "header": "Date/Time Format",
+      "description": "Choose how dates are displayed and your time zone.",
+      "format": "Date Format",
+      "formatDmy": "DD.MM.YYYY (31.12.2026)",
+      "formatMdy": "MM/DD/YYYY (12/31/2026)",
+      "formatYmd": "YYYY-MM-DD (2026-12-31)",
+      "timeZone": "Time Zone"
+    },
+    "tableView": {
+      "header": "Table View",
+      "description": "Choose your default page size and row density preference for tables.",
+      "density": "Row Density",
+      "densityComfortable": "Comfortable",
+      "densityCompact": "Compact",
+      "pageSize": "Default Page Size"
+    },
+    "save": "Save",
+    "saved": "Settings saved."
+  },
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "error": "An error occurred"
+  }
+}

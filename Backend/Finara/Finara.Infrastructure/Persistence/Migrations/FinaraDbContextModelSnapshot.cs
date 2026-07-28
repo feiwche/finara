@@ -17,7 +17,7 @@ namespace Finara.Infrastructure.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.11")
+                .HasAnnotation("ProductVersion", "8.0.29")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -782,6 +782,43 @@ namespace Finara.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("BankId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.OwnsOne("Finara.Domain.Entities.UserPreferences", "Preferences", b1 =>
+                        {
+                            b1.Property<Guid>("UserId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<int>("DateFormat")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("DefaultPageSize")
+                                .HasColumnType("int");
+
+                            b1.Property<int>("Language")
+                                .HasColumnType("int");
+
+                            b1.Property<bool>("ReceiveWeeklyDigestEmail")
+                                .HasColumnType("bit");
+
+                            b1.Property<int>("TableDensity")
+                                .HasColumnType("int");
+
+                            b1.Property<string>("TimeZoneId")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.HasKey("UserId");
+
+                            b1.ToTable("Users");
+
+                            b1.ToJson("Preferences");
+
+                            b1.WithOwner()
+                                .HasForeignKey("UserId");
+                        });
+
+                    b.Navigation("Preferences")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Finara.Domain.Entities.UserInvitation", b =>

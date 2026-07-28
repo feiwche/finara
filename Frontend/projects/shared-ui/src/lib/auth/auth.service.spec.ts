@@ -1,8 +1,14 @@
 import { TestBed } from '@angular/core/testing';
 import { PLATFORM_ID } from '@angular/core';
 import { of } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from './auth.service';
 import { AuthResult, Client, LoginResult } from '../api/finara-client';
+
+// UserPreferencesService (AuthService'in giriş/çıkış akışlarında tembel olarak çözdüğü,
+// bkz. auth.service.ts'teki Injector notu) TranslateService'e bağımlı — burada gerçek
+// ngx-translate altyapısını kurmak yerine sahte, hiçbir şey yapmayan bir sürüm yeterli.
+const translateStub = { use: () => of({}), instant: (key: string) => key };
 
 const ROLE_CLAIM_KEY = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
 
@@ -39,7 +45,8 @@ describe('AuthService', () => {
       providers: [
         AuthService,
         { provide: Client, useValue: client },
-        { provide: PLATFORM_ID, useValue: 'browser' }
+        { provide: PLATFORM_ID, useValue: 'browser' },
+        { provide: TranslateService, useValue: translateStub }
       ]
     });
     service = TestBed.inject(AuthService);

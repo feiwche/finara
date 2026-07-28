@@ -33,6 +33,10 @@ public class User : BaseEntity
 
     public DateTime? TwoFactorEnabledAtUtc { get; private set; }
 
+    // Dil/bildirim/tarih-biçimi/tablo yoğunluğu gibi kişisel arayüz tercihleri — bkz.
+    // UserPreferences'taki JSON-kolon gerekçesi. Asla null değil (Create'te varsayılanla dolduruluyor).
+    public UserPreferences Preferences { get; private set; } = new();
+
     private User() { }
 
     public static User Create(string email, string passwordHash, UserRole role = UserRole.SuperAdmin, Guid? bankId = null)
@@ -117,6 +121,18 @@ public class User : BaseEntity
         TwoFactorSecretEncrypted = null;
         TwoFactorEnabled = false;
         TwoFactorEnabledAtUtc = null;
+        MarkUpdated();
+    }
+
+    public void UpdatePreferences(UserPreferences preferences)
+    {
+        if (preferences.DefaultPageSize is < 10 or > 100)
+            throw new ArgumentException("Varsayılan sayfa boyutu 10 ile 100 arasında olmalı.", nameof(preferences));
+
+        if (string.IsNullOrWhiteSpace(preferences.TimeZoneId))
+            throw new ArgumentException("Zaman dilimi boş olamaz.", nameof(preferences));
+
+        Preferences = preferences;
         MarkUpdated();
     }
 

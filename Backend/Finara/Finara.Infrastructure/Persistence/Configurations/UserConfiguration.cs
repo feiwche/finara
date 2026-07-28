@@ -20,5 +20,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .WithMany()
             .HasForeignKey(u => u.BankId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Tek bir JSON kolonu (EF Core 8 ToJson) — yeni bir tercih eklemek migration gerektirmiyor,
+        // bkz. UserPreferences'taki gerekçe.
+        builder.OwnsOne(u => u.Preferences, p => p.ToJson());
     }
 }

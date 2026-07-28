@@ -2,16 +2,24 @@
   <ng-template #start>
     <span class="app-shell-title">Finara</span>
     <nav class="app-shell-nav">
-      <a routerLink="/customers" routerLinkActive="active"><i class="pi pi-users"></i> Müşteriler</a>
-      <a routerLink="/campaigns" routerLinkActive="active"><i class="pi pi-megaphone"></i> Kampanyalar</a>
-      <a routerLink="/tools" routerLinkActive="active"><i class="pi pi-wrench"></i> Araçlar</a>
+      <a routerLink="/customers" routerLinkActive="active"><i class="pi pi-users"></i> {{ 'nav.customers' | translate }}</a>
+      <a routerLink="/campaigns" routerLinkActive="active"><i class="pi pi-megaphone"></i> {{ 'nav.campaigns' | translate }}</a>
+      <a routerLink="/tools" routerLinkActive="active"><i class="pi pi-wrench"></i> {{ 'nav.tools' | translate }}</a>
     </nav>
   </ng-template>
   <ng-template #end>
     <div class="app-shell-user">
       @if (authService.isDemoAccount()) {
-        <p-tag value="Demo Modu" severity="info" />
+        <p-tag [value]="'nav.demoMode' | translate" severity="info" />
       }
+      <p-button
+        [icon]="themeService.isDark() ? 'pi pi-sun' : 'pi pi-moon'"
+        [pTooltip]="(themeService.isDark() ? 'nav.toggleLight' : 'nav.toggleDark') | translate"
+        tooltipPosition="bottom"
+        severity="secondary"
+        text
+        (onClick)="themeService.toggle()"
+      />
       <p-button
         [label]="authService.email() ?? ''"
         icon="pi pi-user"

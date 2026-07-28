@@ -7,12 +7,13 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { Client, ForgotPasswordRequest, describeApiError } from '@finara/shared-ui';
 
 @Component({
     selector: 'app-forgot-password',
-    imports: [FormsModule, RouterLink, InputTextModule, ButtonModule, CardModule, MessageModule],
+    imports: [FormsModule, RouterLink, InputTextModule, ButtonModule, CardModule, MessageModule, TranslatePipe],
     templateUrl: './forgot-password.component.html'
 })
 export class ForgotPasswordComponent {

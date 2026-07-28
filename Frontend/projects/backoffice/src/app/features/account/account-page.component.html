@@ -1,99 +1,39 @@
-<h1>Hesabım</h1>
+<h1>{{ 'account.title' | translate }}</h1>
 
 <div class="account-stack">
   <p-card styleClass="panel account-card">
     <div class="account-card-head">
       <span class="account-icon-chip"><i class="pi pi-user"></i></span>
-      <span class="account-card-title">Hesap Bilgileri</span>
+      <span class="account-card-title">{{ 'account.info.header' | translate }}</span>
     </div>
-    <p><strong>E-posta:</strong> {{ authService.email() }}</p>
-    <p><strong>Rol:</strong> {{ roleLabel() }}</p>
+    <p><strong>{{ 'account.info.email' | translate }}:</strong> {{ authService.email() }}</p>
+    <p><strong>{{ 'account.info.role' | translate }}:</strong> {{ roleLabel() }}</p>
   </p-card>
 
   @if (bank(); as b) {
     <p-card styleClass="panel account-card">
       <div class="account-card-head">
         <span class="account-icon-chip"><i class="pi pi-building"></i></span>
-        <span class="account-card-title">Banka Profilim</span>
+        <span class="account-card-title">{{ 'account.bank.header' | translate }}</span>
       </div>
-      <p><strong>Banka Adı:</strong> {{ b.name }}</p>
-      <p><strong>Banka Kodu:</strong> {{ b.code }}</p>
-      <p><strong>Veri Sağlayıcı:</strong> {{ bankDataProviderTypeLabel(b.dataProviderType ?? '') }}</p>
+      <p><strong>{{ 'account.bank.name' | translate }}:</strong> {{ b.name }}</p>
+      <p><strong>{{ 'account.bank.code' | translate }}:</strong> {{ b.code }}</p>
+      <p><strong>{{ 'account.bank.dataProvider' | translate }}:</strong> {{ bankDataProviderTypeLabel(b.dataProviderType ?? '') }}</p>
     </p-card>
   }
 
   <p-card styleClass="panel account-card">
     <div class="account-card-head">
       <span class="account-icon-chip account-icon-chip--danger"><i class="pi pi-shield"></i></span>
-      <span class="account-card-title">Oturum Güvenliği</span>
+      <span class="account-card-title">{{ 'account.security.header' | translate }}</span>
     </div>
-    <p>
-      Şüpheli bir giriş fark ettiyseniz veya kullanılmayan bir cihazda oturumunuz açık kaldıysa, bu hesapla giriş
-      yapılmış tüm oturumları tek seferde sonlandırabilirsiniz. Bu cihazdaki oturumunuzu kapatmak için sağ üstteki
-      menüden "Çıkış"ı kullanabilirsiniz.
-    </p>
+    <p>{{ 'account.security.description' | translate }}</p>
     <p-button
-      label="Tüm Cihazlardan Çıkış Yap"
+      [label]="'account.security.logoutAllDevices' | translate"
       icon="pi pi-sign-out"
       severity="danger"
       [loading]="logoutAllBusy()"
       (onClick)="confirmLogoutAllDevices()"
     />
-  </p-card>
-
-  <p-card styleClass="panel account-card">
-    <div class="account-card-head">
-      <span class="account-icon-chip"><i class="pi pi-lock"></i></span>
-      <span class="account-card-title">İki Faktörlü Doğrulama</span>
-    </div>
-    @if (twoFactorError()) {
-      <p-message severity="error" [text]="twoFactorError()!" />
-    }
-
-    @if (twoFactorEnabled()) {
-      <p>İki faktörlü doğrulama şu anda <strong>etkin</strong>. Devre dışı bırakmak için authenticator uygulamanızdaki güncel kodu girin.</p>
-      <div class="field">
-        <label for="disable-code">Doğrulama Kodu</label>
-        <input id="disable-code" type="text" inputmode="numeric" maxlength="6" pInputText [(ngModel)]="disableCode" />
-      </div>
-      <p-button
-        label="Devre Dışı Bırak"
-        icon="pi pi-shield"
-        severity="danger"
-        [loading]="twoFactorBusy()"
-        (onClick)="disableTwoFactor()"
-      />
-    } @else if (setupState() === 'idle') {
-      <p>Hesabınıza giriş yaparken bir authenticator uygulamasından (ör. Google Authenticator) alınan 6 haneli bir kod da isteyerek ek bir güvenlik katmanı ekleyin.</p>
-      <p-button
-        label="Etkinleştir"
-        icon="pi pi-shield"
-        [loading]="twoFactorBusy()"
-        (onClick)="beginTwoFactorSetup()"
-      />
-    } @else {
-      @if (setupData(); as setup) {
-        <p>Authenticator uygulamanızla aşağıdaki QR kodu okutun veya sırrı elle girin, ardından uygulamanın gösterdiği kodu onaylayın.</p>
-        <img [src]="setup.qrCodeDataUri" alt="İki faktörlü doğrulama QR kodu" style="display:block; margin: 0.5rem 0;" />
-        <p><strong>Manuel sır:</strong> <code>{{ setup.secret }}</code></p>
-        <div class="field">
-          <label for="setup-code">Doğrulama Kodu</label>
-          <input id="setup-code" type="text" inputmode="numeric" maxlength="6" pInputText [(ngModel)]="setupCode" />
-        </div>
-        <p-button
-          label="Onayla"
-          icon="pi pi-check"
-          [loading]="twoFactorBusy()"
-          (onClick)="confirmTwoFactorSetup()"
-        />
-        <p-button
-          label="Vazgeç"
-          severity="secondary"
-          text
-          [disabled]="twoFactorBusy()"
-          (onClick)="cancelTwoFactorSetup()"
-        />
-      }
-    }
   </p-card>
 </div>

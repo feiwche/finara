@@ -7,18 +7,20 @@ import { PasswordModule } from 'primeng/password';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { Client, ResetPasswordRequest, describeApiError } from '@finara/shared-ui';
 
 @Component({
     selector: 'app-reset-password',
-    imports: [FormsModule, RouterLink, PasswordModule, ButtonModule, CardModule, MessageModule],
+    imports: [FormsModule, RouterLink, PasswordModule, ButtonModule, CardModule, MessageModule, TranslatePipe],
     templateUrl: './reset-password.component.html'
 })
 export class ResetPasswordComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly client = inject(Client);
+  private readonly translate = inject(TranslateService);
 
   private token = '';
   private navigateTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -34,7 +36,7 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     this.token = this.route.snapshot.queryParamMap.get('token') ?? '';
     if (!this.token) {
       this.hasToken = false;
-      this.error.set('Geçersiz sıfırlama bağlantısı — e-postanızdaki bağlantıyı tekrar kullanın.');
+      this.error.set(this.translate.instant('auth.resetPassword.invalidToken'));
     }
   }
 

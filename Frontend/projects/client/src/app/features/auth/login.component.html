@@ -18,43 +18,43 @@
   </div>
   <div class="auth-form-panel">
     @if (step() === 'credentials') {
-      <p-card header="Giriş Yap" styleClass="panel login-card">
+      <p-card [header]="'auth.login.cardHeader' | translate" styleClass="panel login-card">
         <div class="field">
-          <label for="email">E-posta</label>
+          <label for="email">{{ 'auth.login.email' | translate }}</label>
           <input id="email" type="text" pInputText [(ngModel)]="email" (keyup.enter)="login()" />
         </div>
         <div class="field">
-          <label for="password">Şifre</label>
+          <label for="password">{{ 'auth.login.password' | translate }}</label>
           <p-password inputId="password" [(ngModel)]="password" [feedback]="false" [toggleMask]="true" (keyup.enter)="login()" />
         </div>
         @if (error()) {
           <p-message severity="error" [text]="error()!" />
         }
-        <p-button label="Giriş yap" [loading]="busy()" (onClick)="login()" />
+        <p-button [label]="'auth.login.submit' | translate" [loading]="busy()" (onClick)="login()" />
         <p-button
-          label="Demo Hesabıyla Gir"
+          [label]="'auth.login.demoLogin' | translate"
           severity="secondary"
           [text]="true"
           [loading]="busy()"
           (onClick)="loginWithDemo()"
         />
         <div class="auth-back-link">
-          <a routerLink="/forgot-password">Şifremi unuttum</a>
+          <a routerLink="/forgot-password">{{ 'auth.login.forgotPassword' | translate }}</a>
         </div>
       </p-card>
     } @else {
-      <p-card header="İki Faktörlü Doğrulama" styleClass="panel login-card">
-        <p>Authenticator uygulamanızdaki 6 haneli kodu girin.</p>
+      <p-card [header]="'auth.login.twoFactorHeader' | translate" styleClass="panel login-card">
+        <p>{{ 'auth.login.twoFactorHint' | translate }}</p>
         <div class="field">
-          <label for="code">Doğrulama Kodu</label>
+          <label for="code">{{ 'auth.login.twoFactorCode' | translate }}</label>
           <input id="code" type="text" inputmode="numeric" maxlength="6" pInputText [(ngModel)]="code" (keyup.enter)="verifyCode()" />
         </div>
         @if (error()) {
           <p-message severity="error" [text]="error()!" />
         }
-        <p-button label="Doğrula" [loading]="busy()" (onClick)="verifyCode()" />
+        <p-button [label]="'auth.login.verify' | translate" [loading]="busy()" (onClick)="verifyCode()" />
         <div class="auth-back-link">
-          <button type="button" class="link-button" (click)="backToCredentials()">Geri dön</button>
+          <button type="button" class="link-button" (click)="backToCredentials()">{{ 'auth.login.backToCredentials' | translate }}</button>
         </div>
       </p-card>
     }

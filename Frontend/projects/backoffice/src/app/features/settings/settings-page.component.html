@@ -1,0 +1,119 @@
+<h1>{{ 'settings.title' | translate }}</h1>
+
+<div class="account-stack">
+  <p-card styleClass="panel account-card">
+    <div class="account-card-head">
+      <span class="account-icon-chip"><i class="pi pi-language"></i></span>
+      <span class="account-card-title">{{ 'settings.language.header' | translate }}</span>
+    </div>
+    <p>{{ 'settings.language.description' | translate }}</p>
+    <div class="field">
+      <label for="settings-language">{{ 'settings.language.label' | translate }}</label>
+      <p-select inputId="settings-language" [options]="languageOptions()" optionLabel="label" optionValue="value" [(ngModel)]="form.language" styleClass="w-full" />
+    </div>
+  </p-card>
+
+  @if (isBankAdmin()) {
+    <p-card styleClass="panel account-card">
+      <div class="account-card-head">
+        <span class="account-icon-chip"><i class="pi pi-envelope"></i></span>
+        <span class="account-card-title">{{ 'settings.notifications.header' | translate }}</span>
+      </div>
+      <p>{{ 'settings.notifications.description' | translate }}</p>
+      <div class="field-checkbox">
+        <p-checkbox [(ngModel)]="form.receiveWeeklyDigestEmail" [binary]="true" inputId="receive-weekly-digest" />
+        <label for="receive-weekly-digest">{{ 'settings.notifications.weeklyDigest' | translate }}</label>
+      </div>
+    </p-card>
+  }
+
+  <p-card styleClass="panel account-card">
+    <div class="account-card-head">
+      <span class="account-icon-chip"><i class="pi pi-calendar"></i></span>
+      <span class="account-card-title">{{ 'settings.dateTime.header' | translate }}</span>
+    </div>
+    <p>{{ 'settings.dateTime.description' | translate }}</p>
+    <div class="field">
+      <label for="settings-date-format">{{ 'settings.dateTime.format' | translate }}</label>
+      <p-select inputId="settings-date-format" [options]="dateFormatOptions()" optionLabel="label" optionValue="value" [(ngModel)]="form.dateFormat" styleClass="w-full" />
+    </div>
+    <div class="field">
+      <label for="settings-timezone">{{ 'settings.dateTime.timeZone' | translate }}</label>
+      <p-select inputId="settings-timezone" [options]="timeZoneOptions" optionLabel="label" optionValue="value" [(ngModel)]="form.timeZoneId" styleClass="w-full" [filter]="true" />
+    </div>
+  </p-card>
+
+  <p-card styleClass="panel account-card">
+    <div class="account-card-head">
+      <span class="account-icon-chip"><i class="pi pi-table"></i></span>
+      <span class="account-card-title">{{ 'settings.tableView.header' | translate }}</span>
+    </div>
+    <p>{{ 'settings.tableView.description' | translate }}</p>
+    <div class="field">
+      <label>{{ 'settings.tableView.density' | translate }}</label>
+      <p-selectButton [options]="densityOptions()" optionLabel="label" optionValue="value" [(ngModel)]="form.tableDensity" />
+    </div>
+    <div class="field">
+      <label for="settings-page-size">{{ 'settings.tableView.pageSize' | translate }}</label>
+      <p-inputnumber inputId="settings-page-size" [(ngModel)]="form.defaultPageSize" [min]="10" [max]="100" [showButtons]="true" />
+    </div>
+  </p-card>
+
+  <p-button [label]="'settings.save' | translate" icon="pi pi-check" [loading]="saveBusy()" [disabled]="loading()" (onClick)="save()" />
+
+  <p-card styleClass="panel account-card">
+    <div class="account-card-head">
+      <span class="account-icon-chip"><i class="pi pi-lock"></i></span>
+      <span class="account-card-title">{{ 'settings.twoFactor.header' | translate }}</span>
+    </div>
+    @if (twoFactorError()) {
+      <p-message severity="error" [text]="twoFactorError()!" />
+    }
+
+    @if (twoFactorEnabled()) {
+      <p>{{ 'settings.twoFactor.enabledDescription' | translate }}</p>
+      <div class="field">
+        <label for="disable-code">{{ 'settings.twoFactor.code' | translate }}</label>
+        <input id="disable-code" type="text" inputmode="numeric" maxlength="6" pInputText [(ngModel)]="disableCode" />
+      </div>
+      <p-button
+        [label]="'settings.twoFactor.disable' | translate"
+        icon="pi pi-shield"
+        severity="danger"
+        [loading]="twoFactorBusy()"
+        (onClick)="disableTwoFactor()"
+      />
+    } @else if (setupState() === 'idle') {
+      <p>{{ 'settings.twoFactor.idleDescription' | translate }}</p>
+      <p-button
+        [label]="'settings.twoFactor.enable' | translate"
+        icon="pi pi-shield"
+        [loading]="twoFactorBusy()"
+        (onClick)="beginTwoFactorSetup()"
+      />
+    } @else {
+      @if (setupData(); as setup) {
+        <p>{{ 'settings.twoFactor.setupDescription' | translate }}</p>
+        <img [src]="setup.qrCodeDataUri" [alt]="'settings.twoFactor.qrAlt' | translate" style="display:block; margin: 0.5rem 0;" />
+        <p><strong>{{ 'settings.twoFactor.manualSecret' | translate }}</strong> <code>{{ setup.secret }}</code></p>
+        <div class="field">
+          <label for="setup-code">{{ 'settings.twoFactor.code' | translate }}</label>
+          <input id="setup-code" type="text" inputmode="numeric" maxlength="6" pInputText [(ngModel)]="setupCode" />
+        </div>
+        <p-button
+          [label]="'settings.twoFactor.confirm' | translate"
+          icon="pi pi-check"
+          [loading]="twoFactorBusy()"
+          (onClick)="confirmTwoFactorSetup()"
+        />
+        <p-button
+          [label]="'settings.twoFactor.cancel' | translate"
+          severity="secondary"
+          text
+          [disabled]="twoFactorBusy()"
+          (onClick)="cancelTwoFactorSetup()"
+        />
+      }
+    }
+  </p-card>
+</div>

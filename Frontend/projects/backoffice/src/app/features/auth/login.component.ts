@@ -7,12 +7,13 @@ import { PasswordModule } from 'primeng/password';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { AuthService, describeApiError } from '@finara/shared-ui';
 
 @Component({
     selector: 'app-login',
-    imports: [FormsModule, RouterLink, InputTextModule, PasswordModule, ButtonModule, CardModule, MessageModule],
+    imports: [FormsModule, RouterLink, InputTextModule, PasswordModule, ButtonModule, CardModule, MessageModule, TranslatePipe],
     templateUrl: './login.component.html'
 })
 export class LoginComponent implements OnInit {

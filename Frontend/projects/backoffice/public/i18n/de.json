@@ -1,0 +1,124 @@
+{
+  "nav": {
+    "dashboard": "Überblick",
+    "campaigns": "Kampagnen",
+    "management": "Verwaltung",
+    "auditLogs": "Prüfprotokoll",
+    "adminAccounts": "Administratorkonten",
+    "bankManagement": "Bankverwaltung",
+    "cohortExplorer": "Kohorten-Explorer",
+    "notificationLog": "Benachrichtigungsprotokoll",
+    "account": "Mein Konto",
+    "settings": "Einstellungen",
+    "logout": "Abmelden",
+    "toggleDark": "Zum dunklen Modus wechseln",
+    "toggleLight": "Zum hellen Modus wechseln"
+  },
+  "auth": {
+    "login": {
+      "cardHeader": "Anmelden",
+      "email": "E-Mail",
+      "password": "Passwort",
+      "submit": "Anmelden",
+      "demoLogin": "Mit Demo-Konto fortfahren",
+      "forgotPassword": "Passwort vergessen",
+      "twoFactorHeader": "Zwei-Faktor-Authentifizierung",
+      "twoFactorHint": "Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein.",
+      "twoFactorCode": "Bestätigungscode",
+      "verify": "Bestätigen",
+      "backToCredentials": "Zurück"
+    },
+    "forgotPassword": {
+      "cardHeader": "Passwort vergessen",
+      "success": "Falls ein Konto mit dieser E-Mail-Adresse registriert ist, wurde ein Link zum Zurücksetzen des Passworts gesendet.",
+      "email": "E-Mail",
+      "submit": "Link zum Zurücksetzen senden",
+      "backToLogin": "Zurück zur Anmeldung"
+    },
+    "resetPassword": {
+      "cardHeader": "Passwort zurücksetzen",
+      "success": "Ihr Passwort wurde aktualisiert. Sie werden zur Anmeldung weitergeleitet…",
+      "newPassword": "Neues Passwort *",
+      "confirmPassword": "Neues Passwort (Wiederholen) *",
+      "submit": "Passwort aktualisieren",
+      "backToLogin": "Zurück zur Anmeldung",
+      "invalidToken": "Ungültiger Zurücksetzungslink — bitte verwenden Sie erneut den Link aus Ihrer E-Mail.",
+      "newPasswordRequired": "Neues Passwort erforderlich (mindestens 8 Zeichen, mit Buchstabe und Zahl).",
+      "passwordMismatch": "Passwörter stimmen nicht überein."
+    }
+  },
+  "account": {
+    "title": "Mein Konto",
+    "info": {
+      "header": "Kontoinformationen",
+      "email": "E-Mail",
+      "role": "Rolle"
+    },
+    "bank": {
+      "header": "Mein Bankprofil",
+      "name": "Bankname",
+      "code": "Bankcode",
+      "dataProvider": "Datenanbieter"
+    },
+    "security": {
+      "header": "Sitzungssicherheit",
+      "description": "Wenn Ihnen eine verdächtige Anmeldung auffällt oder eine Sitzung auf einem ungenutzten Gerät geöffnet geblieben ist, können Sie alle mit diesem Konto angemeldeten Sitzungen auf einmal beenden. Um sich nur von diesem Gerät abzumelden, nutzen Sie \"Abmelden\" im Menü oben rechts.",
+      "logoutAllDevices": "Von allen Geräten abmelden",
+      "confirmHeader": "Von allen Geräten abmelden",
+      "confirmMessage": "Alle mit diesem Konto angemeldeten Geräte/Browser werden abgemeldet, auch Sie selbst — alle müssen sich erneut anmelden. Fortfahren?",
+      "confirmAccept": "Abmelden",
+      "confirmReject": "Abbrechen",
+      "actionFailed": "Aktion fehlgeschlagen"
+    }
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "language": {
+      "header": "Sprache",
+      "description": "Wählen Sie die Sprache der Anwendungsoberfläche.",
+      "label": "Oberflächensprache"
+    },
+    "twoFactor": {
+      "header": "Zwei-Faktor-Authentifizierung",
+      "enabledDescription": "Die Zwei-Faktor-Authentifizierung ist derzeit aktiviert. Geben Sie den aktuellen Code aus Ihrer Authenticator-App ein, um sie zu deaktivieren.",
+      "idleDescription": "Fügen Sie eine zusätzliche Sicherheitsebene hinzu, indem Sie bei der Anmeldung zusätzlich einen 6-stelligen Code aus einer Authenticator-App (z. B. Google Authenticator) verlangen.",
+      "setupDescription": "Scannen Sie den unten stehenden QR-Code mit Ihrer Authenticator-App oder geben Sie das Geheimnis manuell ein, und bestätigen Sie dann den von der App angezeigten Code.",
+      "manualSecret": "Manuelles Geheimnis:",
+      "code": "Bestätigungscode",
+      "enable": "Aktivieren",
+      "disable": "Deaktivieren",
+      "confirm": "Bestätigen",
+      "cancel": "Abbrechen",
+      "qrAlt": "QR-Code für die Zwei-Faktor-Authentifizierung"
+    },
+    "notifications": {
+      "header": "Benachrichtigungseinstellungen",
+      "description": "Wählen Sie, ob Sie die wöchentliche Zusammenfassungs-E-Mail zu Ihrer Bank erhalten möchten.",
+      "weeklyDigest": "Wöchentliche Zusammenfassungs-E-Mail erhalten"
+    },
+    "dateTime": {
+      "header": "Datums-/Zeitformat",
+      "description": "Wählen Sie, wie Daten angezeigt werden, und Ihre Zeitzone.",
+      "format": "Datumsformat",
+      "formatDmy": "TT.MM.JJJJ (31.12.2026)",
+      "formatMdy": "MM/TT/JJJJ (12/31/2026)",
+      "formatYmd": "JJJJ-MM-TT (2026-12-31)",
+      "timeZone": "Zeitzone"
+    },
+    "tableView": {
+      "header": "Tabellenansicht",
+      "description": "Wählen Sie Ihre Standardseitengröße und Zeilendichte für Tabellen.",
+      "density": "Zeilendichte",
+      "densityComfortable": "Komfortabel",
+      "densityCompact": "Kompakt",
+      "pageSize": "Standardseitengröße"
+    },
+    "save": "Speichern",
+    "saved": "Einstellungen gespeichert."
+  },
+  "common": {
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "error": "Ein Fehler ist aufgetreten"
+  }
+}

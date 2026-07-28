@@ -2,8 +2,8 @@
   <ng-template #start>
     <span class="app-shell-title">Finara <p-tag value="BackOffice" severity="contrast" /></span>
     <nav class="app-shell-nav">
-      <a routerLink="/dashboard" routerLinkActive="active"><i class="pi pi-chart-bar"></i> Genel Bakış</a>
-      <a routerLink="/campaigns" routerLinkActive="active"><i class="pi pi-megaphone"></i> Kampanyalar</a>
+      <a routerLink="/dashboard" routerLinkActive="active"><i class="pi pi-chart-bar"></i> {{ 'nav.dashboard' | translate }}</a>
+      <a routerLink="/campaigns" routerLinkActive="active"><i class="pi pi-megaphone"></i> {{ 'nav.campaigns' | translate }}</a>
       <button
         type="button"
         [class.active]="isManagementActive"
@@ -11,13 +11,21 @@
         [attr.aria-expanded]="!!managementMenu.visible"
         (click)="managementMenu.toggle($event)"
       >
-        <i class="pi pi-cog"></i> Yönetim <i class="pi pi-chevron-down app-shell-nav-caret"></i>
+        <i class="pi pi-cog"></i> {{ 'nav.management' | translate }} <i class="pi pi-chevron-down app-shell-nav-caret"></i>
       </button>
       <p-menu #managementMenu [model]="managementMenuItems" [popup]="true" />
     </nav>
   </ng-template>
   <ng-template #end>
     <div class="app-shell-user">
+      <p-button
+        [icon]="themeService.isDark() ? 'pi pi-sun' : 'pi pi-moon'"
+        [pTooltip]="(themeService.isDark() ? 'nav.toggleLight' : 'nav.toggleDark') | translate"
+        tooltipPosition="bottom"
+        severity="secondary"
+        text
+        (onClick)="themeService.toggle()"
+      />
       <p-button
         [label]="authService.email() ?? ''"
         icon="pi pi-user"

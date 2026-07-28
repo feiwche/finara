@@ -1,4 +1,4 @@
-import { Injectable, PLATFORM_ID, inject, signal, computed } from '@angular/core';
+import { Injectable, Injector, PLATFORM_ID, inject, signal, computed } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 import {
@@ -12,6 +12,7 @@ import {
   TwoFactorSetupResult,
   VerifyTwoFactorRequest
 } from '../api/finara-client';
+import { UserPreferencesService } from '../preferences/user-preferences.service';
 
 const REFRESH_TOKEN_KEY = 'finara_refresh_token';
 
@@ -55,6 +56,17 @@ function decodeClaimsFromJwt(token: string): DecodedClaims {
 export class AuthService {
   private readonly client = inject(Client);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  // UserPreferencesService, TranslateService'in HTTP yükleyicisi (çeviri dosyalarını
+  // getirmek için HttpClient kullanıyor) üzerinden authInterceptor'a, o da bu servise
+  // (Authorization header'ı eklemek için) geri bağlanıyor — AuthService'in constructor'ında
+  // (alan başlatıcıda) doğrudan inject(UserPreferencesService) çağrılırsa bu döngü DI
+  // kurulum anında "circular dependency" (NG0200) olarak patlıyordu (canlı build'de bulundu).
+  // Injector üzerinden TEMBEL çözümleme (yalnızca gerçekten çağrıldığında, ikisi de artık
+  // tam kurulmuşken) bu döngüyü kırıyor.
+  private readonly injector = inject(Injector);
+  private get preferencesService(): UserPreferencesService {
+    return this.injector.get(UserPreferencesService);
+  }
 
   private readonly accessTokenSignal = signal<string | null>(null);
   private readonly emailSignal = signal<string | null>(null);
@@ -84,6 +96,7 @@ export class AuthService {
     }
 
     this.applyTokens(result.accessToken, result.refreshToken);
+    void this.preferencesService.load();
     return { requiresTwoFactor: false };
   }
 
@@ -92,6 +105,7 @@ export class AuthService {
   async demoLogin(): Promise<void> {
     const result = await firstValueFrom(this.client.demoLogin());
     this.applyTokens(result.accessToken, result.refreshToken);
+    void this.preferencesService.load();
   }
 
   async verifyTwoFactor(challengeToken: string, code: string): Promise<void> {
@@ -99,6 +113,7 @@ export class AuthService {
       this.client.verify2fa(new VerifyTwoFactorRequest({ challengeToken, code }))
     );
     this.applyTokens(result.accessToken, result.refreshToken);
+    void this.preferencesService.load();
   }
 
   async fetchCurrentUser(): Promise<CurrentUserResult> {
@@ -137,6 +152,7 @@ export class AuthService {
     this.accessTokenSignal.set(null);
     this.emailSignal.set(null);
     this.roleSignal.set(null);
+    this.preferencesService.reset();
     if (this.isBrowser) {
       localStorage.removeItem(REFRESH_TOKEN_KEY);
     }
@@ -152,6 +168,7 @@ export class AuthService {
 
     try {
       await this.ensureFreshAccessToken();
+      void this.preferencesService.load();
     } catch {
       // Refresh token süresi dolmuş/iptal edilmiş — sessizce login ekranına düş.
     }

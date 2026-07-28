@@ -19,3 +19,5 @@ export * from './lib/config/provide-finara-ui';
 export * from './lib/realtime/realtime.service';
 
 export * from './lib/theme/theme.service';
+
+export * from './lib/preferences/user-preferences.service';

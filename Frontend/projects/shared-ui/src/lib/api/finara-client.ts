@@ -1544,6 +1544,126 @@ export class Client {
     /**
      * @return OK
      */
+    preferencesGET(): Observable<UserPreferencesDto> {
+        let url_ = this.baseUrl + "/api/auth/me/preferences";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processPreferencesGET(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processPreferencesGET(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<UserPreferencesDto>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<UserPreferencesDto>;
+        }));
+    }
+
+    protected processPreferencesGET(response: HttpResponseBase): Observable<UserPreferencesDto> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = UserPreferencesDto.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status === 401) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    preferencesPUT(body: UpdateUserPreferencesRequest): Observable<UserPreferencesDto> {
+        let url_ = this.baseUrl + "/api/auth/me/preferences";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_ : any = {
+            body: content_,
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("put", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processPreferencesPUT(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processPreferencesPUT(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<UserPreferencesDto>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<UserPreferencesDto>;
+        }));
+    }
+
+    protected processPreferencesPUT(response: HttpResponseBase): Observable<UserPreferencesDto> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = UserPreferencesDto.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status === 401) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+
+    /**
+     * @return OK
+     */
     banksAll(): Observable<BankSummary[]> {
         let url_ = this.baseUrl + "/api/banks";
         url_ = url_.replace(/[?&]$/, "");
@@ -5157,6 +5277,12 @@ export interface IDailyOfferTrendPoint {
     declined?: number;
 }
 
+export enum DateFormatPreference {
+    DayMonthYear = "DayMonthYear",
+    MonthDayYear = "MonthDayYear",
+    YearMonthDay = "YearMonthDay",
+}
+
 export class DisableTwoFactorRequest implements IDisableTwoFactorRequest {
     code?: string;
 
@@ -6235,6 +6361,11 @@ export enum SpendingPropensity {
     HighlyResponsive = "HighlyResponsive",
 }
 
+export enum TableDensity {
+    Comfortable = "Comfortable",
+    Compact = "Compact",
+}
+
 export enum TransactionCategory {
     Groceries = "Groceries",
     Fuel = "Fuel",
@@ -6357,6 +6488,12 @@ export interface ITwoFactorSetupResult {
     qrCodeDataUri?: string;
 }
 
+export enum UiLanguage {
+    Turkish = "Turkish",
+    English = "English",
+    German = "German",
+}
+
 export class UpdateConsentRequest implements IUpdateConsentRequest {
     channel?: ConsentChannel;
     isGranted?: boolean;
@@ -6395,6 +6532,118 @@ export class UpdateConsentRequest implements IUpdateConsentRequest {
 export interface IUpdateConsentRequest {
     channel?: ConsentChannel;
     isGranted?: boolean;
+}
+
+export class UpdateUserPreferencesRequest implements IUpdateUserPreferencesRequest {
+    language?: UiLanguage;
+    receiveWeeklyDigestEmail?: boolean;
+    dateFormat?: DateFormatPreference;
+    timeZoneId?: string;
+    tableDensity?: TableDensity;
+    defaultPageSize?: number;
+
+    constructor(data?: IUpdateUserPreferencesRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.language = _data["language"];
+            this.receiveWeeklyDigestEmail = _data["receiveWeeklyDigestEmail"];
+            this.dateFormat = _data["dateFormat"];
+            this.timeZoneId = _data["timeZoneId"];
+            this.tableDensity = _data["tableDensity"];
+            this.defaultPageSize = _data["defaultPageSize"];
+        }
+    }
+
+    static fromJS(data: any): UpdateUserPreferencesRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateUserPreferencesRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["language"] = this.language;
+        data["receiveWeeklyDigestEmail"] = this.receiveWeeklyDigestEmail;
+        data["dateFormat"] = this.dateFormat;
+        data["timeZoneId"] = this.timeZoneId;
+        data["tableDensity"] = this.tableDensity;
+        data["defaultPageSize"] = this.defaultPageSize;
+        return data;
+    }
+}
+
+export interface IUpdateUserPreferencesRequest {
+    language?: UiLanguage;
+    receiveWeeklyDigestEmail?: boolean;
+    dateFormat?: DateFormatPreference;
+    timeZoneId?: string;
+    tableDensity?: TableDensity;
+    defaultPageSize?: number;
+}
+
+export class UserPreferencesDto implements IUserPreferencesDto {
+    language?: UiLanguage;
+    receiveWeeklyDigestEmail?: boolean;
+    dateFormat?: DateFormatPreference;
+    timeZoneId?: string;
+    tableDensity?: TableDensity;
+    defaultPageSize?: number;
+
+    constructor(data?: IUserPreferencesDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.language = _data["language"];
+            this.receiveWeeklyDigestEmail = _data["receiveWeeklyDigestEmail"];
+            this.dateFormat = _data["dateFormat"];
+            this.timeZoneId = _data["timeZoneId"];
+            this.tableDensity = _data["tableDensity"];
+            this.defaultPageSize = _data["defaultPageSize"];
+        }
+    }
+
+    static fromJS(data: any): UserPreferencesDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new UserPreferencesDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["language"] = this.language;
+        data["receiveWeeklyDigestEmail"] = this.receiveWeeklyDigestEmail;
+        data["dateFormat"] = this.dateFormat;
+        data["timeZoneId"] = this.timeZoneId;
+        data["tableDensity"] = this.tableDensity;
+        data["defaultPageSize"] = this.defaultPageSize;
+        return data;
+    }
+}
+
+export interface IUserPreferencesDto {
+    language?: UiLanguage;
+    receiveWeeklyDigestEmail?: boolean;
+    dateFormat?: DateFormatPreference;
+    timeZoneId?: string;
+    tableDensity?: TableDensity;
+    defaultPageSize?: number;
 }
 
 export enum UserRole {

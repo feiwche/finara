@@ -4,33 +4,33 @@ import { MenubarModule } from 'primeng/menubar';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { MenuModule } from 'primeng/menu';
+import { TooltipModule } from 'primeng/tooltip';
 import { MenuItem } from 'primeng/api';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService, RealtimeService, ThemeService } from '@finara/shared-ui';
 
 @Component({
     selector: 'app-shell',
-    imports: [RouterOutlet, RouterLink, RouterLinkActive, MenubarModule, ButtonModule, TagModule, MenuModule],
+    imports: [RouterOutlet, RouterLink, RouterLinkActive, MenubarModule, ButtonModule, TagModule, MenuModule, TooltipModule, TranslatePipe],
     templateUrl: './app-shell.component.html'
 })
 export class AppShellComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly realtimeService = inject(RealtimeService);
+  private readonly translate = inject(TranslateService);
   protected readonly authService = inject(AuthService);
   protected readonly themeService = inject(ThemeService);
 
-  // Sağ üstteki e-posta/tema/çıkış çubuğu, sol taraftaki kalabalık nav ile birlikte
-  // dar ekranlarda üst üste biniyordu — tek bir açılır menüye toplandı. Model getter
-  // olarak tutuluyor ki tema durumu değişince ikon/etiket otomatik güncellensin.
+  // Koyu/açık mod tetikleyicisi bilinçli olarak burada DEĞİL — kullanıcı isteğiyle eski
+  // yerine (bağımsız bir ikon butonu, şablonda) geri taşındı, sadece "Hesabım"/"Ayarlar"/
+  // "Çıkış" bu menüde kalıyor. Model getter olarak tutuluyor ki dil değişince etiketler
+  // bir sonraki change detection turunda otomatik güncellensin.
   protected get userMenuItems(): MenuItem[] {
     return [
-      { label: 'Hesabım', icon: 'pi pi-user', command: () => this.router.navigate(['/hesabim']) },
-      {
-        label: this.themeService.isDark() ? 'Açık Moda Geç' : 'Karanlık Moda Geç',
-        icon: this.themeService.isDark() ? 'pi pi-sun' : 'pi pi-moon',
-        command: () => this.themeService.toggle()
-      },
+      { label: this.translate.instant('nav.account'), icon: 'pi pi-user', command: () => this.router.navigate(['/hesabim']) },
+      { label: this.translate.instant('nav.settings'), icon: 'pi pi-cog', command: () => this.router.navigate(['/ayarlar']) },
       { separator: true },
-      { label: 'Çıkış', icon: 'pi pi-sign-out', command: () => this.logout() }
+      { label: this.translate.instant('nav.logout'), icon: 'pi pi-sign-out', command: () => this.logout() }
     ];
   }
 
@@ -39,17 +39,17 @@ export class AppShellComponent implements OnInit {
   // "Yönetim" açılır menüsüne toplandı.
   protected get managementMenuItems(): MenuItem[] {
     const items: MenuItem[] = [
-      { label: 'Denetim Kaydı', icon: 'pi pi-list', command: () => this.router.navigate(['/audit-logs']) },
-      { label: 'Yönetici Hesapları', icon: 'pi pi-users', command: () => this.router.navigate(['/admin-accounts']) }
+      { label: this.translate.instant('nav.auditLogs'), icon: 'pi pi-list', command: () => this.router.navigate(['/audit-logs']) },
+      { label: this.translate.instant('nav.adminAccounts'), icon: 'pi pi-users', command: () => this.router.navigate(['/admin-accounts']) }
     ];
 
     if (this.authService.isSuperAdmin()) {
-      items.push({ label: 'Banka Yönetimi', icon: 'pi pi-building', command: () => this.router.navigate(['/banks']) });
+      items.push({ label: this.translate.instant('nav.bankManagement'), icon: 'pi pi-building', command: () => this.router.navigate(['/banks']) });
     }
 
     items.push(
-      { label: 'Kohort Gezgini', icon: 'pi pi-sitemap', command: () => this.router.navigate(['/cohorts']) },
-      { label: 'Bildirim Kaydı', icon: 'pi pi-send', command: () => this.router.navigate(['/notifications']) }
+      { label: this.translate.instant('nav.cohortExplorer'), icon: 'pi pi-sitemap', command: () => this.router.navigate(['/cohorts']) },
+      { label: this.translate.instant('nav.notificationLog'), icon: 'pi pi-send', command: () => this.router.navigate(['/notifications']) }
     );
 
     return items;

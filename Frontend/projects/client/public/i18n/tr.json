@@ -1,0 +1,120 @@
+{
+  "nav": {
+    "customers": "Müşteriler",
+    "campaigns": "Kampanyalar",
+    "tools": "Araçlar",
+    "account": "Hesabım",
+    "settings": "Ayarlar",
+    "logout": "Çıkış",
+    "demoMode": "Demo Modu",
+    "toggleDark": "Karanlık Moda Geç",
+    "toggleLight": "Açık Moda Geç"
+  },
+  "auth": {
+    "login": {
+      "cardHeader": "Giriş Yap",
+      "email": "E-posta",
+      "password": "Şifre",
+      "submit": "Giriş yap",
+      "demoLogin": "Demo Hesabıyla Gir",
+      "forgotPassword": "Şifremi unuttum",
+      "twoFactorHeader": "İki Faktörlü Doğrulama",
+      "twoFactorHint": "Authenticator uygulamanızdaki 6 haneli kodu girin.",
+      "twoFactorCode": "Doğrulama Kodu",
+      "verify": "Doğrula",
+      "backToCredentials": "Geri dön"
+    },
+    "forgotPassword": {
+      "cardHeader": "Şifremi Unuttum",
+      "success": "Bu e-posta adresine kayıtlı bir hesap varsa, şifre sıfırlama bağlantısı gönderildi.",
+      "email": "E-posta",
+      "submit": "Sıfırlama Bağlantısı Gönder",
+      "backToLogin": "Girişe dön"
+    },
+    "resetPassword": {
+      "cardHeader": "Şifre Sıfırla",
+      "success": "Şifreniz güncellendi. Girişe yönlendiriliyorsunuz…",
+      "newPassword": "Yeni Şifre *",
+      "confirmPassword": "Yeni Şifre (Tekrar) *",
+      "submit": "Şifreyi Güncelle",
+      "backToLogin": "Girişe dön",
+      "invalidToken": "Geçersiz sıfırlama bağlantısı — e-postanızdaki bağlantıyı tekrar kullanın.",
+      "newPasswordRequired": "Yeni şifre zorunlu (en az 8 karakter, harf ve rakam içermeli).",
+      "passwordMismatch": "Şifreler eşleşmiyor."
+    }
+  },
+  "account": {
+    "title": "Hesabım",
+    "info": {
+      "header": "Hesap Bilgileri",
+      "email": "E-posta",
+      "role": "Rol"
+    },
+    "bank": {
+      "header": "Banka Profilim",
+      "name": "Banka Adı",
+      "code": "Banka Kodu",
+      "dataProvider": "Veri Sağlayıcı"
+    },
+    "security": {
+      "header": "Oturum Güvenliği",
+      "description": "Şüpheli bir giriş fark ettiyseniz veya kullanılmayan bir cihazda oturumunuz açık kaldıysa, bu hesapla giriş yapılmış tüm oturumları tek seferde sonlandırabilirsiniz. Bu cihazdaki oturumunuzu kapatmak için sağ üstteki menüden \"Çıkış\"ı kullanabilirsiniz.",
+      "logoutAllDevices": "Tüm Cihazlardan Çıkış Yap",
+      "confirmHeader": "Tüm cihazlardan çıkış yap",
+      "confirmMessage": "Bu hesapla giriş yapılmış tüm cihazlar/tarayıcılar oturumdan çıkarılacak, siz de dahil herkes yeniden giriş yapmak zorunda kalacak. Devam edilsin mi?",
+      "confirmAccept": "Çıkış Yap",
+      "confirmReject": "Vazgeç",
+      "actionFailed": "İşlem başarısız"
+    }
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "language": {
+      "header": "Dil",
+      "description": "Uygulama arayüzünün dilini seçin.",
+      "label": "Arayüz Dili"
+    },
+    "twoFactor": {
+      "header": "İki Faktörlü Doğrulama",
+      "enabledDescription": "İki faktörlü doğrulama şu anda etkin. Devre dışı bırakmak için authenticator uygulamanızdaki güncel kodu girin.",
+      "idleDescription": "Hesabınıza giriş yaparken bir authenticator uygulamasından (ör. Google Authenticator) alınan 6 haneli bir kod da isteyerek ek bir güvenlik katmanı ekleyin.",
+      "setupDescription": "Authenticator uygulamanızla aşağıdaki QR kodu okutun veya sırrı elle girin, ardından uygulamanın gösterdiği kodu onaylayın.",
+      "manualSecret": "Manuel sır:",
+      "code": "Doğrulama Kodu",
+      "enable": "Etkinleştir",
+      "disable": "Devre Dışı Bırak",
+      "confirm": "Onayla",
+      "cancel": "Vazgeç",
+      "qrAlt": "İki faktörlü doğrulama QR kodu"
+    },
+    "notifications": {
+      "header": "Bildirim Tercihleri",
+      "description": "Bankanızla ilgili haftalık özet e-postasını alıp almayacağınızı seçin.",
+      "weeklyDigest": "Haftalık özet e-postası al"
+    },
+    "dateTime": {
+      "header": "Tarih/Saat Biçimi",
+      "description": "Tarihlerin gösterim biçimini ve saat diliminizi seçin.",
+      "format": "Tarih Biçimi",
+      "formatDmy": "GG.AA.YYYY (31.12.2026)",
+      "formatMdy": "AA/GG/YYYY (12/31/2026)",
+      "formatYmd": "YYYY-AA-GG (2026-12-31)",
+      "timeZone": "Saat Dilimi"
+    },
+    "tableView": {
+      "header": "Tablo Görünümü",
+      "description": "Tablolarda varsayılan sayfa boyutu ve satır sıklığı tercihinizi seçin.",
+      "density": "Satır Sıklığı",
+      "densityComfortable": "Normal",
+      "densityCompact": "Sıkışık",
+      "pageSize": "Varsayılan Sayfa Boyutu"
+    },
+    "save": "Kaydet",
+    "saved": "Ayarlar kaydedildi."
+  },
+  "common": {
+    "cancel": "Vazgeç",
+    "save": "Kaydet",
+    "error": "Bir hata oluştu"
+  }
+}

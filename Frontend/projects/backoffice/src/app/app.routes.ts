@@ -79,6 +79,11 @@ export const routes: Routes = [
         path: 'hesabim',
         title: 'Finara BackOffice — Hesabım',
         loadComponent: () => import('./features/account/account-page.component').then(m => m.AccountPageComponent)
+      },
+      {
+        path: 'ayarlar',
+        title: 'Finara BackOffice — Ayarlar',
+        loadComponent: () => import('./features/settings/settings-page.component').then(m => m.SettingsPageComponent)
       }
     ]
   },

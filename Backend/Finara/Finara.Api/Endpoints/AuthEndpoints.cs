@@ -155,5 +155,31 @@ public static class AuthEndpoints
             return Results.NoContent();
         })
         .Produces(StatusCodes.Status204NoContent);
+
+        // Kişisel arayüz tercihleri (dil, bildirim, tarih biçimi, tablo yoğunluğu) — self-servis
+        // hesap işlemi, WriteAccess DEĞİL: Analyst dahil her rol kendi tercihini değiştirebilmeli.
+        auth.MapGet("/me/preferences", async (ICurrentUserContext currentUser, IUserPreferencesService service, CancellationToken ct) =>
+        {
+            if (currentUser.UserId is not { } userId)
+                return Results.Unauthorized();
+
+            var preferences = await service.GetPreferencesAsync(userId, ct);
+            return preferences is null ? Results.NotFound() : Results.Ok(preferences);
+        })
+        .RequireAuthorization()
+        .Produces<UserPreferencesDto>()
+        .ProducesProblem(StatusCodes.Status401Unauthorized);
+
+        auth.MapPut("/me/preferences", async (UpdateUserPreferencesRequest request, ICurrentUserContext currentUser, IUserPreferencesService service, CancellationToken ct) =>
+        {
+            if (currentUser.UserId is not { } userId)
+                return Results.Unauthorized();
+
+            var preferences = await service.UpdatePreferencesAsync(userId, request, ct);
+            return preferences is null ? Results.NotFound() : Results.Ok(preferences);
+        })
+        .RequireAuthorization()
+        .Produces<UserPreferencesDto>()
+        .ProducesProblem(StatusCodes.Status401Unauthorized);
     }
 }
