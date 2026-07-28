@@ -1,7 +1,8 @@
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { Subscription, firstValueFrom } from 'rxjs';
 
 import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
@@ -26,8 +27,8 @@ import {
   CustomerSummary,
   describeApiError,
   educationLevelLabel,
-  EDUCATION_LEVEL_OPTIONS,
   EducationLevel,
+  getEducationLevelOptions,
   propensitySeverity,
   sanitizeCsvField,
   spendingPropensityLabel,
@@ -49,7 +50,8 @@ import {
         IconFieldModule,
         InputIconModule,
         SelectModule,
-        TooltipModule
+        TooltipModule,
+        TranslatePipe
     ],
     templateUrl: './customer-list.component.html'
 })
@@ -58,10 +60,18 @@ export class CustomerListComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly messageService = inject(MessageService);
   protected readonly authService = inject(AuthService);
+  protected readonly translate = inject(TranslateService);
 
   protected readonly propensitySeverity = propensitySeverity;
   protected readonly spendingPropensityLabel = spendingPropensityLabel;
-  protected readonly educationLevelOptions = EDUCATION_LEVEL_OPTIONS;
+
+  private readonly langTick = signal(0);
+  private readonly langChangeSub: Subscription;
+
+  protected readonly educationLevelOptions = computed(() => {
+    this.langTick();
+    return getEducationLevelOptions();
+  });
 
   protected readonly pageSize = 20;
 
@@ -97,15 +107,18 @@ export class CustomerListComponent implements OnInit, OnDestroy {
   // p-table'ın yerleşik exportCSV()'i — [columns] gerçek CustomerSummary alanlarına
   // işaret ediyor, [exportFunction] enum değerlerini ham İngilizce yerine Türkçe
   // etikete çeviriyor (bkz. UI Türkçe kuralı — dışa aktarılan dosya da istisna değil).
-  protected readonly exportColumns = [
-    { field: 'firstName', header: 'Ad' },
-    { field: 'lastName', header: 'Soyad' },
-    { field: 'email', header: 'E-posta' },
-    { field: 'phoneNumber', header: 'Telefon' },
-    { field: 'age', header: 'Yaş' },
-    { field: 'propensity', header: 'Eğilim' },
-    { field: 'educationLevel', header: 'Eğitim Durumu' }
-  ];
+  protected readonly exportColumns = computed(() => {
+    this.langTick();
+    return [
+      { field: 'firstName', header: this.translate.instant('customers.export.firstName') },
+      { field: 'lastName', header: this.translate.instant('customers.export.lastName') },
+      { field: 'email', header: this.translate.instant('customers.export.email') },
+      { field: 'phoneNumber', header: this.translate.instant('customers.export.phone') },
+      { field: 'age', header: this.translate.instant('customers.export.age') },
+      { field: 'propensity', header: this.translate.instant('customers.export.propensity') },
+      { field: 'educationLevel', header: this.translate.instant('customers.export.educationLevel') }
+    ];
+  });
 
   protected exportFn = (event: { data: unknown; field: string }): string => {
     if (event.data == null) return '';
@@ -136,6 +149,10 @@ export class CustomerListComponent implements OnInit, OnDestroy {
     educationLevel: null as EducationLevel | null
   };
 
+  constructor() {
+    this.langChangeSub = this.translate.onLangChange.subscribe(() => this.langTick.update(n => n + 1));
+  }
+
   async ngOnInit(): Promise<void> {
     // Tablo satırlarını yüklemek burada YAPILMIYOR — [lazy]="true" + p-table, ilk
     // render'da kendiliğinden (onLazyLoad) tetikliyor. Burada sadece tablodan bağımsız
@@ -147,7 +164,7 @@ export class CustomerListComponent implements OnInit, OnDestroy {
     try {
       this.stats.set(await firstValueFrom(this.client.stats()));
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'Özet bilgiler yüklenemedi', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('customers.toast.statsLoadFailed'), detail: describeApiError(err) });
     }
   }
 
@@ -168,7 +185,7 @@ export class CustomerListComponent implements OnInit, OnDestroy {
       this.totalRecords.set(result.totalCount ?? 0);
     } catch (err) {
       if (requestId !== this.requestSequence) return;
-      this.messageService.add({ severity: 'error', summary: 'Müşteriler yüklenemedi', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('customers.toast.loadFailed'), detail: describeApiError(err) });
     } finally {
       if (requestId === this.requestSequence) this.loading.set(false);
     }
@@ -187,6 +204,7 @@ export class CustomerListComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     if (this.searchDebounceHandle) clearTimeout(this.searchDebounceHandle);
+    this.langChangeSub.unsubscribe();
   }
 
   private resetToFirstPageAndReload(): void {
@@ -242,7 +260,7 @@ export class CustomerListComponent implements OnInit, OnDestroy {
         )
       );
       this.dialogVisible.set(false);
-      this.messageService.add({ severity: 'success', summary: 'Müşteri oluşturuldu', detail: `${this.newCustomer.firstName} ${this.newCustomer.lastName}` });
+      this.messageService.add({ severity: 'success', summary: this.translate.instant('customers.toast.created'), detail: `${this.newCustomer.firstName} ${this.newCustomer.lastName}` });
       await this.reload();
     } catch (err) {
       this.createError.set(describeApiError(err));
@@ -278,15 +296,24 @@ export class CustomerListComponent implements OnInit, OnDestroy {
         await this.reload();
       }
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'İçe aktarma başarısız', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('customers.toast.importFailed'), detail: describeApiError(err) });
     } finally {
       this.importBusy.set(false);
     }
   }
 
   downloadImportTemplate(): void {
-    const header = 'Ad,Soyad,E-posta,Doğum Tarihi,Telefon,Eğitim Durumu,Yatırım Hesabı Var,Yurtdışı Transfer Var';
-    const example = 'Ayşe,Yılmaz,ayse.yilmaz@example.com,1990-05-12,+905551234567,Lisans,Evet,Hayır';
+    const header = [
+      this.translate.instant('customers.importTemplate.firstName'),
+      this.translate.instant('customers.importTemplate.lastName'),
+      this.translate.instant('customers.importTemplate.email'),
+      this.translate.instant('customers.importTemplate.dob'),
+      this.translate.instant('customers.importTemplate.phone'),
+      this.translate.instant('customers.importTemplate.education'),
+      this.translate.instant('customers.importTemplate.hasInvestment'),
+      this.translate.instant('customers.importTemplate.hasSwift')
+    ].join(',');
+    const example = `Ayşe,Yılmaz,ayse.yilmaz@example.com,1990-05-12,+905551234567,${this.translate.instant('enums.educationLevel.Lisans')},${this.translate.instant('common.yes')},${this.translate.instant('common.no')}`;
     const blob = new Blob([`${header}\n${example}\n`], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');

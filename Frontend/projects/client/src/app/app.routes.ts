@@ -5,27 +5,27 @@ import { AppShellComponent } from './layout/app-shell.component';
 export const routes: Routes = [
   {
     path: 'login',
-    title: 'Finara — Giriş',
+    data: { titleKey: 'pageTitle.login' },
     loadComponent: () => import('./features/auth/login.component').then(m => m.LoginComponent)
   },
   {
     path: 'forgot-password',
-    title: 'Finara — Şifremi Unuttum',
+    data: { titleKey: 'pageTitle.forgotPassword' },
     loadComponent: () => import('./features/auth/forgot-password.component').then(m => m.ForgotPasswordComponent)
   },
   {
     path: 'reset-password',
-    title: 'Finara — Şifre Sıfırla',
+    data: { titleKey: 'pageTitle.resetPassword' },
     loadComponent: () => import('./features/auth/reset-password.component').then(m => m.ResetPasswordComponent)
   },
   {
     path: 'guvenlik',
-    title: 'Finara — Güvenlik ve Veri Gizliliği',
+    data: { titleKey: 'pageTitle.security' },
     loadComponent: () => import('./features/security/security-page.component').then(m => m.SecurityPageComponent)
   },
   {
     path: 'nasil-calisir',
-    title: 'Finara — Nasıl Çalışır',
+    data: { titleKey: 'pageTitle.scenarios' },
     loadComponent: () => import('./features/scenarios/scenarios-page.component').then(m => m.ScenariosPageComponent)
   },
   {
@@ -36,33 +36,33 @@ export const routes: Routes = [
       { path: '', redirectTo: 'customers', pathMatch: 'full' },
       {
         path: 'customers',
-        title: 'Finara — Müşteriler',
+        data: { titleKey: 'pageTitle.customers' },
         loadComponent: () => import('./features/customers/customer-list.component').then(m => m.CustomerListComponent)
       },
       {
         // Müşteri adı yüklendiğinde CustomerDetailComponent bu başlığı Title servisiyle günceller.
         path: 'customers/:id',
-        title: 'Finara — Müşteri Detayı',
+        data: { titleKey: 'pageTitle.customerDetail' },
         loadComponent: () => import('./features/customers/customer-detail.component').then(m => m.CustomerDetailComponent)
       },
       {
         path: 'campaigns',
-        title: 'Finara — Kampanyalar',
+        data: { titleKey: 'pageTitle.campaigns' },
         loadComponent: () => import('./features/campaigns/campaign-list.component').then(m => m.CampaignListComponent)
       },
       {
         path: 'tools',
-        title: 'Finara — Araçlar',
+        data: { titleKey: 'pageTitle.tools' },
         loadComponent: () => import('./features/tools/tools.component').then(m => m.ToolsComponent)
       },
       {
         path: 'hesabim',
-        title: 'Finara — Hesabım',
+        data: { titleKey: 'pageTitle.account' },
         loadComponent: () => import('./features/account/account-page.component').then(m => m.AccountPageComponent)
       },
       {
         path: 'ayarlar',
-        title: 'Finara — Ayarlar',
+        data: { titleKey: 'pageTitle.settings' },
         loadComponent: () => import('./features/settings/settings-page.component').then(m => m.SettingsPageComponent)
       }
     ]

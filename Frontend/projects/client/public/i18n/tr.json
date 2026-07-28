@@ -125,7 +125,9 @@
   "common": {
     "cancel": "Vazgeç",
     "save": "Kaydet",
-    "error": "Bir hata oluştu"
+    "error": "Bir hata oluştu",
+    "yes": "Evet",
+    "no": "Hayır"
   },
   "scenarios": {
     "badge": "Nasıl Çalışır",
@@ -185,5 +187,384 @@
       "title": "Girdi Doğrulama & Hız Sınırlama",
       "text": "Toplu içe aktarma ve dışa aktarma formül enjeksiyonuna karşı sanitize edilir, tüm uçlar istismara karşı hız sınırlamasıyla korunur, veritabanı izole bir ortamda çalışır."
     }
+  },
+  "customers": {
+    "title": "Müşteriler",
+    "toolbar": {
+      "downloadTemplate": "Şablon İndir",
+      "import": "İçe Aktar",
+      "exportPage": "Sayfayı Dışa Aktar",
+      "exportPageTooltip": "Sunucu taraflı sayfalama nedeniyle sadece o an görüntülenen sayfa (20 kayıt) dışa aktarılır, aramaya uyan tüm müşteriler değil.",
+      "newCustomer": "Yeni Müşteri"
+    },
+    "stats": {
+      "total": "TOPLAM MÜŞTERİ",
+      "highlyResponsive": "HARCAMAYA YATKIN",
+      "needsEngagement": "TEŞVİK GEREKLİ"
+    },
+    "table": {
+      "searchPlaceholder": "Ad, soyad veya e-posta ara…",
+      "fullName": "Ad Soyad",
+      "email": "E-posta",
+      "age": "Yaş",
+      "propensity": "Eğilim",
+      "openDetailAria": "Müşteri detayını aç: {{name}}",
+      "erased": "Anonimleştirildi"
+    },
+    "empty": {
+      "title": "Henüz müşteri yok",
+      "text": "İlk müşterinizi elle ekleyin, CSV ile toplu içe aktarın ya da Araçlar sayfasından örnek (mock) veri üretip Finara'yı hemen deneyin.",
+      "createCta": "Yeni Müşteri",
+      "generateMockCta": "Örnek Veri Üret"
+    },
+    "createDialog": {
+      "header": "Yeni Müşteri",
+      "firstName": "Ad *",
+      "firstNameRequired": "Ad zorunlu.",
+      "lastName": "Soyad *",
+      "lastNameRequired": "Soyad zorunlu.",
+      "email": "E-posta *",
+      "emailRequired": "E-posta zorunlu.",
+      "phone": "Telefon (SMS için, E.164 — ör. +905551234567)",
+      "phonePlaceholder": "+905551234567",
+      "dob": "Doğum Tarihi *",
+      "dobRequired": "Doğum tarihi zorunlu.",
+      "education": "Eğitim Durumu",
+      "educationPlaceholder": "Belirtilmedi",
+      "hasInvestment": "Yatırım hesabı var",
+      "hasSwift": "Yurtdışı transfer (SWIFT) kullanıyor",
+      "submit": "Oluştur"
+    },
+    "importResultDialog": {
+      "header": "İçe Aktarma Sonucu",
+      "summary": "{{success}} / {{total}} satır başarıyla içe aktarıldı.",
+      "row": "Satır",
+      "error": "Hata"
+    },
+    "importTemplate": {
+      "firstName": "Ad",
+      "lastName": "Soyad",
+      "email": "E-posta",
+      "dob": "Doğum Tarihi",
+      "phone": "Telefon",
+      "education": "Eğitim Durumu",
+      "hasInvestment": "Yatırım Hesabı Var",
+      "hasSwift": "Yurtdışı Transfer Var"
+    },
+    "export": {
+      "firstName": "Ad",
+      "lastName": "Soyad",
+      "email": "E-posta",
+      "phone": "Telefon",
+      "age": "Yaş",
+      "propensity": "Eğilim",
+      "educationLevel": "Eğitim Durumu"
+    },
+    "toast": {
+      "statsLoadFailed": "Özet bilgiler yüklenemedi",
+      "loadFailed": "Müşteriler yüklenemedi",
+      "created": "Müşteri oluşturuldu",
+      "importFailed": "İçe aktarma başarısız"
+    },
+    "detail": {
+      "fallbackName": "Müşteri",
+      "tabs": {
+        "profile": "Profil",
+        "transactions": "İşlemler",
+        "offers": "Teklifler",
+        "consent": "Rıza",
+        "aiAnalysis": "AI Analiz"
+      },
+      "profile": {
+        "erasedWarning": "Bu müşterinin verileri KVKK unutulma hakkı kapsamında anonimleştirilmiştir — ad, e-posta ve telefon kalıcı olarak silindi.",
+        "email": "E-posta:",
+        "age": "Yaş:",
+        "overallPropensity": "Genel eğilim:",
+        "eraseButton": "KVKK Unutulma Hakkını Kullan",
+        "segmentHeader": "Segment (RFM)",
+        "recency": "Recency ({{score}}/5)",
+        "frequency": "Frequency ({{score}}/5)",
+        "monetary": "Monetary ({{score}}/5)",
+        "totalScore": "Toplam skor:",
+        "dominantCategory": "Baskın kategori:",
+        "dominantCategoryUnknown": "Belirsiz",
+        "calculatedAt": "Hesaplanma tarihi:",
+        "aiCommentaryLabel": "AI Yorumu",
+        "aiRegenerate": "Yeniden Oluştur",
+        "aiGenerate": "AI Yorumu Al",
+        "aiHint": "AI yorumu RFM'in yerine geçmez, sadece kısa bir ek açıklamadır — nihai karar her zaman RFM kuralına aittir.",
+        "segmentHistoryHeader": "Segment Geçmişi",
+        "segmentHistoryHint": "Nokta rengi eğilimi gösterir —",
+        "chartLabel": "Toplam RFM Skoru",
+        "noSegment": "Bu müşteri için henüz segment hesaplanmamış — Araçlar sayfasından segmentasyonu çalıştırın."
+      },
+      "transactions": {
+        "addNew": "Yeni İşlem Ekle",
+        "erasedMessage": "Bu müşteri anonimleştirildiği için yeni işlem eklenemez.",
+        "demoMessage": "Demo hesaplar yeni işlem ekleyemez.",
+        "analystMessage": "Analist hesaplar yeni işlem ekleyemez.",
+        "amount": "Tutar (TRY) *",
+        "amountRequired": "Tutar sıfırdan büyük olmalı.",
+        "category": "Kategori",
+        "merchant": "İşyeri *",
+        "merchantRequired": "İşyeri zorunlu.",
+        "date": "Tarih *",
+        "dateRequired": "Tarih zorunlu.",
+        "save": "İşlem Kaydet",
+        "recentHeader": "Son İşlemler",
+        "colDate": "Tarih",
+        "colCategory": "Kategori",
+        "colMerchant": "İşyeri",
+        "colAmount": "Tutar"
+      },
+      "offers": {
+        "intro": "Bu müşteriye sunulan kampanya teklifleri",
+        "generate": "Teklif Üret",
+        "colCampaign": "Kampanya",
+        "colConfidence": "Güven Skoru",
+        "colStatus": "Durum",
+        "colPresentedAt": "Sunulma Tarihi",
+        "colActions": "İşlemler",
+        "accept": "Kabul Et",
+        "decline": "Reddet",
+        "sendSms": "SMS Gönder",
+        "sendEmail": "E-posta Gönder",
+        "empty": "Henüz teklif yok. \"Teklif Üret\" ile üretin (önce segment hesaplanmış ve aktif bir kampanya olmalı)."
+      },
+      "consent": {
+        "hint": "KVKK/İYS gereği, bir kanaldan bildirim gönderilebilmesi için müşterinin o kanal için açık rızası olmalı.",
+        "phoneLabel": "Telefon:",
+        "phoneNotRegistered": "Kayıtlı değil (SMS gönderilemez)",
+        "emailLabel": "E-posta:",
+        "colChannel": "Kanal",
+        "colStatus": "Durum",
+        "colGrantedAt": "Rıza Tarihi",
+        "colRevokedAt": "Kaldırılma Tarihi",
+        "colActions": "İşlemler",
+        "granted": "İzin Var",
+        "notGranted": "İzin Yok",
+        "revoke": "Rızayı Kaldır",
+        "grant": "Rıza Ver"
+      },
+      "ai": {
+        "questionLabel": "Soru (boş bırakılırsa genel özet istenir)",
+        "analyze": "Analiz Et",
+        "demoMessage": "Demo hesaplar AI analizi başlatamaz.",
+        "analystMessage": "Analist hesaplar AI analizi başlatamaz.",
+        "loadingHint": "Yerel model yanıt üretiyor, ~10 saniye sürebilir…",
+        "questionPrefix": "Soru:"
+      },
+      "toast": {
+        "loadFailed": "Müşteri yüklenemedi",
+        "segmentHistoryLoadFailed": "Segment geçmişi yüklenemedi",
+        "aiCommentaryFailed": "AI yorumu oluşturulamadı",
+        "transactionsLoadFailed": "İşlemler yüklenemedi",
+        "transactionSaved": "İşlem kaydedildi",
+        "transactionSaveFailed": "İşlem kaydedilemedi",
+        "offersLoadFailed": "Teklifler yüklenemedi",
+        "offerGenerationDone": "Teklif üretimi tamamlandı",
+        "offerGenerationDetail": "{{count}} yeni teklif oluşturuldu.",
+        "offerGenerationNone": "Uygun yeni teklif bulunamadı.",
+        "offerGenerationFailed": "Teklif üretilemedi",
+        "rejectOfferHeader": "Teklifi reddet",
+        "rejectOfferMessage": "\"{{name}}\" teklifini reddetmek istediğinize emin misiniz?",
+        "rejectOfferAccept": "Reddet",
+        "rejectOfferReject": "Vazgeç",
+        "offerAccepted": "Teklif kabul edildi",
+        "offerDeclined": "Teklif reddedildi",
+        "offerActionFailed": "İşlem başarısız",
+        "eraseHeader": "KVKK Unutulma Hakkını Kullan",
+        "eraseMessage": "\"{{name}}\" adlı müşterinin adı, e-postası ve telefonu kalıcı olarak anonimleştirilecek. Bu işlem GERİ ALINAMAZ. Devam edilsin mi?",
+        "eraseAccept": "Anonimleştir",
+        "eraseReject": "Vazgeç",
+        "erased": "Müşteri anonimleştirildi",
+        "erasedDetail": "Veriler KVKK unutulma hakkı kapsamında kalıcı olarak silindi.",
+        "eraseFailed": "Anonimleştirme başarısız",
+        "consentLoadFailed": "Rıza durumu yüklenemedi",
+        "consentGranted": "Rıza verildi",
+        "consentRevoked": "Rıza kaldırıldı",
+        "consentUpdateFailed": "Rıza güncellenemedi",
+        "notificationSent": "Bildirim gönderildi",
+        "notificationSkipped": "Bildirim atlandı",
+        "distributionFailed": "Dağıtım başarısız"
+      }
+    }
+  },
+  "campaigns": {
+    "title": "Kampanyalar",
+    "exportButton": "Dışa Aktar",
+    "newCampaign": "Yeni Kampanya",
+    "stats": {
+      "total": "TOPLAM KAMPANYA",
+      "active": "AKTİF",
+      "draft": "TASLAK"
+    },
+    "table": {
+      "name": "Ad",
+      "status": "Durum",
+      "targetCategory": "Hedef Kategori",
+      "targetPropensities": "Hedef Eğilimler",
+      "dateRange": "Tarih Aralığı",
+      "actions": "İşlemler",
+      "allCategories": "Tüm kategoriler",
+      "allPropensities": "Tüm eğilimler",
+      "activate": "Aktifleştir"
+    },
+    "empty": {
+      "title": "Henüz kampanya yok",
+      "text": "Bir hedef kitle (kategori/eğilim) ve tarih aralığı belirleyip ilk kampanyanızı oluşturun — aktifleştirdiğinizde uygun müşterilere otomatik teklif üretilir.",
+      "createCta": "Yeni Kampanya"
+    },
+    "createDialog": {
+      "header": "Yeni Kampanya",
+      "name": "Ad *",
+      "nameRequired": "Kampanya adı zorunlu.",
+      "description": "Açıklama *",
+      "descriptionRequired": "Açıklama zorunlu.",
+      "startDate": "Başlangıç Tarihi *",
+      "startDateRequired": "Başlangıç tarihi zorunlu.",
+      "endDate": "Bitiş Tarihi (opsiyonel)",
+      "category": "Hedef Kategori (opsiyonel)",
+      "categoryPlaceholder": "Fark etmez",
+      "propensities": "Hedef Eğilimler (opsiyonel)",
+      "propensitiesPlaceholder": "Fark etmez (tümü)",
+      "targetsInvestment": "Yatırım hesabı sahiplerini hedefler",
+      "targetsSwift": "SWIFT kullanıcılarını hedefler",
+      "submit": "Oluştur"
+    },
+    "exportColumns": {
+      "name": "Ad",
+      "status": "Durum",
+      "targetCategory": "Hedef Kategori",
+      "targetPropensities": "Hedef Eğilimler",
+      "start": "Başlangıç",
+      "end": "Bitiş"
+    },
+    "toast": {
+      "loadFailed": "Kampanyalar yüklenemedi",
+      "updated": "Kampanya güncellendi",
+      "updatedDetail": "{{name}} artık {{status}}",
+      "created": "Kampanya oluşturuldu",
+      "activated": "Kampanya aktifleştirildi",
+      "activateFailed": "Aktifleştirilemedi"
+    }
+  },
+  "tools": {
+    "title": "Araçlar",
+    "mockData": {
+      "header": "Mock Veri Üret",
+      "description": "Test amaçlı rastgele müşteri ve harcama verisi üretir (dakikada en fazla 5 kez kullanılabilir).",
+      "customerCount": "Müşteri Sayısı",
+      "txPerCustomer": "Müşteri Başına İşlem Sayısı",
+      "generate": "Üret",
+      "demoMessage": "Demo hesaplar mock veri üretemez.",
+      "analystMessage": "Analist hesaplar mock veri üretemez.",
+      "successSummary": "Mock veri üretildi",
+      "successDetail": "{{customers}} müşteri, {{transactions}} işlem oluşturuldu.",
+      "errorSummary": "Mock veri üretilemedi"
+    },
+    "segmentation": {
+      "header": "Segmentasyonu Yeniden Hesapla",
+      "description": "Son 90 günlük harcama penceresine göre tüm müşteriler için RFM segmentini yeniden hesaplar.",
+      "recalculate": "Yeniden Hesapla",
+      "demoMessage": "Demo hesaplar segmentasyonu yeniden hesaplayamaz.",
+      "analystMessage": "Analist hesaplar segmentasyonu yeniden hesaplayamaz.",
+      "successSummary": "Segmentasyon tamamlandı",
+      "successDetail": "{{processed}} müşteri işlendi, {{skipped}} atlandı.",
+      "errorSummary": "Segmentasyon başarısız"
+    }
+  },
+  "enums": {
+    "transactionCategory": {
+      "Groceries": "Market",
+      "Fuel": "Akaryakıt",
+      "Travel": "Seyahat",
+      "Entertainment": "Eğlence",
+      "Healthcare": "Sağlık",
+      "ECommerce": "E-Ticaret",
+      "Motorcycle": "Motosiklet",
+      "Investment": "Yatırım",
+      "ForeignExchange": "Döviz",
+      "Utilities": "Faturalar",
+      "Other": "Diğer"
+    },
+    "spendingPropensity": {
+      "NeedsEngagement": "Teşvik Gerekli",
+      "Neutral": "Nötr",
+      "HighlyResponsive": "Harcamaya Yatkın"
+    },
+    "campaignStatus": {
+      "Draft": "Taslak",
+      "Active": "Aktif",
+      "Paused": "Duraklatıldı",
+      "Completed": "Tamamlandı",
+      "Archived": "Arşivlendi"
+    },
+    "offerResponse": {
+      "Pending": "Bekliyor",
+      "Accepted": "Kabul Edildi",
+      "Declined": "Reddedildi",
+      "Expired": "Süresi Doldu"
+    },
+    "userRole": {
+      "SuperAdmin": "Süper Yönetici",
+      "BankAdmin": "Banka Yöneticisi",
+      "Analyst": "Analist (Salt Okunur)"
+    },
+    "auditActionType": {
+      "SegmentAssigned": "Segment Atandı",
+      "CampaignOfferPresented": "Teklif Sunuldu",
+      "CampaignOfferAccepted": "Teklif Kabul Edildi",
+      "CampaignOfferDeclined": "Teklif Reddedildi",
+      "CustomerCreated": "Müşteri Oluşturuldu",
+      "TransactionRecorded": "İşlem Kaydedildi",
+      "OfferDistributed": "Teklif Dağıtıldı",
+      "ConsentGranted": "Rıza Verildi",
+      "ConsentRevoked": "Rıza Kaldırıldı",
+      "AdminCreated": "Yönetici Oluşturuldu",
+      "AdminDeactivated": "Yönetici Pasifleştirildi",
+      "CustomerBulkImported": "Müşteri Toplu İçe Aktarıldı",
+      "CustomerErased": "Müşteri Verisi Anonimleştirildi (KVKK)",
+      "AdminInvited": "Yönetici Daveti Gönderildi",
+      "AdminInvitationAccepted": "Yönetici Daveti Kabul Edildi",
+      "AdminInvitationRevoked": "Yönetici Daveti İptal Edildi",
+      "AdminSessionsRevoked": "Yönetici Oturumları Sonlandırıldı"
+    },
+    "consentChannel": {
+      "Sms": "SMS",
+      "Email": "E-posta",
+      "InAppBanking": "Bankacılık Uygulaması İçi"
+    },
+    "educationLevel": {
+      "Ilkogretim": "İlköğretim",
+      "Lise": "Lise",
+      "Onlisans": "Önlisans",
+      "Lisans": "Lisans",
+      "Lisansustu": "Lisansüstü"
+    },
+    "bankDataProviderType": {
+      "Mock": "Simüle Veri (Mock)",
+      "GarantiSandbox": "Garanti BBVA Sandbox"
+    },
+    "ageBracket": {
+      "Age18To25": "18-25",
+      "Age26To35": "26-35",
+      "Age36To45": "36-45",
+      "Age46To55": "46-55",
+      "Age56Plus": "56+"
+    }
+  },
+  "pageTitle": {
+    "login": "Finara — Giriş",
+    "forgotPassword": "Finara — Şifremi Unuttum",
+    "resetPassword": "Finara — Şifre Sıfırla",
+    "security": "Finara — Güvenlik ve Veri Gizliliği",
+    "scenarios": "Finara — Nasıl Çalışır",
+    "customers": "Finara — Müşteriler",
+    "customerDetail": "Finara — Müşteri Detayı",
+    "campaigns": "Finara — Kampanyalar",
+    "tools": "Finara — Araçlar",
+    "account": "Finara — Hesabım",
+    "settings": "Finara — Ayarlar"
   }
 }

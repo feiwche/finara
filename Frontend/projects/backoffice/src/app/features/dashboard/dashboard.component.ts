@@ -7,19 +7,20 @@ import { CardModule } from 'primeng/card';
 import { ChartModule } from 'primeng/chart';
 import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import {
   AuditActionType,
   Client,
   OfferImpactSummary,
   RealtimeService,
-  SPENDING_PROPENSITY_OPTIONS,
-  describeApiError
+  describeApiError,
+  getSpendingPropensityOptions
 } from '@finara/shared-ui';
 
 @Component({
     selector: 'app-dashboard',
-    imports: [CardModule, ChartModule, TooltipModule, DatePipe],
+    imports: [CardModule, ChartModule, TooltipModule, DatePipe, TranslatePipe],
     templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent implements OnInit {
@@ -27,6 +28,7 @@ export class DashboardComponent implements OnInit {
   private readonly messageService = inject(MessageService);
   private readonly realtimeService = inject(RealtimeService);
   private readonly destroyRef = inject(DestroyRef);
+  protected readonly translate = inject(TranslateService);
 
   protected readonly today = new Date();
 
@@ -117,17 +119,24 @@ export class DashboardComponent implements OnInit {
       this.offerDeclined.set(declined.length);
       this.offerImpact.set(offerImpact);
 
+      // getSpendingPropensityOptions() burada anlık dile göre (yükleme/olay tetiklendiği
+      // andaki dil) hesaplanıyor — grafik SADECE loadDashboard() her çağrıldığında yeniden
+      // çiziliyor (bkz. ngOnInit + campaignUpdated$), dil değişimine kendi başına tepki
+      // vermiyor; bu, sayfa yeniden yüklenene/veri tazelenene kadar süregelen ayrı,
+      // önceden var olan bir sınırlama (settings-page.component.ts'teki desen burada
+      // kasıtlı olarak tekrarlanmadı — chart sadece veri yenilenince yeniden inşa ediliyor).
+      const propensityOptions = getSpendingPropensityOptions();
       const counts: Record<string, number> = {};
-      for (const option of SPENDING_PROPENSITY_OPTIONS) counts[option.value] = 0;
+      for (const option of propensityOptions) counts[option.value] = 0;
       for (const customer of customers) {
         if (customer.propensity) counts[customer.propensity] = (counts[customer.propensity] ?? 0) + 1;
       }
 
       this.chartData.set({
-        labels: SPENDING_PROPENSITY_OPTIONS.map(o => o.label),
+        labels: propensityOptions.map(o => o.label),
         datasets: [
           {
-            data: SPENDING_PROPENSITY_OPTIONS.map(o => counts[o.value]),
+            data: propensityOptions.map(o => counts[o.value]),
             // Sırasıyla NeedsEngagement/Neutral/HighlyResponsive — severity.util.ts'teki
             // propensitySeverity (warn/info/success) ile aynı anlam, grafik renkleri de eşit.
             backgroundColor: ['#f59e0b', '#60a5fa', '#22c55e']
@@ -140,7 +149,7 @@ export class DashboardComponent implements OnInit {
         labels: dayLabels,
         datasets: [
           {
-            label: 'Kabul',
+            label: this.translate.instant('dashboard.charts.accepted'),
             data: offerTrend.map(p => p.accepted),
             borderColor: '#227E67',
             backgroundColor: 'rgba(34, 126, 103, 0.12)',
@@ -148,7 +157,7 @@ export class DashboardComponent implements OnInit {
             fill: true
           },
           {
-            label: 'Red',
+            label: this.translate.instant('dashboard.charts.declined'),
             data: offerTrend.map(p => p.declined),
             borderColor: '#B8752C',
             backgroundColor: 'rgba(184, 117, 44, 0.12)',
@@ -162,7 +171,7 @@ export class DashboardComponent implements OnInit {
         labels: customerGrowth.map(p => this.formatShortDate(p.date!)),
         datasets: [
           {
-            label: 'Yeni Müşteri',
+            label: this.translate.instant('dashboard.charts.newCustomers'),
             data: customerGrowth.map(p => p.newCustomers),
             borderColor: '#175243',
             backgroundColor: 'rgba(23, 82, 67, 0.12)',
@@ -172,7 +181,7 @@ export class DashboardComponent implements OnInit {
         ]
       });
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'Panel yüklenemedi', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('dashboard.loadError'), detail: describeApiError(err) });
     } finally {
       this.loading.set(false);
     }

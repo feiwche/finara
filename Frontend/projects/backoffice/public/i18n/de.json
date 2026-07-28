@@ -55,6 +55,26 @@
       "invalidToken": "Ungültiger Zurücksetzungslink — bitte verwenden Sie erneut den Link aus Ihrer E-Mail.",
       "newPasswordRequired": "Neues Passwort erforderlich (mindestens 8 Zeichen, mit Buchstabe und Zahl).",
       "passwordMismatch": "Passwörter stimmen nicht überein."
+    },
+    "acceptInvitation": {
+      "badge": "Einladung",
+      "welcomeHeadline": "Willkommen in Ihrem Team.",
+      "description": "Das BackOffice-Team Ihrer Bank hat Sie zu Finara eingeladen. Legen Sie einfach ein Passwort fest, um fortzufahren.",
+      "point1": "Einmaliger Einladungslink, 24 Stunden gültig",
+      "point2": "Ihr Passwort wird nur von Ihnen festgelegt",
+      "point3": "Sofort nach Kontoerstellung anmeldebereit",
+      "cardHeader": "Einladung annehmen",
+      "verifying": "Einladung wird überprüft…",
+      "invalidOrExpired": "Ungültiger oder abgelaufener Einladungslink.",
+      "invalidToken": "Ungültiger Einladungslink — bitte verwenden Sie erneut den Link aus Ihrer E-Mail.",
+      "success": "Ihr Konto wurde erstellt. Sie werden zur Anmeldung weitergeleitet…",
+      "invitedAs": "wurde als {{role}} eingeladen. Bitte legen Sie ein Passwort fest, um fortzufahren.",
+      "newPassword": "Passwort *",
+      "confirmPassword": "Passwort (Wiederholen) *",
+      "newPasswordRequired": "Passwort erforderlich (mindestens 8 Zeichen, mit Buchstabe und Zahl).",
+      "passwordMismatch": "Passwörter stimmen nicht überein.",
+      "submit": "Konto erstellen",
+      "backToLogin": "Zurück zur Anmeldung"
     }
   },
   "account": {
@@ -189,5 +209,393 @@
       "title": "Eingabevalidierung & Ratenbegrenzung",
       "text": "Massenimport und -export werden gegen Formel-Injection bereinigt, alle Endpunkte sind durch Ratenbegrenzung vor Missbrauch geschützt, und die Datenbank läuft in einer isolierten Umgebung."
     }
+  },
+  "dashboard": {
+    "title": "Überblick",
+    "kpi": {
+      "totalCustomers": "Kunden Gesamt",
+      "activeCampaigns": "Aktive Kampagnen",
+      "offerAcceptDecline30d": "Letzte 30 Tage — Angebot Angenommen/Abgelehnt",
+      "acceptedDeclinedSub": "{{accepted}} angenommen / {{declined}} abgelehnt",
+      "noOffersLast30Days": "In den letzten 30 Tagen wurden keine Angebote beantwortet",
+      "automationImpact": "Automatisierungswirkung",
+      "automationTooltip": "Die Gesamtzahl der von der Regel-Engine erzeugten Angebote und die durchschnittliche Übereinstimmungssicherheit — nicht auf das 30-Tage-Fenster beschränkt.",
+      "offersGenerated": "Angebote erzeugt",
+      "reachedCustomers": "Kunden erreicht",
+      "avgConfidence": "durchschn. Sicherheit",
+      "noOffersYet": "Noch keine Angebote erzeugt"
+    },
+    "charts": {
+      "propensityDistribution": "Neigungsverteilung",
+      "customerLabel": "Kunden",
+      "offerTrend30d": "Letzte 30 Tage — Angebotstrend Angenommen/Abgelehnt",
+      "customerGrowth30d": "Letzte 30 Tage — Neukundenwachstum",
+      "accepted": "Angenommen",
+      "declined": "Abgelehnt",
+      "newCustomers": "Neue Kunden"
+    },
+    "loadError": "Übersicht konnte nicht geladen werden"
+  },
+  "campaigns": {
+    "title": "Kampagnenverwaltung",
+    "export": "Exportieren",
+    "newCampaign": "Neue Kampagne",
+    "stats": {
+      "total": "KAMPAGNEN GESAMT",
+      "active": "AKTIV",
+      "draft": "ENTWURF"
+    },
+    "table": {
+      "name": "Name",
+      "status": "Status",
+      "targetCategory": "Zielkategorie",
+      "targetPropensities": "Zielneigungen",
+      "dateRange": "Zeitraum",
+      "actions": "Aktionen",
+      "start": "Beginn",
+      "end": "Ende",
+      "allCategories": "Alle Kategorien",
+      "allPropensities": "Alle Neigungen"
+    },
+    "actions": {
+      "activate": "Aktivieren",
+      "pause": "Pausieren",
+      "complete": "Abschließen",
+      "archive": "Archivieren"
+    },
+    "emptyState": {
+      "title": "Noch keine Kampagnen",
+      "text": "Legen Sie eine Zielgruppe (Kategorie/Neigung) und einen Zeitraum fest, um Ihre erste Kampagne zu erstellen — nach der Aktivierung werden automatisch Angebote für geeignete Kunden erzeugt."
+    },
+    "dialog": {
+      "header": "Neue Kampagne",
+      "name": "Name *",
+      "nameRequired": "Kampagnenname ist erforderlich.",
+      "description": "Beschreibung *",
+      "descriptionRequired": "Beschreibung ist erforderlich.",
+      "startDate": "Startdatum *",
+      "startDateRequired": "Startdatum ist erforderlich.",
+      "endDate": "Enddatum (optional)",
+      "targetCategory": "Zielkategorie (optional)",
+      "categoryPlaceholder": "Beliebig",
+      "targetPropensities": "Zielneigungen (optional)",
+      "propensitiesPlaceholder": "Beliebig (alle)",
+      "targetsInvestment": "Richtet sich an Inhaber von Anlagekonten",
+      "targetsSwift": "Richtet sich an SWIFT-Nutzer",
+      "create": "Erstellen"
+    },
+    "toast": {
+      "campaignUpdated": "Kampagne aktualisiert",
+      "campaignUpdatedDetail": "{{name}} ist jetzt {{status}}",
+      "loadFailed": "Kampagnen konnten nicht geladen werden",
+      "created": "Kampagne erstellt",
+      "activated": "Kampagne aktiviert",
+      "paused": "Kampagne pausiert",
+      "completed": "Kampagne abgeschlossen",
+      "archived": "Kampagne archiviert",
+      "actionFailed": "Aktion fehlgeschlagen"
+    },
+    "confirm": {
+      "completeHeader": "Kampagne abschließen",
+      "completeMessage": "Möchten Sie \"{{name}}\" wirklich abschließen? Eine abgeschlossene Kampagne kann nicht erneut aktiviert werden.",
+      "completeAccept": "Abschließen",
+      "archiveHeader": "Kampagne archivieren",
+      "archiveMessage": "Möchten Sie \"{{name}}\" wirklich archivieren? Eine archivierte Kampagne kann nicht mehr verwendet werden.",
+      "archiveAccept": "Archivieren"
+    }
+  },
+  "adminAccounts": {
+    "title": "Administratorkonten",
+    "tabs": {
+      "admins": "Administratoren",
+      "invitations": "Einladungen"
+    },
+    "newAdmin": "Neuer Administrator",
+    "newInvitation": "Neue Einladung",
+    "stats": {
+      "totalAdmins": "ADMINISTRATOREN GESAMT",
+      "active": "AKTIV",
+      "inactive": "INAKTIV"
+    },
+    "table": {
+      "email": "E-Mail",
+      "role": "Rolle",
+      "bank": "Bank",
+      "status": "Status",
+      "createdAt": "Erstellt am",
+      "expiresAt": "Gültig bis",
+      "actions": "Aktionen",
+      "you": "(Sie)",
+      "active": "Aktiv",
+      "inactive": "Inaktiv"
+    },
+    "actions": {
+      "revokeSessions": "Sitzungen beenden",
+      "deactivate": "Deaktivieren",
+      "revokeInvitation": "Widerrufen"
+    },
+    "invitationStatus": {
+      "accepted": "Angenommen",
+      "revoked": "Widerrufen",
+      "expired": "Abgelaufen",
+      "pending": "Ausstehend"
+    },
+    "emptyState": {
+      "admins": "Noch keine Administratorkonten.",
+      "invitations": "Noch keine Einladungen gesendet."
+    },
+    "inviteHint": "Senden Sie eine E-Mail-Einladung für ein neues Administratorkonto — die Person legt ihr eigenes Passwort fest.",
+    "dialog": {
+      "newAdminHeader": "Neues Administratorkonto",
+      "newInvitationHeader": "Neue Einladung",
+      "email": "E-Mail *",
+      "emailRequired": "E-Mail ist erforderlich.",
+      "password": "Passwort *",
+      "passwordRequired": "Passwort ist erforderlich (mindestens 8 Zeichen, mit Buchstabe und Zahl).",
+      "role": "Rolle",
+      "bank": "Bank *",
+      "bankPlaceholder": "Bank auswählen",
+      "bankRequiredFor": "Für {{role}} muss eine Bank ausgewählt werden.",
+      "bankRequiredForInvite": "Für die Einladung als {{role}} muss eine Bank ausgewählt werden.",
+      "ownBankNoteAdmin": "Das neue Konto wird für Ihre Bank erstellt.",
+      "ownBankNoteInvite": "Die Einladung wird für Ihre Bank gesendet.",
+      "create": "Erstellen",
+      "sendInvite": "Einladung senden"
+    },
+    "toast": {
+      "loadFailed": "Administratorkonten konnten nicht geladen werden",
+      "banksLoadFailed": "Bankliste konnte nicht geladen werden",
+      "created": "Administratorkonto erstellt",
+      "deactivated": "Konto deaktiviert",
+      "actionFailed": "Aktion fehlgeschlagen",
+      "sessionsRevoked": "Sitzungen beendet",
+      "invitationsLoadFailed": "Einladungen konnten nicht geladen werden",
+      "invitationSent": "Einladung gesendet",
+      "invitationRevoked": "Einladung widerrufen"
+    },
+    "confirm": {
+      "deactivateHeader": "Administratorkonto deaktivieren",
+      "deactivateMessage": "Möchten Sie \"{{email}}\" wirklich deaktivieren? Dieses Konto kann sich dann nicht mehr anmelden.",
+      "deactivateAccept": "Deaktivieren",
+      "revokeSessionsHeader": "Sitzungen des Benutzers beenden",
+      "revokeSessionsMessage": "Alle mit \"{{email}}\" angemeldeten Geräte/Browser werden abgemeldet. Das Konto bleibt aktiv — der Benutzer muss sich nur erneut anmelden. Fortfahren?",
+      "revokeSessionsAccept": "Sitzungen beenden",
+      "revokeInvitationHeader": "Einladung widerrufen",
+      "revokeInvitationMessage": "Möchten Sie die an \"{{email}}\" gesendete Einladung wirklich widerrufen?",
+      "revokeInvitationAccept": "Widerrufen"
+    }
+  },
+  "auditLog": {
+    "title": "Prüfprotokoll",
+    "exportPage": "Seite exportieren",
+    "exportTooltip": "Aufgrund der serverseitigen Paginierung wird nur die aktuell angezeigte Seite (20 Einträge) exportiert, nicht alle Einträge, die den Filtern entsprechen.",
+    "filters": {
+      "actionType": "Aktionstyp",
+      "allActionTypes": "Alle",
+      "fromDate": "Startdatum",
+      "toDate": "Enddatum",
+      "clear": "Filter zurücksetzen",
+      "searchPlaceholder": "Kunde suchen…"
+    },
+    "table": {
+      "date": "Datum",
+      "customer": "Kunde",
+      "action": "Aktion",
+      "detail": "Detail"
+    },
+    "emptyState": "Keine Prüfprotokolleinträge entsprechen den ausgewählten Filtern.",
+    "toast": {
+      "loadFailed": "Prüfprotokoll konnte nicht geladen werden"
+    }
+  },
+  "bankManagement": {
+    "title": "Bankverwaltung",
+    "newBank": "Neue Bank",
+    "stats": {
+      "total": "BANKEN GESAMT",
+      "active": "AKTIV",
+      "inactive": "INAKTIV"
+    },
+    "table": {
+      "name": "Name",
+      "code": "Code",
+      "dataProvider": "Datenanbieter",
+      "status": "Status",
+      "actions": "Aktionen",
+      "active": "Aktiv",
+      "inactive": "Inaktiv"
+    },
+    "actions": {
+      "deactivate": "Deaktivieren"
+    },
+    "emptyState": "Noch keine Banken.",
+    "dialog": {
+      "header": "Neue Bank",
+      "name": "Name *",
+      "nameRequired": "Bankname ist erforderlich.",
+      "code": "Code *",
+      "codeRequired": "Bankcode ist erforderlich.",
+      "create": "Erstellen"
+    },
+    "toast": {
+      "loadFailed": "Bankliste konnte nicht geladen werden",
+      "created": "Bank erstellt",
+      "deactivated": "Bank deaktiviert",
+      "actionFailed": "Aktion fehlgeschlagen"
+    },
+    "confirm": {
+      "deactivateHeader": "Bank deaktivieren",
+      "deactivateMessage": "Möchten Sie \"{{name}}\" wirklich deaktivieren? Dies kann nicht rückgängig gemacht werden.",
+      "deactivateAccept": "Deaktivieren"
+    }
+  },
+  "cohortExplorer": {
+    "title": "Kohorten-Explorer",
+    "stats": {
+      "total": "KOHORTEN GESAMT",
+      "totalCustomers": "KUNDEN GESAMT",
+      "otherGroup": "GRUPPE \"SONSTIGE\""
+    },
+    "hint": "Kunden mit aktivem Segment (Transaktion in den letzten 90 Tagen) werden nach Altersgruppe, Bildungsstand und Ausgabenneigung gruppiert. Gruppen mit weniger als 5 Kunden werden in einer einzigen Zeile \"Sonstige\" zusammengefasst.",
+    "table": {
+      "cohort": "Kohorte",
+      "ageBracket": "Altersgruppe",
+      "educationLevel": "Bildungsstand",
+      "propensity": "Neigung",
+      "dominantCategory": "Dominante Kategorie",
+      "customerCount": "Kundenanzahl",
+      "other": "Sonstige",
+      "cohortTag": "Kohorte"
+    },
+    "emptyState": "Noch keine Kohorten — die Segmentierung muss mindestens einmal ausgeführt worden sein (Werkzeuge/Segmentierung).",
+    "toast": {
+      "loadFailed": "Kohorten konnten nicht geladen werden"
+    }
+  },
+  "notificationLog": {
+    "title": "Benachrichtigungsprotokoll",
+    "export": "Exportieren",
+    "filters": {
+      "channel": "Kanal",
+      "allChannels": "Alle",
+      "fromDate": "Startdatum",
+      "toDate": "Enddatum",
+      "clear": "Filter zurücksetzen",
+      "searchPlaceholder": "Kunde suchen…"
+    },
+    "table": {
+      "date": "Datum",
+      "customer": "Kunde",
+      "channel": "Kanal",
+      "status": "Status",
+      "skippedReason": "Grund für Überspringen",
+      "message": "Nachricht"
+    },
+    "status": {
+      "sent": "Gesendet",
+      "skipped": "Übersprungen"
+    },
+    "emptyState": "Keine Benachrichtigungen entsprechen den ausgewählten Filtern.",
+    "toast": {
+      "loadFailed": "Benachrichtigungsprotokoll konnte nicht geladen werden",
+      "newNotification": "Neue Benachrichtigung"
+    }
+  },
+  "enums": {
+    "transactionCategory": {
+      "Groceries": "Lebensmittel",
+      "Fuel": "Kraftstoff",
+      "Travel": "Reisen",
+      "Entertainment": "Unterhaltung",
+      "Healthcare": "Gesundheit",
+      "ECommerce": "E-Commerce",
+      "Motorcycle": "Motorrad",
+      "Investment": "Investition",
+      "ForeignExchange": "Devisen",
+      "Utilities": "Rechnungen",
+      "Other": "Sonstiges"
+    },
+    "spendingPropensity": {
+      "NeedsEngagement": "Ansprache Nötig",
+      "Neutral": "Neutral",
+      "HighlyResponsive": "Kaufbereit"
+    },
+    "campaignStatus": {
+      "Draft": "Entwurf",
+      "Active": "Aktiv",
+      "Paused": "Pausiert",
+      "Completed": "Abgeschlossen",
+      "Archived": "Archiviert"
+    },
+    "offerResponse": {
+      "Pending": "Ausstehend",
+      "Accepted": "Angenommen",
+      "Declined": "Abgelehnt",
+      "Expired": "Abgelaufen"
+    },
+    "userRole": {
+      "SuperAdmin": "Superadministrator",
+      "BankAdmin": "Bankadministrator",
+      "Analyst": "Analyst (Nur Lesen)"
+    },
+    "auditActionType": {
+      "SegmentAssigned": "Segment Zugewiesen",
+      "CampaignOfferPresented": "Angebot Vorgestellt",
+      "CampaignOfferAccepted": "Angebot Angenommen",
+      "CampaignOfferDeclined": "Angebot Abgelehnt",
+      "CustomerCreated": "Kunde Erstellt",
+      "TransactionRecorded": "Transaktion Erfasst",
+      "OfferDistributed": "Angebot Verteilt",
+      "ConsentGranted": "Einwilligung Erteilt",
+      "ConsentRevoked": "Einwilligung Widerrufen",
+      "AdminCreated": "Administrator Erstellt",
+      "AdminDeactivated": "Administrator Deaktiviert",
+      "CustomerBulkImported": "Kunden Massenimport",
+      "CustomerErased": "Kundendaten Anonymisiert (DSGVO)",
+      "AdminInvited": "Administratoreinladung Gesendet",
+      "AdminInvitationAccepted": "Administratoreinladung Angenommen",
+      "AdminInvitationRevoked": "Administratoreinladung Widerrufen",
+      "AdminSessionsRevoked": "Administratorsitzungen Beendet"
+    },
+    "consentChannel": {
+      "Sms": "SMS",
+      "Email": "E-Mail",
+      "InAppBanking": "In-App-Banking"
+    },
+    "educationLevel": {
+      "Ilkogretim": "Grundschule",
+      "Lise": "Gymnasium",
+      "Onlisans": "Kurzstudium",
+      "Lisans": "Bachelorabschluss",
+      "Lisansustu": "Postgraduiert"
+    },
+    "bankDataProviderType": {
+      "Mock": "Simulierte Daten (Mock)",
+      "GarantiSandbox": "Garanti BBVA Sandbox"
+    },
+    "ageBracket": {
+      "Age18To25": "18-25",
+      "Age26To35": "26-35",
+      "Age36To45": "36-45",
+      "Age46To55": "46-55",
+      "Age56Plus": "56+"
+    }
+  },
+  "pageTitle": {
+    "login": "Finara BackOffice — Anmelden",
+    "forgotPassword": "Finara BackOffice — Passwort Vergessen",
+    "resetPassword": "Finara BackOffice — Passwort Zurücksetzen",
+    "acceptInvitation": "Finara BackOffice — Einladung Annehmen",
+    "security": "Finara BackOffice — Sicherheit & Datenschutz",
+    "scenarios": "Finara BackOffice — Wie Es Funktioniert",
+    "dashboard": "Finara BackOffice — Übersicht",
+    "campaigns": "Finara BackOffice — Kampagnenverwaltung",
+    "auditLogs": "Finara BackOffice — Prüfprotokoll",
+    "adminAccounts": "Finara BackOffice — Administratorkonten",
+    "banks": "Finara BackOffice — Bankverwaltung",
+    "cohorts": "Finara BackOffice — Kohorten-Explorer",
+    "notifications": "Finara BackOffice — Benachrichtigungsprotokoll",
+    "account": "Finara BackOffice — Mein Konto",
+    "settings": "Finara BackOffice — Einstellungen"
   }
 }

@@ -8,18 +8,20 @@ import { PasswordModule } from 'primeng/password';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { AcceptInvitationRequest, Client, describeApiError, userRoleLabel } from '@finara/shared-ui';
 
 @Component({
     selector: 'app-accept-invitation',
-    imports: [FormsModule, RouterLink, PasswordModule, ButtonModule, CardModule, MessageModule],
+    imports: [FormsModule, RouterLink, PasswordModule, ButtonModule, CardModule, MessageModule, TranslatePipe],
     templateUrl: './accept-invitation.component.html'
 })
 export class AcceptInvitationComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly client = inject(Client);
+  private readonly translate = inject(TranslateService);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   private token = '';
@@ -48,7 +50,7 @@ export class AcceptInvitationComponent implements OnInit, OnDestroy {
     if (!this.token) {
       this.hasToken = false;
       this.previewLoading.set(false);
-      this.previewError.set('Geçersiz davet bağlantısı — e-postanızdaki bağlantıyı tekrar kullanın.');
+      this.previewError.set(this.translate.instant('auth.acceptInvitation.invalidToken'));
       return;
     }
 

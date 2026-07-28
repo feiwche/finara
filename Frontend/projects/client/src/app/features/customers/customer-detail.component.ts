@@ -1,10 +1,11 @@
-import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CurrencyPipe, DatePipe, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Title } from '@angular/platform-browser';
-import { firstValueFrom } from 'rxjs';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { Subscription, firstValueFrom } from 'rxjs';
 
 import { TabsModule } from 'primeng/tabs';
 import { TableModule } from 'primeng/table';
@@ -35,13 +36,13 @@ import {
   OfferSummary,
   RecordTransactionRequest,
   SegmentSummary,
-  TRANSACTION_CATEGORY_OPTIONS,
   TransactionCategory,
   TransactionSummary,
   UpdateConsentRequest,
   apiErrorStatus,
   consentChannelLabel,
   describeApiError,
+  getTransactionCategoryOptions,
   offerResponseLabel,
   offerResponseSeverity,
   spendingPropensityLabel,
@@ -92,11 +93,12 @@ const CATEGORY_ICONS: Record<string, string> = {
         ProgressSpinnerModule,
         ProgressBarModule,
         TextareaModule,
-        BreadcrumbModule
+        BreadcrumbModule,
+        TranslatePipe
     ],
     templateUrl: './customer-detail.component.html'
 })
-export class CustomerDetailComponent implements OnInit {
+export class CustomerDetailComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly client = inject(Client);
   private readonly destroyRef = inject(DestroyRef);
@@ -104,6 +106,14 @@ export class CustomerDetailComponent implements OnInit {
   private readonly messageService = inject(MessageService);
   private readonly confirmationService = inject(ConfirmationService);
   protected readonly authService = inject(AuthService);
+  protected readonly translate = inject(TranslateService);
+
+  private readonly langTick = signal(0);
+  private readonly langChangeSub: Subscription;
+
+  constructor() {
+    this.langChangeSub = this.translate.onLangChange.subscribe(() => this.langTick.update(n => n + 1));
+  }
 
   protected readonly offerResponseSeverity = offerResponseSeverity;
   protected readonly offerResponseLabel = offerResponseLabel;
@@ -118,8 +128,12 @@ export class CustomerDetailComponent implements OnInit {
 
   protected readonly breadcrumbHome: MenuItem = { icon: 'pi pi-home', routerLink: '/customers' };
   protected readonly breadcrumbItems = computed<MenuItem[]>(() => {
+    this.langTick();
     const c = this.customer();
-    return [{ label: 'Müşteriler', routerLink: '/customers' }, { label: c ? `${c.firstName} ${c.lastName}` : 'Müşteri' }];
+    return [
+      { label: this.translate.instant('customers.title'), routerLink: '/customers' },
+      { label: c ? `${c.firstName} ${c.lastName}` : this.translate.instant('customers.detail.fallbackName') }
+    ];
   });
 
   protected customerId = '';
@@ -140,7 +154,10 @@ export class CustomerDetailComponent implements OnInit {
   };
 
   protected transactions = signal<TransactionSummary[]>([]);
-  protected categories = TRANSACTION_CATEGORY_OPTIONS;
+  protected readonly categories = computed(() => {
+    this.langTick();
+    return getTransactionCategoryOptions();
+  });
   protected newTransaction = { amount: 0, category: TransactionCategory.Groceries, merchantName: '', occurredAtUtc: null as Date | null };
   protected txBusy = signal(false);
   protected txSubmitted = false;
@@ -178,6 +195,10 @@ export class CustomerDetailComponent implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    this.langChangeSub.unsubscribe();
+  }
+
   private async loadCustomer(): Promise<void> {
     try {
       const all = await firstValueFrom(this.client.customersAll());
@@ -185,7 +206,7 @@ export class CustomerDetailComponent implements OnInit {
       this.customer.set(found);
       if (found) this.titleService.setTitle(`Finara — ${found.firstName} ${found.lastName}`);
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'Müşteri yüklenemedi', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('customers.detail.toast.loadFailed'), detail: describeApiError(err) });
     }
   }
 
@@ -197,7 +218,7 @@ export class CustomerDetailComponent implements OnInit {
       this.segment.set(null);
       this.segmentMessage.set(
         apiErrorStatus(err) === 404
-          ? 'Bu müşteri için henüz segment hesaplanmamış — Araçlar sayfasından segmentasyonu çalıştırın.'
+          ? this.translate.instant('customers.detail.profile.noSegment')
           : describeApiError(err)
       );
     }
@@ -216,7 +237,7 @@ export class CustomerDetailComponent implements OnInit {
               labels: history.map(h => this.formatShortDate(h.calculatedAtUtc!)),
               datasets: [
                 {
-                  label: 'Toplam RFM Skoru',
+                  label: this.translate.instant('customers.detail.profile.chartLabel'),
                   data: history.map(h => h.totalScore),
                   borderColor: '#175243',
                   backgroundColor: 'rgba(23, 82, 67, 0.12)',
@@ -230,7 +251,7 @@ export class CustomerDetailComponent implements OnInit {
             }
       );
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'Segment geçmişi yüklenemedi', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('customers.detail.toast.segmentHistoryLoadFailed'), detail: describeApiError(err) });
     }
   }
 
@@ -243,7 +264,7 @@ export class CustomerDetailComponent implements OnInit {
     try {
       this.segment.set(await firstValueFrom(this.client.aiCommentary(this.customerId)));
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'AI yorumu oluşturulamadı', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('customers.detail.toast.aiCommentaryFailed'), detail: describeApiError(err) });
     } finally {
       this.aiCommentaryBusy.set(false);
     }
@@ -257,7 +278,7 @@ export class CustomerDetailComponent implements OnInit {
     try {
       this.transactions.set(await firstValueFrom(this.client.transactionsAll(this.customerId)));
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'İşlemler yüklenemedi', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('customers.detail.toast.transactionsLoadFailed'), detail: describeApiError(err) });
     }
   }
 
@@ -282,10 +303,10 @@ export class CustomerDetailComponent implements OnInit {
       );
       this.newTransaction = { amount: 0, category: TransactionCategory.Groceries, merchantName: '', occurredAtUtc: null };
       this.txSubmitted = false;
-      this.messageService.add({ severity: 'success', summary: 'İşlem kaydedildi' });
+      this.messageService.add({ severity: 'success', summary: this.translate.instant('customers.detail.toast.transactionSaved') });
       await this.loadTransactions();
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'İşlem kaydedilemedi', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('customers.detail.toast.transactionSaveFailed'), detail: describeApiError(err) });
     } finally {
       this.txBusy.set(false);
     }
@@ -295,7 +316,7 @@ export class CustomerDetailComponent implements OnInit {
     try {
       this.offers.set(await firstValueFrom(this.client.offers(this.customerId)));
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'Teklifler yüklenemedi', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('customers.detail.toast.offersLoadFailed'), detail: describeApiError(err) });
     }
   }
 
@@ -305,12 +326,14 @@ export class CustomerDetailComponent implements OnInit {
       const result = await firstValueFrom(this.client.generate2(this.customerId, 5));
       this.messageService.add({
         severity: 'success',
-        summary: 'Teklif üretimi tamamlandı',
-        detail: result.offersCreated ? `${result.offersCreated} yeni teklif oluşturuldu.` : 'Uygun yeni teklif bulunamadı.'
+        summary: this.translate.instant('customers.detail.toast.offerGenerationDone'),
+        detail: result.offersCreated
+          ? this.translate.instant('customers.detail.toast.offerGenerationDetail', { count: result.offersCreated })
+          : this.translate.instant('customers.detail.toast.offerGenerationNone')
       });
       await this.loadOffers();
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'Teklif üretilemedi', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('customers.detail.toast.offerGenerationFailed'), detail: describeApiError(err) });
     } finally {
       this.offersBusy.set(false);
     }
@@ -323,11 +346,11 @@ export class CustomerDetailComponent implements OnInit {
     }
     // Reddetme geri döndürülemez bir aksiyon — yanlışlıkla tıklamaya karşı onay isteniyor.
     this.confirmationService.confirm({
-      header: 'Teklifi reddet',
-      message: `"${offer.campaignName}" teklifini reddetmek istediğinize emin misiniz?`,
+      header: this.translate.instant('customers.detail.toast.rejectOfferHeader'),
+      message: this.translate.instant('customers.detail.toast.rejectOfferMessage', { name: offer.campaignName }),
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Reddet',
-      rejectLabel: 'Vazgeç',
+      acceptLabel: this.translate.instant('customers.detail.toast.rejectOfferAccept'),
+      rejectLabel: this.translate.instant('customers.detail.toast.rejectOfferReject'),
       acceptButtonProps: { severity: 'danger' },
       accept: () => void this.executeOfferResponse(offer, false)
     });
@@ -340,9 +363,15 @@ export class CustomerDetailComponent implements OnInit {
         ? await firstValueFrom(this.client.accept(this.customerId, offer.id!))
         : await firstValueFrom(this.client.decline(this.customerId, offer.id!));
       this.offers.update(list => list.map(o => (o.id === updated.id ? updated : o)));
-      this.messageService.add({ severity: 'success', summary: accept ? 'Teklif kabul edildi' : 'Teklif reddedildi', detail: offer.campaignName });
+      this.messageService.add({
+        severity: 'success',
+        summary: accept
+          ? this.translate.instant('customers.detail.toast.offerAccepted')
+          : this.translate.instant('customers.detail.toast.offerDeclined'),
+        detail: offer.campaignName
+      });
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'İşlem başarısız', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('customers.detail.toast.offerActionFailed'), detail: describeApiError(err) });
     } finally {
       this.respondingOfferId.set(null);
     }
@@ -354,11 +383,11 @@ export class CustomerDetailComponent implements OnInit {
     // Geri döndürülemez ve doğrudan kimlik belirleyicileri kalıcı olarak siliyor —
     // reddetme aksiyonundakiyle aynı desen (bkz. respondToOffer), burada daha güçlü bir uyarı metniyle.
     this.confirmationService.confirm({
-      header: 'KVKK Unutulma Hakkını Kullan',
-      message: `"${c.firstName} ${c.lastName}" adlı müşterinin adı, e-postası ve telefonu kalıcı olarak anonimleştirilecek. Bu işlem GERİ ALINAMAZ. Devam edilsin mi?`,
+      header: this.translate.instant('customers.detail.toast.eraseHeader'),
+      message: this.translate.instant('customers.detail.toast.eraseMessage', { name: `${c.firstName} ${c.lastName}` }),
       icon: 'pi pi-exclamation-triangle',
-      acceptLabel: 'Anonimleştir',
-      rejectLabel: 'Vazgeç',
+      acceptLabel: this.translate.instant('customers.detail.toast.eraseAccept'),
+      rejectLabel: this.translate.instant('customers.detail.toast.eraseReject'),
       acceptButtonProps: { severity: 'danger' },
       accept: () => void this.executeErase()
     });
@@ -373,9 +402,13 @@ export class CustomerDetailComponent implements OnInit {
       // yeniden yüklenmezse bayat "İzin Var" etiketleri kalır ve "Rızayı Kaldır" butonu
       // (eski isGranted=true'ya bakarak) tıklanınca rızayı yanlışlıkla yeniden VERİRDİ.
       await this.loadConsents();
-      this.messageService.add({ severity: 'success', summary: 'Müşteri anonimleştirildi', detail: 'Veriler KVKK unutulma hakkı kapsamında kalıcı olarak silindi.' });
+      this.messageService.add({
+        severity: 'success',
+        summary: this.translate.instant('customers.detail.toast.erased'),
+        detail: this.translate.instant('customers.detail.toast.erasedDetail')
+      });
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'Anonimleştirme başarısız', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('customers.detail.toast.eraseFailed'), detail: describeApiError(err) });
     } finally {
       this.eraseBusy.set(false);
     }
@@ -385,7 +418,7 @@ export class CustomerDetailComponent implements OnInit {
     try {
       this.consents.set(await firstValueFrom(this.client.consentsAll(this.customerId)));
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'Rıza durumu yüklenemedi', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('customers.detail.toast.consentLoadFailed'), detail: describeApiError(err) });
     }
   }
 
@@ -398,11 +431,13 @@ export class CustomerDetailComponent implements OnInit {
       this.consents.update(list => list.map(c => (c.channel === updated.channel ? updated : c)));
       this.messageService.add({
         severity: 'success',
-        summary: updated.isGranted ? 'Rıza verildi' : 'Rıza kaldırıldı',
+        summary: updated.isGranted
+          ? this.translate.instant('customers.detail.toast.consentGranted')
+          : this.translate.instant('customers.detail.toast.consentRevoked'),
         detail: consentChannelLabel(updated.channel!)
       });
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'Rıza güncellenemedi', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('customers.detail.toast.consentUpdateFailed'), detail: describeApiError(err) });
     } finally {
       this.consentBusy.set(null);
     }
@@ -414,11 +449,11 @@ export class CustomerDetailComponent implements OnInit {
       const result = await firstValueFrom(this.client.distribute(this.customerId, offer.id!, new DistributeOfferRequest({ channel })));
       this.messageService.add(
         result.sent
-          ? { severity: 'success', summary: 'Bildirim gönderildi', detail: `${consentChannelLabel(channel)} — ${offer.campaignName}` }
-          : { severity: 'warn', summary: 'Bildirim atlandı', detail: result.skippedReason ?? undefined }
+          ? { severity: 'success', summary: this.translate.instant('customers.detail.toast.notificationSent'), detail: `${consentChannelLabel(channel)} — ${offer.campaignName}` }
+          : { severity: 'warn', summary: this.translate.instant('customers.detail.toast.notificationSkipped'), detail: result.skippedReason ?? undefined }
       );
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'Dağıtım başarısız', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('customers.detail.toast.distributionFailed'), detail: describeApiError(err) });
     } finally {
       this.distributingOfferId.set(null);
     }

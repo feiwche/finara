@@ -1,11 +1,11 @@
 <div class="toolbar">
-  <h1>Müşteriler</h1>
+  <h1>{{ 'customers.title' | translate }}</h1>
   <div class="toolbar-actions">
     @if (authService.canWrite()) {
-      <p-button label="Şablon İndir" icon="pi pi-file" severity="secondary" [text]="true" (onClick)="downloadImportTemplate()" />
+      <p-button [label]="'customers.toolbar.downloadTemplate' | translate" icon="pi pi-file" severity="secondary" [text]="true" (onClick)="downloadImportTemplate()" />
       <input #importFileInput type="file" accept=".csv" hidden (change)="onImportFileSelected($event)" />
       <p-button
-        label="İçe Aktar"
+        [label]="'customers.toolbar.import' | translate"
         icon="pi pi-upload"
         severity="secondary"
         [outlined]="true"
@@ -14,16 +14,16 @@
       />
     }
     <p-button
-      label="Sayfayı Dışa Aktar"
+      [label]="'customers.toolbar.exportPage' | translate"
       icon="pi pi-download"
       severity="secondary"
       [outlined]="true"
-      pTooltip="Sunucu taraflı sayfalama nedeniyle sadece o an görüntülenen sayfa (20 kayıt) dışa aktarılır, aramaya uyan tüm müşteriler değil."
+      [pTooltip]="'customers.toolbar.exportPageTooltip' | translate"
       tooltipPosition="bottom"
       (onClick)="dt.exportCSV()"
     />
     @if (authService.canWrite()) {
-      <p-button label="Yeni Müşteri" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+      <p-button [label]="'customers.toolbar.newCustomer' | translate" icon="pi pi-plus" (onClick)="openCreateDialog()" />
     }
   </div>
 </div>
@@ -33,21 +33,21 @@
     <span class="stat-chip-icon"><i class="pi pi-users"></i></span>
     <div>
       <div class="stat-chip-value">{{ stats()?.totalCustomers ?? 0 }}</div>
-      <div class="stat-chip-label">TOPLAM MÜŞTERİ</div>
+      <div class="stat-chip-label">{{ 'customers.stats.total' | translate }}</div>
     </div>
   </div>
   <div class="stat-chip stat-chip--accent">
     <span class="stat-chip-icon"><i class="pi pi-arrow-up-right"></i></span>
     <div>
       <div class="stat-chip-value">{{ stats()?.highlyResponsiveCount ?? 0 }}</div>
-      <div class="stat-chip-label">HARCAMAYA YATKIN</div>
+      <div class="stat-chip-label">{{ 'customers.stats.highlyResponsive' | translate }}</div>
     </div>
   </div>
   <div class="stat-chip">
     <span class="stat-chip-icon"><i class="pi pi-exclamation-circle"></i></span>
     <div>
       <div class="stat-chip-value">{{ stats()?.needsEngagementCount ?? 0 }}</div>
-      <div class="stat-chip-label">TEŞVİK GEREKLİ</div>
+      <div class="stat-chip-label">{{ 'customers.stats.needsEngagement' | translate }}</div>
     </div>
   </div>
 </div>
@@ -62,7 +62,7 @@
   [first]="tableFirst()"
   [rows]="pageSize"
   [paginator]="true"
-  [columns]="exportColumns"
+  [columns]="exportColumns()"
   [exportFunction]="exportFn"
   exportFilename="musteriler"
   styleClass="p-datatable-sm"
@@ -73,7 +73,7 @@
       <input
         pInputText
         type="text"
-        placeholder="Ad, soyad veya e-posta ara…"
+        [placeholder]="'customers.table.searchPlaceholder' | translate"
         [(ngModel)]="searchTerm"
         (input)="onSearchInput()"
       />
@@ -81,10 +81,10 @@
   </ng-template>
   <ng-template pTemplate="header">
     <tr>
-      <th>Ad Soyad</th>
-      <th>E-posta</th>
-      <th>Yaş</th>
-      <th>Eğilim</th>
+      <th>{{ 'customers.table.fullName' | translate }}</th>
+      <th>{{ 'customers.table.email' | translate }}</th>
+      <th>{{ 'customers.table.age' | translate }}</th>
+      <th>{{ 'customers.table.propensity' | translate }}</th>
     </tr>
   </ng-template>
   <ng-template pTemplate="body" let-customer>
@@ -92,7 +92,7 @@
       class="clickable-row"
       tabindex="0"
       role="button"
-      [attr.aria-label]="'Müşteri detayını aç: ' + customer.firstName + ' ' + customer.lastName"
+      [attr.aria-label]="'customers.table.openDetailAria' | translate: { name: customer.firstName + ' ' + customer.lastName }"
       (click)="openDetail(customer)"
       (keydown.enter)="openDetail(customer)"
       (keydown.space)="$event.preventDefault(); openDetail(customer)"
@@ -102,7 +102,7 @@
           <span class="avatar-circle">{{ initials(customer) }}</span>
           {{ customer.firstName }} {{ customer.lastName }}
           @if (customer.isErased) {
-            <p-tag value="Anonimleştirildi" severity="secondary" />
+            <p-tag [value]="'customers.table.erased' | translate" severity="secondary" />
           }
         </div>
       </td>
@@ -116,14 +116,14 @@
       <td colspan="4">
         <div class="empty-state">
           <i class="pi pi-users empty-state-icon"></i>
-          <div class="empty-state-title">Henüz müşteri yok</div>
+          <div class="empty-state-title">{{ 'customers.empty.title' | translate }}</div>
           <p class="empty-state-text">
-            İlk müşterinizi elle ekleyin, CSV ile toplu içe aktarın ya da Araçlar sayfasından örnek (mock) veri üretip Finara'yı hemen deneyin.
+            {{ 'customers.empty.text' | translate }}
           </p>
           @if (authService.canWrite()) {
             <div class="empty-state-actions">
-              <p-button label="Yeni Müşteri" icon="pi pi-plus" size="small" (onClick)="openCreateDialog()" />
-              <p-button label="Örnek Veri Üret" icon="pi pi-sparkles" size="small" severity="secondary" [outlined]="true" (onClick)="navigateToTools()" />
+              <p-button [label]="'customers.empty.createCta' | translate" icon="pi pi-plus" size="small" (onClick)="openCreateDialog()" />
+              <p-button [label]="'customers.empty.generateMockCta' | translate" icon="pi pi-sparkles" size="small" severity="secondary" [outlined]="true" (onClick)="navigateToTools()" />
             </div>
           }
         </div>
@@ -132,34 +132,34 @@
   </ng-template>
 </p-table>
 
-<p-dialog header="Yeni Müşteri" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '420px' }">
+<p-dialog [header]="'customers.createDialog.header' | translate" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '420px' }">
   <div class="field">
-    <label for="customer-firstName">Ad *</label>
+    <label for="customer-firstName">{{ 'customers.createDialog.firstName' | translate }}</label>
     <input id="customer-firstName" type="text" pInputText [(ngModel)]="newCustomer.firstName" [class.field-invalid]="createSubmitted && !newCustomer.firstName" />
     @if (createSubmitted && !newCustomer.firstName) {
-      <small class="field-error">Ad zorunlu.</small>
+      <small class="field-error">{{ 'customers.createDialog.firstNameRequired' | translate }}</small>
     }
   </div>
   <div class="field">
-    <label for="customer-lastName">Soyad *</label>
+    <label for="customer-lastName">{{ 'customers.createDialog.lastName' | translate }}</label>
     <input id="customer-lastName" type="text" pInputText [(ngModel)]="newCustomer.lastName" [class.field-invalid]="createSubmitted && !newCustomer.lastName" />
     @if (createSubmitted && !newCustomer.lastName) {
-      <small class="field-error">Soyad zorunlu.</small>
+      <small class="field-error">{{ 'customers.createDialog.lastNameRequired' | translate }}</small>
     }
   </div>
   <div class="field">
-    <label for="customer-email">E-posta *</label>
+    <label for="customer-email">{{ 'customers.createDialog.email' | translate }}</label>
     <input id="customer-email" type="text" pInputText [(ngModel)]="newCustomer.email" [class.field-invalid]="createSubmitted && !newCustomer.email" />
     @if (createSubmitted && !newCustomer.email) {
-      <small class="field-error">E-posta zorunlu.</small>
+      <small class="field-error">{{ 'customers.createDialog.emailRequired' | translate }}</small>
     }
   </div>
   <div class="field">
-    <label for="customer-phone">Telefon (SMS için, E.164 — ör. +905551234567)</label>
-    <input id="customer-phone" type="text" pInputText [(ngModel)]="newCustomer.phoneNumber" placeholder="+905551234567" />
+    <label for="customer-phone">{{ 'customers.createDialog.phone' | translate }}</label>
+    <input id="customer-phone" type="text" pInputText [(ngModel)]="newCustomer.phoneNumber" [placeholder]="'customers.createDialog.phonePlaceholder' | translate" />
   </div>
   <div class="field">
-    <label for="customer-dob">Doğum Tarihi *</label>
+    <label for="customer-dob">{{ 'customers.createDialog.dob' | translate }}</label>
     <p-datepicker
       inputId="customer-dob"
       [(ngModel)]="newCustomer.dateOfBirth"
@@ -168,49 +168,49 @@
       [inputStyleClass]="createSubmitted && !newCustomer.dateOfBirth ? 'field-invalid' : ''"
     />
     @if (createSubmitted && !newCustomer.dateOfBirth) {
-      <small class="field-error">Doğum tarihi zorunlu.</small>
+      <small class="field-error">{{ 'customers.createDialog.dobRequired' | translate }}</small>
     }
   </div>
   <div class="field">
-    <label for="customer-education">Eğitim Durumu</label>
+    <label for="customer-education">{{ 'customers.createDialog.education' | translate }}</label>
     <p-select
       inputId="customer-education"
       [(ngModel)]="newCustomer.educationLevel"
-      [options]="educationLevelOptions"
+      [options]="educationLevelOptions()"
       optionLabel="label"
       optionValue="value"
-      placeholder="Belirtilmedi"
+      [placeholder]="'customers.createDialog.educationPlaceholder' | translate"
       [showClear]="true"
       styleClass="w-full"
     />
   </div>
   <div class="field-checkbox">
     <p-checkbox [(ngModel)]="newCustomer.hasInvestmentAccount" [binary]="true" inputId="hasInvestment" />
-    <label for="hasInvestment">Yatırım hesabı var</label>
+    <label for="hasInvestment">{{ 'customers.createDialog.hasInvestment' | translate }}</label>
   </div>
   <div class="field-checkbox">
     <p-checkbox [(ngModel)]="newCustomer.hasInternationalTransfers" [binary]="true" inputId="hasSwift" />
-    <label for="hasSwift">Yurtdışı transfer (SWIFT) kullanıyor</label>
+    <label for="hasSwift">{{ 'customers.createDialog.hasSwift' | translate }}</label>
   </div>
   @if (createError()) {
     <p-message severity="error" [text]="createError()!" />
   }
-  <p-button label="Oluştur" [loading]="createBusy()" (onClick)="createCustomer()" />
+  <p-button [label]="'customers.createDialog.submit' | translate" [loading]="createBusy()" (onClick)="createCustomer()" />
 </p-dialog>
 
-<p-dialog header="İçe Aktarma Sonucu" [(visible)]="importResultDialogVisible" [modal]="true" [style]="{ width: '520px' }">
+<p-dialog [header]="'customers.importResultDialog.header' | translate" [(visible)]="importResultDialogVisible" [modal]="true" [style]="{ width: '520px' }">
   @if (importResult(); as result) {
     <p-message
       [severity]="(result.errors?.length ?? 0) === 0 ? 'success' : 'warn'"
-      [text]="result.successCount + ' / ' + result.totalRows + ' satır başarıyla içe aktarıldı.'"
+      [text]="translate.instant('customers.importResultDialog.summary', { success: result.successCount, total: result.totalRows })"
     />
     @if (result.errors && result.errors.length > 0) {
       <div class="import-error-table-wrap">
         <table class="import-error-table">
           <thead>
             <tr>
-              <th>Satır</th>
-              <th>Hata</th>
+              <th>{{ 'customers.importResultDialog.row' | translate }}</th>
+              <th>{{ 'customers.importResultDialog.error' | translate }}</th>
             </tr>
           </thead>
           <tbody>

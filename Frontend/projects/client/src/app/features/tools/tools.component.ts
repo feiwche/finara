@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
@@ -12,13 +13,14 @@ import { AuthService, Client, GenerateMockDataRequest, describeApiError } from '
 
 @Component({
     selector: 'app-tools',
-    imports: [FormsModule, CardModule, ButtonModule, InputNumberModule, MessageModule],
+    imports: [FormsModule, CardModule, ButtonModule, InputNumberModule, MessageModule, TranslatePipe],
     templateUrl: './tools.component.html'
 })
 export class ToolsComponent {
   private readonly client = inject(Client);
   private readonly messageService = inject(MessageService);
   protected readonly authService = inject(AuthService);
+  protected readonly translate = inject(TranslateService);
 
   protected mockCustomerCount = 20;
   protected mockTransactionsPerCustomer = 15;
@@ -39,11 +41,14 @@ export class ToolsComponent {
       );
       this.messageService.add({
         severity: 'success',
-        summary: 'Mock veri üretildi',
-        detail: `${result.customersCreated} müşteri, ${result.transactionsCreated} işlem oluşturuldu.`
+        summary: this.translate.instant('tools.mockData.successSummary'),
+        detail: this.translate.instant('tools.mockData.successDetail', {
+          customers: result.customersCreated,
+          transactions: result.transactionsCreated
+        })
       });
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'Mock veri üretilemedi', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('tools.mockData.errorSummary'), detail: describeApiError(err) });
     } finally {
       this.mockBusy.set(false);
     }
@@ -55,11 +60,14 @@ export class ToolsComponent {
       const result = await firstValueFrom(this.client.recalculate());
       this.messageService.add({
         severity: 'success',
-        summary: 'Segmentasyon tamamlandı',
-        detail: `${result.customersProcessed} müşteri işlendi, ${result.customersSkipped} atlandı.`
+        summary: this.translate.instant('tools.segmentation.successSummary'),
+        detail: this.translate.instant('tools.segmentation.successDetail', {
+          processed: result.customersProcessed,
+          skipped: result.customersSkipped
+        })
       });
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'Segmentasyon başarısız', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('tools.segmentation.errorSummary'), detail: describeApiError(err) });
     } finally {
       this.segmentationBusy.set(false);
     }

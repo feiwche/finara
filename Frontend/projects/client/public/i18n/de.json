@@ -125,7 +125,9 @@
   "common": {
     "cancel": "Abbrechen",
     "save": "Speichern",
-    "error": "Ein Fehler ist aufgetreten"
+    "error": "Ein Fehler ist aufgetreten",
+    "yes": "Ja",
+    "no": "Nein"
   },
   "scenarios": {
     "badge": "So funktioniert's",
@@ -185,5 +187,384 @@
       "title": "Eingabevalidierung & Ratenbegrenzung",
       "text": "Massenimport und -export werden gegen Formel-Injection bereinigt, alle Endpunkte sind durch Ratenbegrenzung vor Missbrauch geschützt, und die Datenbank läuft in einer isolierten Umgebung."
     }
+  },
+  "customers": {
+    "title": "Kunden",
+    "toolbar": {
+      "downloadTemplate": "Vorlage herunterladen",
+      "import": "Importieren",
+      "exportPage": "Seite exportieren",
+      "exportPageTooltip": "Aufgrund der serverseitigen Paginierung wird nur die aktuell angezeigte Seite (20 Datensätze) exportiert, nicht alle zur Suche passenden Kunden.",
+      "newCustomer": "Neuer Kunde"
+    },
+    "stats": {
+      "total": "KUNDEN GESAMT",
+      "highlyResponsive": "KAUFBEREIT",
+      "needsEngagement": "AKTIVIERUNG NÖTIG"
+    },
+    "table": {
+      "searchPlaceholder": "Nach Vorname, Nachname oder E-Mail suchen…",
+      "fullName": "Vollständiger Name",
+      "email": "E-Mail",
+      "age": "Alter",
+      "propensity": "Neigung",
+      "openDetailAria": "Kundendetail öffnen: {{name}}",
+      "erased": "Anonymisiert"
+    },
+    "empty": {
+      "title": "Noch keine Kunden vorhanden",
+      "text": "Fügen Sie Ihren ersten Kunden manuell hinzu, importieren Sie per CSV in großen Mengen oder erzeugen Sie Beispieldaten (Mock) auf der Werkzeuge-Seite, um Finara sofort auszuprobieren.",
+      "createCta": "Neuer Kunde",
+      "generateMockCta": "Beispieldaten erzeugen"
+    },
+    "createDialog": {
+      "header": "Neuer Kunde",
+      "firstName": "Vorname *",
+      "firstNameRequired": "Vorname ist erforderlich.",
+      "lastName": "Nachname *",
+      "lastNameRequired": "Nachname ist erforderlich.",
+      "email": "E-Mail *",
+      "emailRequired": "E-Mail ist erforderlich.",
+      "phone": "Telefon (für SMS, E.164 — z. B. +905551234567)",
+      "phonePlaceholder": "+905551234567",
+      "dob": "Geburtsdatum *",
+      "dobRequired": "Geburtsdatum ist erforderlich.",
+      "education": "Bildungsstand",
+      "educationPlaceholder": "Nicht angegeben",
+      "hasInvestment": "Hat ein Anlagekonto",
+      "hasSwift": "Nutzt internationale Überweisungen (SWIFT)",
+      "submit": "Erstellen"
+    },
+    "importResultDialog": {
+      "header": "Importergebnis",
+      "summary": "{{success}} / {{total}} Zeilen erfolgreich importiert.",
+      "row": "Zeile",
+      "error": "Fehler"
+    },
+    "importTemplate": {
+      "firstName": "Vorname",
+      "lastName": "Nachname",
+      "email": "E-Mail",
+      "dob": "Geburtsdatum",
+      "phone": "Telefon",
+      "education": "Bildungsstand",
+      "hasInvestment": "Hat Anlagekonto",
+      "hasSwift": "Hat internationale Überweisungen"
+    },
+    "export": {
+      "firstName": "Vorname",
+      "lastName": "Nachname",
+      "email": "E-Mail",
+      "phone": "Telefon",
+      "age": "Alter",
+      "propensity": "Neigung",
+      "educationLevel": "Bildungsstand"
+    },
+    "toast": {
+      "statsLoadFailed": "Übersichtsdaten konnten nicht geladen werden",
+      "loadFailed": "Kunden konnten nicht geladen werden",
+      "created": "Kunde erstellt",
+      "importFailed": "Import fehlgeschlagen"
+    },
+    "detail": {
+      "fallbackName": "Kunde",
+      "tabs": {
+        "profile": "Profil",
+        "transactions": "Transaktionen",
+        "offers": "Angebote",
+        "consent": "Einwilligung",
+        "aiAnalysis": "KI-Analyse"
+      },
+      "profile": {
+        "erasedWarning": "Die Daten dieses Kunden wurden im Rahmen des Rechts auf Vergessenwerden (DSGVO/KVKK) anonymisiert — Name, E-Mail und Telefonnummer wurden dauerhaft gelöscht.",
+        "email": "E-Mail:",
+        "age": "Alter:",
+        "overallPropensity": "Gesamtneigung:",
+        "eraseButton": "Recht auf Vergessenwerden ausüben",
+        "segmentHeader": "Segment (RFM)",
+        "recency": "Recency ({{score}}/5)",
+        "frequency": "Frequency ({{score}}/5)",
+        "monetary": "Monetary ({{score}}/5)",
+        "totalScore": "Gesamtpunktzahl:",
+        "dominantCategory": "Dominante Kategorie:",
+        "dominantCategoryUnknown": "Unbekannt",
+        "calculatedAt": "Berechnet am:",
+        "aiCommentaryLabel": "KI-Kommentar",
+        "aiRegenerate": "Neu generieren",
+        "aiGenerate": "KI-Kommentar abrufen",
+        "aiHint": "Der KI-Kommentar ersetzt nicht das RFM-Modell, sondern liefert lediglich eine kurze zusätzliche Erläuterung — die endgültige Entscheidung liegt immer bei der RFM-Regel.",
+        "segmentHistoryHeader": "Segmentverlauf",
+        "segmentHistoryHint": "Die Punktfarbe zeigt die Neigung —",
+        "chartLabel": "Gesamter RFM-Score",
+        "noSegment": "Für diesen Kunden wurde noch kein Segment berechnet — führen Sie die Segmentierung auf der Werkzeuge-Seite aus."
+      },
+      "transactions": {
+        "addNew": "Neue Transaktion hinzufügen",
+        "erasedMessage": "Dieser Kunde wurde anonymisiert, daher können keine neuen Transaktionen hinzugefügt werden.",
+        "demoMessage": "Demo-Konten können keine neuen Transaktionen hinzufügen.",
+        "analystMessage": "Analysten-Konten können keine neuen Transaktionen hinzufügen.",
+        "amount": "Betrag (TRY) *",
+        "amountRequired": "Der Betrag muss größer als null sein.",
+        "category": "Kategorie",
+        "merchant": "Händler *",
+        "merchantRequired": "Händler ist erforderlich.",
+        "date": "Datum *",
+        "dateRequired": "Datum ist erforderlich.",
+        "save": "Transaktion speichern",
+        "recentHeader": "Letzte Transaktionen",
+        "colDate": "Datum",
+        "colCategory": "Kategorie",
+        "colMerchant": "Händler",
+        "colAmount": "Betrag"
+      },
+      "offers": {
+        "intro": "Diesem Kunden vorgelegte Kampagnenangebote",
+        "generate": "Angebote generieren",
+        "colCampaign": "Kampagne",
+        "colConfidence": "Konfidenzwert",
+        "colStatus": "Status",
+        "colPresentedAt": "Vorgelegt am",
+        "colActions": "Aktionen",
+        "accept": "Annehmen",
+        "decline": "Ablehnen",
+        "sendSms": "SMS senden",
+        "sendEmail": "E-Mail senden",
+        "empty": "Noch keine Angebote vorhanden. Mit „Angebote generieren“ erstellen (es muss ein Segment berechnet und eine aktive Kampagne vorhanden sein)."
+      },
+      "consent": {
+        "hint": "Gemäß DSGVO/KVKK muss der Kunde für einen Kanal ausdrücklich eingewilligt haben, bevor darüber eine Benachrichtigung gesendet werden kann.",
+        "phoneLabel": "Telefon:",
+        "phoneNotRegistered": "Nicht registriert (SMS kann nicht gesendet werden)",
+        "emailLabel": "E-Mail:",
+        "colChannel": "Kanal",
+        "colStatus": "Status",
+        "colGrantedAt": "Erteilt am",
+        "colRevokedAt": "Widerrufen am",
+        "colActions": "Aktionen",
+        "granted": "Erteilt",
+        "notGranted": "Nicht erteilt",
+        "revoke": "Einwilligung widerrufen",
+        "grant": "Einwilligung erteilen"
+      },
+      "ai": {
+        "questionLabel": "Frage (leer lassen für eine allgemeine Zusammenfassung)",
+        "analyze": "Analysieren",
+        "demoMessage": "Demo-Konten können keine KI-Analyse starten.",
+        "analystMessage": "Analysten-Konten können keine KI-Analyse starten.",
+        "loadingHint": "Das lokale Modell generiert eine Antwort, dies kann ~10 Sekunden dauern…",
+        "questionPrefix": "Frage:"
+      },
+      "toast": {
+        "loadFailed": "Kunde konnte nicht geladen werden",
+        "segmentHistoryLoadFailed": "Segmentverlauf konnte nicht geladen werden",
+        "aiCommentaryFailed": "KI-Kommentar konnte nicht generiert werden",
+        "transactionsLoadFailed": "Transaktionen konnten nicht geladen werden",
+        "transactionSaved": "Transaktion gespeichert",
+        "transactionSaveFailed": "Transaktion konnte nicht gespeichert werden",
+        "offersLoadFailed": "Angebote konnten nicht geladen werden",
+        "offerGenerationDone": "Angebotserstellung abgeschlossen",
+        "offerGenerationDetail": "{{count}} neue(s) Angebot(e) erstellt.",
+        "offerGenerationNone": "Keine passenden neuen Angebote gefunden.",
+        "offerGenerationFailed": "Angebote konnten nicht generiert werden",
+        "rejectOfferHeader": "Angebot ablehnen",
+        "rejectOfferMessage": "Möchten Sie das Angebot „{{name}}“ wirklich ablehnen?",
+        "rejectOfferAccept": "Ablehnen",
+        "rejectOfferReject": "Abbrechen",
+        "offerAccepted": "Angebot angenommen",
+        "offerDeclined": "Angebot abgelehnt",
+        "offerActionFailed": "Aktion fehlgeschlagen",
+        "eraseHeader": "Recht auf Vergessenwerden ausüben",
+        "eraseMessage": "Name, E-Mail und Telefonnummer von „{{name}}“ werden dauerhaft anonymisiert. Diese Aktion kann NICHT RÜCKGÄNGIG gemacht werden. Fortfahren?",
+        "eraseAccept": "Anonymisieren",
+        "eraseReject": "Abbrechen",
+        "erased": "Kunde anonymisiert",
+        "erasedDetail": "Die Daten wurden im Rahmen des Rechts auf Vergessenwerden (DSGVO/KVKK) dauerhaft gelöscht.",
+        "eraseFailed": "Anonymisierung fehlgeschlagen",
+        "consentLoadFailed": "Einwilligungsstatus konnte nicht geladen werden",
+        "consentGranted": "Einwilligung erteilt",
+        "consentRevoked": "Einwilligung widerrufen",
+        "consentUpdateFailed": "Einwilligung konnte nicht aktualisiert werden",
+        "notificationSent": "Benachrichtigung gesendet",
+        "notificationSkipped": "Benachrichtigung übersprungen",
+        "distributionFailed": "Verteilung fehlgeschlagen"
+      }
+    }
+  },
+  "campaigns": {
+    "title": "Kampagnen",
+    "exportButton": "Exportieren",
+    "newCampaign": "Neue Kampagne",
+    "stats": {
+      "total": "KAMPAGNEN GESAMT",
+      "active": "AKTIV",
+      "draft": "ENTWURF"
+    },
+    "table": {
+      "name": "Name",
+      "status": "Status",
+      "targetCategory": "Zielkategorie",
+      "targetPropensities": "Zielneigungen",
+      "dateRange": "Zeitraum",
+      "actions": "Aktionen",
+      "allCategories": "Alle Kategorien",
+      "allPropensities": "Alle Neigungen",
+      "activate": "Aktivieren"
+    },
+    "empty": {
+      "title": "Noch keine Kampagnen vorhanden",
+      "text": "Legen Sie eine Zielgruppe (Kategorie/Neigung) und einen Zeitraum fest, um Ihre erste Kampagne zu erstellen — nach der Aktivierung werden Angebote automatisch für passende Kunden generiert.",
+      "createCta": "Neue Kampagne"
+    },
+    "createDialog": {
+      "header": "Neue Kampagne",
+      "name": "Name *",
+      "nameRequired": "Kampagnenname ist erforderlich.",
+      "description": "Beschreibung *",
+      "descriptionRequired": "Beschreibung ist erforderlich.",
+      "startDate": "Startdatum *",
+      "startDateRequired": "Startdatum ist erforderlich.",
+      "endDate": "Enddatum (optional)",
+      "category": "Zielkategorie (optional)",
+      "categoryPlaceholder": "Egal",
+      "propensities": "Zielneigungen (optional)",
+      "propensitiesPlaceholder": "Egal (alle)",
+      "targetsInvestment": "Zielt auf Inhaber von Anlagekonten ab",
+      "targetsSwift": "Zielt auf SWIFT-Nutzer ab",
+      "submit": "Erstellen"
+    },
+    "exportColumns": {
+      "name": "Name",
+      "status": "Status",
+      "targetCategory": "Zielkategorie",
+      "targetPropensities": "Zielneigungen",
+      "start": "Start",
+      "end": "Ende"
+    },
+    "toast": {
+      "loadFailed": "Kampagnen konnten nicht geladen werden",
+      "updated": "Kampagne aktualisiert",
+      "updatedDetail": "{{name}} ist jetzt {{status}}",
+      "created": "Kampagne erstellt",
+      "activated": "Kampagne aktiviert",
+      "activateFailed": "Aktivierung fehlgeschlagen"
+    }
+  },
+  "tools": {
+    "title": "Werkzeuge",
+    "mockData": {
+      "header": "Mock-Daten generieren",
+      "description": "Erzeugt zu Testzwecken zufällige Kunden- und Ausgabendaten (maximal 5-mal pro Minute nutzbar).",
+      "customerCount": "Anzahl der Kunden",
+      "txPerCustomer": "Transaktionen pro Kunde",
+      "generate": "Generieren",
+      "demoMessage": "Demo-Konten können keine Mock-Daten generieren.",
+      "analystMessage": "Analysten-Konten können keine Mock-Daten generieren.",
+      "successSummary": "Mock-Daten generiert",
+      "successDetail": "{{customers}} Kunde(n), {{transactions}} Transaktion(en) erstellt.",
+      "errorSummary": "Mock-Daten konnten nicht generiert werden"
+    },
+    "segmentation": {
+      "header": "Segmentierung neu berechnen",
+      "description": "Berechnet das RFM-Segment für alle Kunden anhand der letzten 90-tägigen Ausgabenperiode neu.",
+      "recalculate": "Neu berechnen",
+      "demoMessage": "Demo-Konten können die Segmentierung nicht neu berechnen.",
+      "analystMessage": "Analysten-Konten können die Segmentierung nicht neu berechnen.",
+      "successSummary": "Segmentierung abgeschlossen",
+      "successDetail": "{{processed}} Kunde(n) verarbeitet, {{skipped}} übersprungen.",
+      "errorSummary": "Segmentierung fehlgeschlagen"
+    }
+  },
+  "enums": {
+    "transactionCategory": {
+      "Groceries": "Lebensmittel",
+      "Fuel": "Kraftstoff",
+      "Travel": "Reisen",
+      "Entertainment": "Unterhaltung",
+      "Healthcare": "Gesundheit",
+      "ECommerce": "E-Commerce",
+      "Motorcycle": "Motorrad",
+      "Investment": "Investition",
+      "ForeignExchange": "Devisen",
+      "Utilities": "Rechnungen",
+      "Other": "Sonstiges"
+    },
+    "spendingPropensity": {
+      "NeedsEngagement": "Ansprache Nötig",
+      "Neutral": "Neutral",
+      "HighlyResponsive": "Kaufbereit"
+    },
+    "campaignStatus": {
+      "Draft": "Entwurf",
+      "Active": "Aktiv",
+      "Paused": "Pausiert",
+      "Completed": "Abgeschlossen",
+      "Archived": "Archiviert"
+    },
+    "offerResponse": {
+      "Pending": "Ausstehend",
+      "Accepted": "Angenommen",
+      "Declined": "Abgelehnt",
+      "Expired": "Abgelaufen"
+    },
+    "userRole": {
+      "SuperAdmin": "Superadministrator",
+      "BankAdmin": "Bankadministrator",
+      "Analyst": "Analyst (Nur Lesen)"
+    },
+    "auditActionType": {
+      "SegmentAssigned": "Segment Zugewiesen",
+      "CampaignOfferPresented": "Angebot Vorgestellt",
+      "CampaignOfferAccepted": "Angebot Angenommen",
+      "CampaignOfferDeclined": "Angebot Abgelehnt",
+      "CustomerCreated": "Kunde Erstellt",
+      "TransactionRecorded": "Transaktion Erfasst",
+      "OfferDistributed": "Angebot Verteilt",
+      "ConsentGranted": "Einwilligung Erteilt",
+      "ConsentRevoked": "Einwilligung Widerrufen",
+      "AdminCreated": "Administrator Erstellt",
+      "AdminDeactivated": "Administrator Deaktiviert",
+      "CustomerBulkImported": "Kunden Massenimport",
+      "CustomerErased": "Kundendaten Anonymisiert (DSGVO)",
+      "AdminInvited": "Administratoreinladung Gesendet",
+      "AdminInvitationAccepted": "Administratoreinladung Angenommen",
+      "AdminInvitationRevoked": "Administratoreinladung Widerrufen",
+      "AdminSessionsRevoked": "Administratorsitzungen Beendet"
+    },
+    "consentChannel": {
+      "Sms": "SMS",
+      "Email": "E-Mail",
+      "InAppBanking": "In-App-Banking"
+    },
+    "educationLevel": {
+      "Ilkogretim": "Grundschule",
+      "Lise": "Gymnasium",
+      "Onlisans": "Kurzstudium",
+      "Lisans": "Bachelorabschluss",
+      "Lisansustu": "Postgraduiert"
+    },
+    "bankDataProviderType": {
+      "Mock": "Simulierte Daten (Mock)",
+      "GarantiSandbox": "Garanti BBVA Sandbox"
+    },
+    "ageBracket": {
+      "Age18To25": "18-25",
+      "Age26To35": "26-35",
+      "Age36To45": "36-45",
+      "Age46To55": "46-55",
+      "Age56Plus": "56+"
+    }
+  },
+  "pageTitle": {
+    "login": "Finara — Anmelden",
+    "forgotPassword": "Finara — Passwort Vergessen",
+    "resetPassword": "Finara — Passwort Zurücksetzen",
+    "security": "Finara — Sicherheit & Datenschutz",
+    "scenarios": "Finara — Wie Es Funktioniert",
+    "customers": "Finara — Kunden",
+    "customerDetail": "Finara — Kundendetails",
+    "campaigns": "Finara — Kampagnen",
+    "tools": "Finara — Werkzeuge",
+    "account": "Finara — Mein Konto",
+    "settings": "Finara — Einstellungen"
   }
 }

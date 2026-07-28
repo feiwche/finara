@@ -8,18 +8,18 @@
     @if (customer(); as c) {
       {{ c.firstName }} {{ c.lastName }}
     } @else {
-      Müşteri
+      {{ 'customers.detail.fallbackName' | translate }}
     }
   </h1>
 </div>
 
 <p-tabs value="0">
   <p-tablist>
-    <p-tab value="0">Profil</p-tab>
-    <p-tab value="1">İşlemler</p-tab>
-    <p-tab value="2">Teklifler</p-tab>
-    <p-tab value="3">Rıza</p-tab>
-    <p-tab value="4">AI Analiz</p-tab>
+    <p-tab value="0">{{ 'customers.detail.tabs.profile' | translate }}</p-tab>
+    <p-tab value="1">{{ 'customers.detail.tabs.transactions' | translate }}</p-tab>
+    <p-tab value="2">{{ 'customers.detail.tabs.offers' | translate }}</p-tab>
+    <p-tab value="3">{{ 'customers.detail.tabs.consent' | translate }}</p-tab>
+    <p-tab value="4">{{ 'customers.detail.tabs.aiAnalysis' | translate }}</p-tab>
   </p-tablist>
   <p-tabpanels>
   <p-tabpanel value="0">
@@ -27,17 +27,17 @@
       @if (c.isErased) {
         <p-message
           severity="warn"
-          text="Bu müşterinin verileri KVKK unutulma hakkı kapsamında anonimleştirilmiştir — ad, e-posta ve telefon kalıcı olarak silindi."
+          [text]="'customers.detail.profile.erasedWarning' | translate"
           styleClass="panel"
         />
       }
       <p-card styleClass="panel">
-        <div><strong>E-posta:</strong> {{ c.email }}</div>
-        <div><strong>Yaş:</strong> {{ c.age }}</div>
-        <div><strong>Genel eğilim:</strong> {{ spendingPropensityLabel(c.propensity!) }}</div>
+        <div><strong>{{ 'customers.detail.profile.email' | translate }}</strong> {{ c.email }}</div>
+        <div><strong>{{ 'customers.detail.profile.age' | translate }}</strong> {{ c.age }}</div>
+        <div><strong>{{ 'customers.detail.profile.overallPropensity' | translate }}</strong> {{ spendingPropensityLabel(c.propensity!) }}</div>
         @if (!c.isErased && authService.canWrite()) {
           <p-button
-            label="KVKK Unutulma Hakkını Kullan"
+            [label]="'customers.detail.profile.eraseButton' | translate"
             icon="pi pi-trash"
             severity="danger"
             [outlined]="true"
@@ -51,30 +51,30 @@
     }
 
     @if (segment(); as s) {
-      <p-card header="Segment (RFM)" styleClass="panel">
+      <p-card [header]="'customers.detail.profile.segmentHeader' | translate" styleClass="panel">
         <div class="rfm-row">
-          <span class="rfm-label">Recency ({{ s.recencyScore }}/5)</span>
+          <span class="rfm-label">{{ translate.instant('customers.detail.profile.recency', { score: s.recencyScore }) }}</span>
           <p-progressbar [value]="(s.recencyScore! / 5) * 100" [showValue]="false" />
         </div>
         <div class="rfm-row">
-          <span class="rfm-label">Frequency ({{ s.frequencyScore }}/5)</span>
+          <span class="rfm-label">{{ translate.instant('customers.detail.profile.frequency', { score: s.frequencyScore }) }}</span>
           <p-progressbar [value]="(s.frequencyScore! / 5) * 100" [showValue]="false" />
         </div>
         <div class="rfm-row">
-          <span class="rfm-label">Monetary ({{ s.monetaryScore }}/5)</span>
+          <span class="rfm-label">{{ translate.instant('customers.detail.profile.monetary', { score: s.monetaryScore }) }}</span>
           <p-progressbar [value]="(s.monetaryScore! / 5) * 100" [showValue]="false" />
         </div>
-        <div><strong>Toplam skor:</strong> {{ s.totalScore }} / 15</div>
-        <div><strong>Baskın kategori:</strong> {{ s.dominantCategory ? transactionCategoryLabel(s.dominantCategory) : 'Belirsiz' }}</div>
-        <div><strong>Hesaplanma tarihi:</strong> {{ s.calculatedAtUtc | date: 'yyyy-MM-dd HH:mm' }}</div>
+        <div><strong>{{ 'customers.detail.profile.totalScore' | translate }}</strong> {{ s.totalScore }} / 15</div>
+        <div><strong>{{ 'customers.detail.profile.dominantCategory' | translate }}</strong> {{ s.dominantCategory ? transactionCategoryLabel(s.dominantCategory) : ('customers.detail.profile.dominantCategoryUnknown' | translate) }}</div>
+        <div><strong>{{ 'customers.detail.profile.calculatedAt' | translate }}</strong> {{ s.calculatedAtUtc | date: 'yyyy-MM-dd HH:mm' }}</div>
 
         <div class="ai-commentary">
           @if (s.aiCommentary) {
-            <div class="ai-commentary-label"><i class="pi pi-sparkles"></i> AI Yorumu</div>
+            <div class="ai-commentary-label"><i class="pi pi-sparkles"></i> {{ 'customers.detail.profile.aiCommentaryLabel' | translate }}</div>
             <p class="ai-commentary-text">{{ s.aiCommentary }}</p>
             @if (authService.canWrite()) {
               <p-button
-                label="Yeniden Oluştur"
+                [label]="'customers.detail.profile.aiRegenerate' | translate"
                 icon="pi pi-refresh"
                 size="small"
                 severity="secondary"
@@ -85,7 +85,7 @@
             }
           } @else if (authService.canWrite()) {
             <p-button
-              label="AI Yorumu Al"
+              [label]="'customers.detail.profile.aiGenerate' | translate"
               icon="pi pi-sparkles"
               size="small"
               severity="secondary"
@@ -94,7 +94,7 @@
               (onClick)="generateSegmentAiCommentary()"
             />
           }
-          <p class="ai-hint">AI yorumu RFM'in yerine geçmez, sadece kısa bir ek açıklamadır — nihai karar her zaman RFM kuralına aittir.</p>
+          <p class="ai-hint">{{ 'customers.detail.profile.aiHint' | translate }}</p>
         </div>
       </p-card>
     } @else if (segmentMessage()) {
@@ -102,15 +102,15 @@
     }
 
     @if (segmentHistoryChartData(); as chartData) {
-      <p-card header="Segment Geçmişi" styleClass="panel">
+      <p-card [header]="'customers.detail.profile.segmentHistoryHeader' | translate" styleClass="panel">
         <div class="segment-history-chart">
           <p-chart type="line" [data]="chartData" [options]="segmentHistoryChartOptions" height="220px" />
         </div>
         <p class="ai-hint">
-          Nokta rengi eğilimi gösterir —
-          <span class="legend-dot" style="background: #f59e0b"></span> Teşvik Gerekli,
-          <span class="legend-dot" style="background: #60a5fa"></span> Nötr,
-          <span class="legend-dot" style="background: #22c55e"></span> Harcamaya Yatkın.
+          {{ 'customers.detail.profile.segmentHistoryHint' | translate }}
+          <span class="legend-dot" style="background: #f59e0b"></span> {{ 'enums.spendingPropensity.NeedsEngagement' | translate }},
+          <span class="legend-dot" style="background: #60a5fa"></span> {{ 'enums.spendingPropensity.Neutral' | translate }},
+          <span class="legend-dot" style="background: #22c55e"></span> {{ 'enums.spendingPropensity.HighlyResponsive' | translate }}.
         </p>
       </p-card>
     }
@@ -118,16 +118,16 @@
 
   <p-tabpanel value="1">
     <div class="grid">
-      <p-card header="Yeni İşlem Ekle" styleClass="panel">
+      <p-card [header]="'customers.detail.transactions.addNew' | translate" styleClass="panel">
         @if (customer()?.isErased) {
-          <p-message severity="warn" text="Bu müşteri anonimleştirildiği için yeni işlem eklenemez." />
+          <p-message severity="warn" [text]="'customers.detail.transactions.erasedMessage' | translate" />
         } @else if (!authService.canWrite() && authService.isDemoAccount()) {
-          <p-message severity="info" text="Demo hesaplar yeni işlem ekleyemez." />
+          <p-message severity="info" [text]="'customers.detail.transactions.demoMessage' | translate" />
         } @else if (!authService.canWrite()) {
-          <p-message severity="info" text="Analist hesaplar yeni işlem ekleyemez." />
+          <p-message severity="info" [text]="'customers.detail.transactions.analystMessage' | translate" />
         } @else {
           <div class="field">
-            <label for="tx-amount">Tutar (TRY) *</label>
+            <label for="tx-amount">{{ 'customers.detail.transactions.amount' | translate }}</label>
             <p-inputnumber
               inputId="tx-amount"
               [(ngModel)]="newTransaction.amount"
@@ -136,15 +136,15 @@
               [inputStyleClass]="txSubmitted && newTransaction.amount <= 0 ? 'field-invalid' : ''"
             />
             @if (txSubmitted && newTransaction.amount <= 0) {
-              <small class="field-error">Tutar sıfırdan büyük olmalı.</small>
+              <small class="field-error">{{ 'customers.detail.transactions.amountRequired' | translate }}</small>
             }
           </div>
           <div class="field">
-            <label for="tx-category">Kategori</label>
-            <p-select inputId="tx-category" [options]="categories" optionLabel="label" optionValue="value" [(ngModel)]="newTransaction.category" />
+            <label for="tx-category">{{ 'customers.detail.transactions.category' | translate }}</label>
+            <p-select inputId="tx-category" [options]="categories()" optionLabel="label" optionValue="value" [(ngModel)]="newTransaction.category" />
           </div>
           <div class="field">
-            <label for="tx-merchant">İşyeri *</label>
+            <label for="tx-merchant">{{ 'customers.detail.transactions.merchant' | translate }}</label>
             <input
               id="tx-merchant"
               type="text"
@@ -153,11 +153,11 @@
               [class.field-invalid]="txSubmitted && !newTransaction.merchantName"
             />
             @if (txSubmitted && !newTransaction.merchantName) {
-              <small class="field-error">İşyeri zorunlu.</small>
+              <small class="field-error">{{ 'customers.detail.transactions.merchantRequired' | translate }}</small>
             }
           </div>
           <div class="field">
-            <label for="tx-date">Tarih *</label>
+            <label for="tx-date">{{ 'customers.detail.transactions.date' | translate }}</label>
             <p-datepicker
               inputId="tx-date"
               [(ngModel)]="newTransaction.occurredAtUtc"
@@ -166,21 +166,21 @@
               [inputStyleClass]="txSubmitted && !newTransaction.occurredAtUtc ? 'field-invalid' : ''"
             />
             @if (txSubmitted && !newTransaction.occurredAtUtc) {
-              <small class="field-error">Tarih zorunlu.</small>
+              <small class="field-error">{{ 'customers.detail.transactions.dateRequired' | translate }}</small>
             }
           </div>
-          <p-button label="İşlem Kaydet" [loading]="txBusy()" (onClick)="recordTransaction()" />
+          <p-button [label]="'customers.detail.transactions.save' | translate" [loading]="txBusy()" (onClick)="recordTransaction()" />
         }
       </p-card>
 
-      <p-card header="Son İşlemler" styleClass="panel">
+      <p-card [header]="'customers.detail.transactions.recentHeader' | translate" styleClass="panel">
         <p-table [value]="transactions()" [rows]="10" [paginator]="transactions().length > 10" styleClass="p-datatable-sm">
           <ng-template pTemplate="header">
             <tr>
-              <th>Tarih</th>
-              <th>Kategori</th>
-              <th>İşyeri</th>
-              <th class="amount-col">Tutar</th>
+              <th>{{ 'customers.detail.transactions.colDate' | translate }}</th>
+              <th>{{ 'customers.detail.transactions.colCategory' | translate }}</th>
+              <th>{{ 'customers.detail.transactions.colMerchant' | translate }}</th>
+              <th class="amount-col">{{ 'customers.detail.transactions.colAmount' | translate }}</th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-tx>
@@ -198,10 +198,10 @@
 
   <p-tabpanel value="2">
     <div class="toolbar">
-      <span>Bu müşteriye sunulan kampanya teklifleri</span>
+      <span>{{ 'customers.detail.offers.intro' | translate }}</span>
       @if (authService.canWrite()) {
         <p-button
-          label="Teklif Üret"
+          [label]="'customers.detail.offers.generate' | translate"
           icon="pi pi-sparkles"
           [loading]="offersBusy()"
           [disabled]="customer()?.isErased ?? false"
@@ -213,11 +213,11 @@
     <p-table [value]="offers()" [rows]="10" [paginator]="offers().length > 10" styleClass="p-datatable-sm">
       <ng-template pTemplate="header">
         <tr>
-          <th>Kampanya</th>
-          <th style="width: 160px">Güven Skoru</th>
-          <th>Durum</th>
-          <th>Sunulma Tarihi</th>
-          <th><span class="sr-only">İşlemler</span></th>
+          <th>{{ 'customers.detail.offers.colCampaign' | translate }}</th>
+          <th style="width: 160px">{{ 'customers.detail.offers.colConfidence' | translate }}</th>
+          <th>{{ 'customers.detail.offers.colStatus' | translate }}</th>
+          <th>{{ 'customers.detail.offers.colPresentedAt' | translate }}</th>
+          <th><span class="sr-only">{{ 'customers.detail.offers.colActions' | translate }}</span></th>
         </tr>
       </ng-template>
       <ng-template pTemplate="body" let-offer>
@@ -237,14 +237,14 @@
             @if (authService.canWrite()) {
               @if (offer.response === 'Pending') {
                 <p-button
-                  label="Kabul Et"
+                  [label]="'customers.detail.offers.accept' | translate"
                   size="small"
                   severity="success"
                   [loading]="respondingOfferId() === offer.id"
                   (onClick)="respondToOffer(offer, true)"
                 />
                 <p-button
-                  label="Reddet"
+                  [label]="'customers.detail.offers.decline' | translate"
                   size="small"
                   severity="danger"
                   [loading]="respondingOfferId() === offer.id"
@@ -252,7 +252,7 @@
                 />
               }
               <p-button
-                label="SMS Gönder"
+                [label]="'customers.detail.offers.sendSms' | translate"
                 size="small"
                 severity="secondary"
                 icon="pi pi-mobile"
@@ -260,7 +260,7 @@
                 (onClick)="distributeOffer(offer, ConsentChannel.Sms)"
               />
               <p-button
-                label="E-posta Gönder"
+                [label]="'customers.detail.offers.sendEmail' | translate"
                 size="small"
                 severity="secondary"
                 icon="pi pi-envelope"
@@ -275,7 +275,7 @@
       </ng-template>
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="5">Henüz teklif yok. "Teklif Üret" ile üretin (önce segment hesaplanmış ve aktif bir kampanya olmalı).</td>
+          <td colspan="5">{{ 'customers.detail.offers.empty' | translate }}</td>
         </tr>
       </ng-template>
     </p-table>
@@ -283,37 +283,37 @@
 
   <p-tabpanel value="3">
     <p class="consent-hint">
-      KVKK/İYS gereği, bir kanaldan bildirim gönderilebilmesi için müşterinin o kanal için açık rızası olmalı.
+      {{ 'customers.detail.consent.hint' | translate }}
     </p>
     @if (customer(); as c) {
       <p class="consent-hint">
-        <strong>Telefon:</strong> {{ c.phoneNumber ?? 'Kayıtlı değil (SMS gönderilemez)' }}
+        <strong>{{ 'customers.detail.consent.phoneLabel' | translate }}</strong> {{ c.phoneNumber ?? ('customers.detail.consent.phoneNotRegistered' | translate) }}
         &nbsp;·&nbsp;
-        <strong>E-posta:</strong> {{ c.email }}
+        <strong>{{ 'customers.detail.consent.emailLabel' | translate }}</strong> {{ c.email }}
       </p>
     }
     <p-table [value]="consents()" styleClass="p-datatable-sm">
       <ng-template pTemplate="header">
         <tr>
-          <th>Kanal</th>
-          <th>Durum</th>
-          <th>Rıza Tarihi</th>
-          <th>Kaldırılma Tarihi</th>
-          <th><span class="sr-only">İşlemler</span></th>
+          <th>{{ 'customers.detail.consent.colChannel' | translate }}</th>
+          <th>{{ 'customers.detail.consent.colStatus' | translate }}</th>
+          <th>{{ 'customers.detail.consent.colGrantedAt' | translate }}</th>
+          <th>{{ 'customers.detail.consent.colRevokedAt' | translate }}</th>
+          <th><span class="sr-only">{{ 'customers.detail.consent.colActions' | translate }}</span></th>
         </tr>
       </ng-template>
       <ng-template pTemplate="body" let-consent>
         <tr>
           <td>{{ consentChannelLabel(consent.channel) }}</td>
           <td>
-            <p-tag [value]="consent.isGranted ? 'İzin Var' : 'İzin Yok'" [severity]="consent.isGranted ? 'success' : 'secondary'" />
+            <p-tag [value]="(consent.isGranted ? 'customers.detail.consent.granted' : 'customers.detail.consent.notGranted') | translate" [severity]="consent.isGranted ? 'success' : 'secondary'" />
           </td>
           <td>{{ consent.grantedAtUtc ? (consent.grantedAtUtc | date: 'yyyy-MM-dd HH:mm') : '—' }}</td>
           <td>{{ consent.revokedAtUtc ? (consent.revokedAtUtc | date: 'yyyy-MM-dd HH:mm') : '—' }}</td>
           <td>
             @if (authService.canWrite()) {
               <p-button
-                [label]="consent.isGranted ? 'Rızayı Kaldır' : 'Rıza Ver'"
+                [label]="(consent.isGranted ? 'customers.detail.consent.revoke' : 'customers.detail.consent.grant') | translate"
                 size="small"
                 [severity]="consent.isGranted ? 'danger' : 'success'"
                 [loading]="consentBusy() === consent.channel"
@@ -332,19 +332,19 @@
     <p-card styleClass="panel">
       @if (authService.canWrite()) {
         <div class="field">
-          <label for="ai-question">Soru (boş bırakılırsa genel özet istenir)</label>
+          <label for="ai-question">{{ 'customers.detail.ai.questionLabel' | translate }}</label>
           <textarea id="ai-question" pTextarea rows="2" [(ngModel)]="aiQuestion"></textarea>
         </div>
-        <p-button label="Analiz Et" icon="pi pi-sparkles" [loading]="aiBusy()" (onClick)="runAiInsight()" />
+        <p-button [label]="'customers.detail.ai.analyze' | translate" icon="pi pi-sparkles" [loading]="aiBusy()" (onClick)="runAiInsight()" />
       } @else if (authService.isDemoAccount()) {
-        <p-message severity="info" text="Demo hesaplar AI analizi başlatamaz." />
+        <p-message severity="info" [text]="'customers.detail.ai.demoMessage' | translate" />
       } @else {
-        <p-message severity="info" text="Analist hesaplar AI analizi başlatamaz." />
+        <p-message severity="info" [text]="'customers.detail.ai.analystMessage' | translate" />
       }
       @if (aiBusy()) {
         <div class="ai-loading">
           <p-progressSpinner styleClass="ai-spinner" strokeWidth="4" />
-          <p class="ai-hint">Yerel model yanıt üretiyor, ~10 saniye sürebilir…</p>
+          <p class="ai-hint">{{ 'customers.detail.ai.loadingHint' | translate }}</p>
         </div>
       }
       @if (aiError()) {
@@ -352,7 +352,7 @@
       }
       @if (aiAnswer(); as a) {
         <div class="ai-answer">
-          <div class="ai-question"><strong>Soru:</strong> {{ a.question }}</div>
+          <div class="ai-question"><strong>{{ 'customers.detail.ai.questionPrefix' | translate }}</strong> {{ a.question }}</div>
           <p>{{ a.answer }}</p>
         </div>
       }

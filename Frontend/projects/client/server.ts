@@ -49,7 +49,7 @@ export function app(): express.Express {
     const host = (headers.host ?? '').toLowerCase();
 
     if (!allowedHosts.has(host)) {
-      res.status(400).send('Geçersiz istek.');
+      res.status(400).send('Invalid request.');
       return;
     }
 

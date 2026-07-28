@@ -1,17 +1,17 @@
 import {
-  AGE_BRACKET_OPTIONS,
   ageBracketLabel,
   auditActionTypeLabel,
   bankDataProviderTypeLabel,
   campaignStatusLabel,
   consentChannelLabel,
   educationLevelLabel,
+  getAgeBracketOptions,
+  getTransactionCategoryOptions,
+  getUserRoleOptions,
   offerResponseLabel,
   spendingPropensityLabel,
   transactionCategoryLabel,
-  TRANSACTION_CATEGORY_OPTIONS,
-  userRoleLabel,
-  USER_ROLE_OPTIONS
+  userRoleLabel
 } from './enum-labels.util';
 import { TransactionCategory, UserRole } from '../api/finara-client';
 
@@ -60,18 +60,19 @@ describe('enum-labels.util', () => {
     expect(bankDataProviderTypeLabel('GarantiSandbox')).toBe('Garanti BBVA Sandbox');
   });
 
-  it('TRANSACTION_CATEGORY_OPTIONS enum değerleriyle birebir aynı sayıda ve doğru label ile üretilir', () => {
-    expect(TRANSACTION_CATEGORY_OPTIONS.length).toBe(Object.values(TransactionCategory).length);
-    const groceries = TRANSACTION_CATEGORY_OPTIONS.find(o => o.value === TransactionCategory.Groceries);
+  it('getTransactionCategoryOptions() enum değerleriyle birebir aynı sayıda ve doğru label ile üretilir', () => {
+    const options = getTransactionCategoryOptions();
+    expect(options.length).toBe(Object.values(TransactionCategory).length);
+    const groceries = options.find(o => o.value === TransactionCategory.Groceries);
     expect(groceries?.label).toBe('Market');
   });
 
-  it('USER_ROLE_OPTIONS her rol için doğru label üretir', () => {
-    const analyst = USER_ROLE_OPTIONS.find(o => o.value === UserRole.Analyst);
+  it('getUserRoleOptions() her rol için doğru label üretir', () => {
+    const analyst = getUserRoleOptions().find(o => o.value === UserRole.Analyst);
     expect(analyst?.label).toBe('Analist (Salt Okunur)');
   });
 
-  it('AGE_BRACKET_OPTIONS enum değerleriyle birebir aynı sayıda üretilir', () => {
-    expect(AGE_BRACKET_OPTIONS.length).toBeGreaterThan(0);
+  it('getAgeBracketOptions() enum değerleriyle birebir aynı sayıda üretilir', () => {
+    expect(getAgeBracketOptions().length).toBeGreaterThan(0);
   });
 });

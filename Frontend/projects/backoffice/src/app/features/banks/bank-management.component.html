@@ -1,7 +1,7 @@
 <div class="toolbar">
-  <h1>Banka Yönetimi</h1>
+  <h1>{{ 'bankManagement.title' | translate }}</h1>
   <div class="toolbar-actions">
-    <p-button label="Yeni Banka" icon="pi pi-building" (onClick)="openCreateDialog()" />
+    <p-button [label]="'bankManagement.newBank' | translate" icon="pi pi-building" (onClick)="openCreateDialog()" />
   </div>
 </div>
 
@@ -10,21 +10,21 @@
     <span class="stat-chip-icon"><i class="pi pi-building"></i></span>
     <div>
       <div class="stat-chip-value">{{ banks().length }}</div>
-      <div class="stat-chip-label">TOPLAM BANKA</div>
+      <div class="stat-chip-label">{{ 'bankManagement.stats.total' | translate }}</div>
     </div>
   </div>
   <div class="stat-chip stat-chip--accent">
     <span class="stat-chip-icon"><i class="pi pi-check-circle"></i></span>
     <div>
       <div class="stat-chip-value">{{ activeCount() }}</div>
-      <div class="stat-chip-label">AKTİF</div>
+      <div class="stat-chip-label">{{ 'bankManagement.stats.active' | translate }}</div>
     </div>
   </div>
   <div class="stat-chip">
     <span class="stat-chip-icon"><i class="pi pi-ban"></i></span>
     <div>
       <div class="stat-chip-value">{{ inactiveCount() }}</div>
-      <div class="stat-chip-label">PASİF</div>
+      <div class="stat-chip-label">{{ 'bankManagement.stats.inactive' | translate }}</div>
     </div>
   </div>
 </div>
@@ -32,11 +32,11 @@
 <p-table [value]="banks()" [loading]="loading()" [rows]="20" [paginator]="banks().length > 20" styleClass="p-datatable-sm">
   <ng-template pTemplate="header">
     <tr>
-      <th>Ad</th>
-      <th>Kod</th>
-      <th>Veri Sağlayıcı</th>
-      <th>Durum</th>
-      <th>İşlemler</th>
+      <th>{{ 'bankManagement.table.name' | translate }}</th>
+      <th>{{ 'bankManagement.table.code' | translate }}</th>
+      <th>{{ 'bankManagement.table.dataProvider' | translate }}</th>
+      <th>{{ 'bankManagement.table.status' | translate }}</th>
+      <th>{{ 'bankManagement.table.actions' | translate }}</th>
     </tr>
   </ng-template>
   <ng-template pTemplate="body" let-bank>
@@ -45,12 +45,12 @@
       <td>{{ bank.code }}</td>
       <td>{{ dataProviderTypeLabel(bank.dataProviderType ?? '') }}</td>
       <td>
-        <p-tag [value]="bank.isActive ? 'Aktif' : 'Pasif'" [severity]="bank.isActive ? 'success' : 'danger'" />
+        <p-tag [value]="bank.isActive ? ('bankManagement.table.active' | translate) : ('bankManagement.table.inactive' | translate)" [severity]="bank.isActive ? 'success' : 'danger'" />
       </td>
       <td>
         @if (bank.isActive) {
           <p-button
-            label="Pasifleştir"
+            [label]="'bankManagement.actions.deactivate' | translate"
             icon="pi pi-building"
             size="small"
             severity="danger"
@@ -66,28 +66,28 @@
   </ng-template>
   <ng-template pTemplate="emptymessage">
     <tr>
-      <td colspan="5">Henüz banka yok.</td>
+      <td colspan="5">{{ 'bankManagement.emptyState' | translate }}</td>
     </tr>
   </ng-template>
 </p-table>
 
-<p-dialog header="Yeni Banka" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '420px' }">
+<p-dialog [header]="'bankManagement.dialog.header' | translate" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '420px' }">
   <div class="field">
-    <label for="bank-name">Ad *</label>
+    <label for="bank-name">{{ 'bankManagement.dialog.name' | translate }}</label>
     <input id="bank-name" type="text" pInputText [(ngModel)]="newBank.name" [class.field-invalid]="createSubmitted && !newBank.name" />
     @if (createSubmitted && !newBank.name) {
-      <small class="field-error">Banka adı zorunlu.</small>
+      <small class="field-error">{{ 'bankManagement.dialog.nameRequired' | translate }}</small>
     }
   </div>
   <div class="field">
-    <label for="bank-code">Kod *</label>
+    <label for="bank-code">{{ 'bankManagement.dialog.code' | translate }}</label>
     <input id="bank-code" type="text" pInputText [(ngModel)]="newBank.code" [class.field-invalid]="createSubmitted && !newBank.code" />
     @if (createSubmitted && !newBank.code) {
-      <small class="field-error">Banka kodu zorunlu.</small>
+      <small class="field-error">{{ 'bankManagement.dialog.codeRequired' | translate }}</small>
     }
   </div>
   @if (createError()) {
     <p-message severity="error" [text]="createError()!" />
   }
-  <p-button label="Oluştur" [loading]="createBusy()" (onClick)="createBank()" />
+  <p-button [label]="'bankManagement.dialog.create' | translate" [loading]="createBusy()" (onClick)="createBank()" />
 </p-dialog>

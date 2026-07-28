@@ -5,32 +5,32 @@ import { AppShellComponent } from './layout/app-shell.component';
 export const routes: Routes = [
   {
     path: 'login',
-    title: 'Finara BackOffice — Giriş',
+    data: { titleKey: 'pageTitle.login' },
     loadComponent: () => import('./features/auth/login.component').then(m => m.LoginComponent)
   },
   {
     path: 'forgot-password',
-    title: 'Finara BackOffice — Şifremi Unuttum',
+    data: { titleKey: 'pageTitle.forgotPassword' },
     loadComponent: () => import('./features/auth/forgot-password.component').then(m => m.ForgotPasswordComponent)
   },
   {
     path: 'reset-password',
-    title: 'Finara BackOffice — Şifre Sıfırla',
+    data: { titleKey: 'pageTitle.resetPassword' },
     loadComponent: () => import('./features/auth/reset-password.component').then(m => m.ResetPasswordComponent)
   },
   {
     path: 'accept-invitation',
-    title: 'Finara BackOffice — Daveti Kabul Et',
+    data: { titleKey: 'pageTitle.acceptInvitation' },
     loadComponent: () => import('./features/auth/accept-invitation.component').then(m => m.AcceptInvitationComponent)
   },
   {
     path: 'guvenlik',
-    title: 'Finara BackOffice — Güvenlik ve Veri Gizliliği',
+    data: { titleKey: 'pageTitle.security' },
     loadComponent: () => import('./features/security/security-page.component').then(m => m.SecurityPageComponent)
   },
   {
     path: 'nasil-calisir',
-    title: 'Finara BackOffice — Nasıl Çalışır',
+    data: { titleKey: 'pageTitle.scenarios' },
     loadComponent: () => import('./features/scenarios/scenarios-page.component').then(m => m.ScenariosPageComponent)
   },
   {
@@ -41,48 +41,48 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       {
         path: 'dashboard',
-        title: 'Finara BackOffice — Genel Bakış',
+        data: { titleKey: 'pageTitle.dashboard' },
         loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
       },
       {
         path: 'campaigns',
-        title: 'Finara BackOffice — Kampanya Yönetimi',
+        data: { titleKey: 'pageTitle.campaigns' },
         loadComponent: () => import('./features/campaigns/campaign-management.component').then(m => m.CampaignManagementComponent)
       },
       {
         path: 'audit-logs',
-        title: 'Finara BackOffice — Denetim Kaydı',
+        data: { titleKey: 'pageTitle.auditLogs' },
         loadComponent: () => import('./features/audit-logs/audit-log.component').then(m => m.AuditLogComponent)
       },
       {
         path: 'admin-accounts',
-        title: 'Finara BackOffice — Yönetici Hesapları',
+        data: { titleKey: 'pageTitle.adminAccounts' },
         loadComponent: () => import('./features/admin-accounts/admin-accounts.component').then(m => m.AdminAccountsComponent)
       },
       {
         path: 'banks',
-        title: 'Finara BackOffice — Banka Yönetimi',
+        data: { titleKey: 'pageTitle.banks' },
         canActivate: [superAdminGuard],
         loadComponent: () => import('./features/banks/bank-management.component').then(m => m.BankManagementComponent)
       },
       {
         path: 'cohorts',
-        title: 'Finara BackOffice — Kohort Gezgini',
+        data: { titleKey: 'pageTitle.cohorts' },
         loadComponent: () => import('./features/cohorts/cohort-explorer.component').then(m => m.CohortExplorerComponent)
       },
       {
         path: 'notifications',
-        title: 'Finara BackOffice — Bildirim Kaydı',
+        data: { titleKey: 'pageTitle.notifications' },
         loadComponent: () => import('./features/notifications/notification-log.component').then(m => m.NotificationLogComponent)
       },
       {
         path: 'hesabim',
-        title: 'Finara BackOffice — Hesabım',
+        data: { titleKey: 'pageTitle.account' },
         loadComponent: () => import('./features/account/account-page.component').then(m => m.AccountPageComponent)
       },
       {
         path: 'ayarlar',
-        title: 'Finara BackOffice — Ayarlar',
+        data: { titleKey: 'pageTitle.settings' },
         loadComponent: () => import('./features/settings/settings-page.component').then(m => m.SettingsPageComponent)
       }
     ]

@@ -12,11 +12,10 @@ import { MessageModule } from 'primeng/message';
 import { MessageService } from 'primeng/api';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
-import { firstValueFrom, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 
 import {
   AuthService,
-  Client,
   DateFormatPreference,
   IUserPreferencesDto,
   TableDensity,
@@ -35,7 +34,6 @@ const TIME_ZONE_OPTIONS = ['Europe/Istanbul', 'Europe/Berlin', 'Europe/London', 
     templateUrl: './settings-page.component.html'
 })
 export class SettingsPageComponent implements OnInit, OnDestroy {
-  private readonly client = inject(Client);
   private readonly messageService = inject(MessageService);
   private readonly preferencesService = inject(UserPreferencesService);
   protected readonly translate = inject(TranslateService);
@@ -104,8 +102,15 @@ export class SettingsPageComponent implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     try {
-      const prefs = await firstValueFrom(this.client.preferencesGET());
-      this.form = { ...prefs };
+      // Bilinçli olarak client.preferencesGET() DEĞİL, preferencesService.load() —
+      // ikincisi ayrıca applyLanguage() çağırıp aktif arayüz dilini (TranslateService)
+      // BURADA GERÇEKTEN KAYITLI olan değerle senkron tutuyor. Sadece ham GET yapılıp
+      // form doldurulsaydı, aktif dil (ör. başka bir sekmede/oturumda değişmiş olabilir)
+      // ile bu sayfadaki seçili değer birbirinden sessizce sapabiliyordu (canlı testte
+      // bulundu — sekmeler arası "hangi dil gerçekten aktif" karmaşası).
+      await this.preferencesService.load();
+      const prefs = this.preferencesService.preferences();
+      if (prefs) this.form = { ...prefs };
     } catch (err) {
       this.messageService.add({ severity: 'error', summary: this.translate.instant('common.error'), detail: describeApiError(err) });
     } finally {

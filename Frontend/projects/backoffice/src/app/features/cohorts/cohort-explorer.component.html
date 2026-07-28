@@ -1,5 +1,5 @@
 <div class="toolbar">
-  <h1>Kohort Gezgini</h1>
+  <h1>{{ 'cohortExplorer.title' | translate }}</h1>
 </div>
 
 <div class="stat-strip">
@@ -7,48 +7,47 @@
     <span class="stat-chip-icon"><i class="pi pi-sitemap"></i></span>
     <div>
       <div class="stat-chip-value">{{ cohorts().length }}</div>
-      <div class="stat-chip-label">TOPLAM KOHORT</div>
+      <div class="stat-chip-label">{{ 'cohortExplorer.stats.total' | translate }}</div>
     </div>
   </div>
   <div class="stat-chip">
     <span class="stat-chip-icon"><i class="pi pi-users"></i></span>
     <div>
       <div class="stat-chip-value">{{ totalCustomerCount() }}</div>
-      <div class="stat-chip-label">TOPLAM MÜŞTERİ</div>
+      <div class="stat-chip-label">{{ 'cohortExplorer.stats.totalCustomers' | translate }}</div>
     </div>
   </div>
   <div class="stat-chip stat-chip--accent">
     <span class="stat-chip-icon"><i class="pi pi-ellipsis-h"></i></span>
     <div>
       <div class="stat-chip-value">{{ otherGroupCount() }}</div>
-      <div class="stat-chip-label">"DİĞER" GRUP</div>
+      <div class="stat-chip-label">{{ 'cohortExplorer.stats.otherGroup' | translate }}</div>
     </div>
   </div>
 </div>
 
 <p class="cohort-explorer-hint">
-  Aktif segmenti olan (son 90 gün içinde işlemi bulunan) müşteriler yaş aralığı, eğitim durumu ve harcama eğilimine
-  göre gruplanır. Bir grup 5 müşteriden azsa tek bir "Diğer" satırında birleştirilir.
+  {{ 'cohortExplorer.hint' | translate }}
 </p>
 
 <p-table [value]="cohorts()" [loading]="loading()" styleClass="p-datatable-sm">
   <ng-template pTemplate="header">
     <tr>
-      <th>Kohort</th>
-      <th>Yaş Aralığı</th>
-      <th>Eğitim Durumu</th>
-      <th>Eğilim</th>
-      <th>Baskın Kategori</th>
-      <th>Müşteri Sayısı</th>
+      <th>{{ 'cohortExplorer.table.cohort' | translate }}</th>
+      <th>{{ 'cohortExplorer.table.ageBracket' | translate }}</th>
+      <th>{{ 'cohortExplorer.table.educationLevel' | translate }}</th>
+      <th>{{ 'cohortExplorer.table.propensity' | translate }}</th>
+      <th>{{ 'cohortExplorer.table.dominantCategory' | translate }}</th>
+      <th>{{ 'cohortExplorer.table.customerCount' | translate }}</th>
     </tr>
   </ng-template>
   <ng-template pTemplate="body" let-cohort>
     <tr [class.cohort-other-row]="cohort.isOther">
       <td>
         @if (cohort.isOther) {
-          <p-tag value="Diğer" severity="secondary" />
+          <p-tag [value]="'cohortExplorer.table.other' | translate" severity="secondary" />
         } @else {
-          <p-tag value="Kohort" severity="info" />
+          <p-tag [value]="'cohortExplorer.table.cohortTag' | translate" severity="info" />
         }
       </td>
       <td>{{ cohort.ageBracket ? ageBracketLabel(cohort.ageBracket) : '—' }}</td>
@@ -66,7 +65,7 @@
   </ng-template>
   <ng-template pTemplate="emptymessage">
     <tr>
-      <td colspan="6">Henüz kohort yok — segmentasyonun en az bir kez çalıştırılmış olması gerekir (Araçlar/Segmentasyon).</td>
+      <td colspan="6">{{ 'cohortExplorer.emptyState' | translate }}</td>
     </tr>
   </ng-template>
 </p-table>

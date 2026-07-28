@@ -1,11 +1,11 @@
 <div class="toolbar">
-  <h1>Denetim Kaydı</h1>
+  <h1>{{ 'auditLog.title' | translate }}</h1>
   <p-button
-    label="Sayfayı Dışa Aktar"
+    [label]="'auditLog.exportPage' | translate"
     icon="pi pi-download"
     severity="secondary"
     [outlined]="true"
-    pTooltip="Sunucu taraflı sayfalama nedeniyle sadece o an görüntülenen sayfa (20 kayıt) dışa aktarılır, filtrelere uyan tüm kayıtlar değil."
+    [pTooltip]="'auditLog.exportTooltip' | translate"
     tooltipPosition="bottom"
     (onClick)="dt.exportCSV()"
   />
@@ -13,28 +13,28 @@
 
 <div class="filter-bar">
   <div class="field">
-    <label for="audit-action-type">Aksiyon Tipi</label>
+    <label for="audit-action-type">{{ 'auditLog.filters.actionType' | translate }}</label>
     <p-select
       inputId="audit-action-type"
-      [options]="actionTypes"
+      [options]="actionTypes()"
       optionLabel="label"
       optionValue="value"
       [(ngModel)]="actionTypeFilter"
       [showClear]="true"
-      placeholder="Tümü"
+      [placeholder]="'auditLog.filters.allActionTypes' | translate"
       (onChange)="onFilterChange()"
       (onClear)="onFilterChange()"
     />
   </div>
   <div class="field">
-    <label for="audit-from">Başlangıç Tarihi</label>
+    <label for="audit-from">{{ 'auditLog.filters.fromDate' | translate }}</label>
     <p-datepicker inputId="audit-from" [(ngModel)]="fromUtc" dateFormat="yy-mm-dd" [showIcon]="true" [showButtonBar]="true" (onSelect)="onFilterChange()" (onClearClick)="onFilterChange()" />
   </div>
   <div class="field">
-    <label for="audit-to">Bitiş Tarihi</label>
+    <label for="audit-to">{{ 'auditLog.filters.toDate' | translate }}</label>
     <p-datepicker inputId="audit-to" [(ngModel)]="toUtc" dateFormat="yy-mm-dd" [showIcon]="true" [showButtonBar]="true" (onSelect)="onFilterChange()" (onClearClick)="onFilterChange()" />
   </div>
-  <p-button label="Filtreleri Temizle" severity="secondary" [outlined]="true" size="small" (onClick)="clearFilters()" />
+  <p-button [label]="'auditLog.filters.clear' | translate" severity="secondary" [outlined]="true" size="small" (onClick)="clearFilters()" />
 </div>
 
 <p-table
@@ -57,16 +57,16 @@
       <span></span>
       <p-iconfield>
         <p-inputicon styleClass="pi pi-search" />
-        <input pInputText type="text" placeholder="Müşteri ara…" [(ngModel)]="searchTerm" (input)="onSearchInput()" />
+        <input pInputText type="text" [placeholder]="'auditLog.filters.searchPlaceholder' | translate" [(ngModel)]="searchTerm" (input)="onSearchInput()" />
       </p-iconfield>
     </div>
   </ng-template>
   <ng-template pTemplate="header">
     <tr>
-      <th>Tarih</th>
-      <th>Müşteri</th>
-      <th>Aksiyon</th>
-      <th>Detay</th>
+      <th>{{ 'auditLog.table.date' | translate }}</th>
+      <th>{{ 'auditLog.table.customer' | translate }}</th>
+      <th>{{ 'auditLog.table.action' | translate }}</th>
+      <th>{{ 'auditLog.table.detail' | translate }}</th>
     </tr>
   </ng-template>
   <ng-template pTemplate="body" let-log>
@@ -79,7 +79,7 @@
   </ng-template>
   <ng-template pTemplate="emptymessage">
     <tr>
-      <td colspan="4">Seçilen filtrelere uyan bir denetim kaydı yok.</td>
+      <td colspan="4">{{ 'auditLog.emptyState' | translate }}</td>
     </tr>
   </ng-template>
 </p-table>

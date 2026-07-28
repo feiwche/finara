@@ -1,7 +1,8 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { firstValueFrom } from 'rxjs';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { Subscription, firstValueFrom } from 'rxjs';
 
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
@@ -22,22 +23,23 @@ import {
   CreateAdminRequest,
   CreateInvitationRequest,
   InvitationSummary,
-  USER_ROLE_OPTIONS,
   UserRole,
   describeApiError,
+  getUserRoleOptions,
   userRoleLabel
 } from '@finara/shared-ui';
 
 @Component({
     selector: 'app-admin-accounts',
-    imports: [DatePipe, FormsModule, TableModule, ButtonModule, DialogModule, InputTextModule, PasswordModule, SelectModule, TabsModule, TagModule, MessageModule],
+    imports: [DatePipe, FormsModule, TableModule, ButtonModule, DialogModule, InputTextModule, PasswordModule, SelectModule, TabsModule, TagModule, MessageModule, TranslatePipe],
     templateUrl: './admin-accounts.component.html'
 })
-export class AdminAccountsComponent implements OnInit {
+export class AdminAccountsComponent implements OnInit, OnDestroy {
   private readonly client = inject(Client);
   private readonly messageService = inject(MessageService);
   private readonly confirmationService = inject(ConfirmationService);
   protected readonly authService = inject(AuthService);
+  protected readonly translate = inject(TranslateService);
 
   protected admins = signal<AdminUserSummary[]>([]);
   protected banks = signal<BankSummary[]>([]);
@@ -48,10 +50,24 @@ export class AdminAccountsComponent implements OnInit {
   protected readonly activeCount = computed(() => this.admins().filter(a => a.isActive).length);
   protected readonly inactiveCount = computed(() => this.admins().filter(a => !a.isActive).length);
 
-  protected readonly roleOptions = USER_ROLE_OPTIONS;
+  private readonly langTick = signal(0);
+  private readonly langChangeSub: Subscription;
+
+  protected readonly roleOptions = computed(() => {
+    this.langTick();
+    return getUserRoleOptions();
+  });
   // BankAdmin (SuperAdmin olmayan) sadece kendi bankası için BankAdmin/Analist seçebilir —
   // backend'deki AdminUserService.CreateAdminAsync/CreateInvitationAsync ile aynı kural.
-  protected readonly bankScopedRoleOptions = USER_ROLE_OPTIONS.filter(o => o.value !== UserRole.SuperAdmin);
+  protected readonly bankScopedRoleOptions = computed(() => this.roleOptions().filter(o => o.value !== UserRole.SuperAdmin));
+
+  constructor() {
+    this.langChangeSub = this.translate.onLangChange.subscribe(() => this.langTick.update(n => n + 1));
+  }
+
+  ngOnDestroy(): void {
+    this.langChangeSub.unsubscribe();
+  }
 
   protected dialogVisible = signal(false);
   protected createBusy = signal(false);
@@ -85,7 +101,7 @@ export class AdminAccountsComponent implements OnInit {
     try {
       this.admins.set(await firstValueFrom(this.client.adminUsersAll()));
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'Yönetici hesapları yüklenemedi', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('adminAccounts.toast.loadFailed'), detail: describeApiError(err) });
     } finally {
       this.loading.set(false);
     }
@@ -95,7 +111,7 @@ export class AdminAccountsComponent implements OnInit {
     try {
       this.banks.set(await firstValueFrom(this.client.banksAll()));
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'Banka listesi yüklenemedi', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('adminAccounts.toast.banksLoadFailed'), detail: describeApiError(err) });
     }
   }
 
@@ -129,7 +145,7 @@ export class AdminAccountsComponent implements OnInit {
         }))
       );
       this.dialogVisible.set(false);
-      this.messageService.add({ severity: 'success', summary: 'Yönetici hesabı oluşturuldu', detail: this.newAdmin.email });
+      this.messageService.add({ severity: 'success', summary: this.translate.instant('adminAccounts.toast.created'), detail: this.newAdmin.email });
       await this.loadAdmins();
     } catch (err) {
       this.createError.set(describeApiError(err));
@@ -140,11 +156,11 @@ export class AdminAccountsComponent implements OnInit {
 
   confirmDeactivate(admin: AdminUserSummary): void {
     this.confirmationService.confirm({
-      header: 'Yönetici hesabını pasifleştir',
-      message: `"${admin.email}" hesabını pasifleştirmek istediğinize emin misiniz? Bu hesap artık giriş yapamayacak.`,
+      header: this.translate.instant('adminAccounts.confirm.deactivateHeader'),
+      message: this.translate.instant('adminAccounts.confirm.deactivateMessage', { email: admin.email }),
       icon: 'pi pi-user-minus',
-      acceptLabel: 'Pasifleştir',
-      rejectLabel: 'Vazgeç',
+      acceptLabel: this.translate.instant('adminAccounts.confirm.deactivateAccept'),
+      rejectLabel: this.translate.instant('common.cancel'),
       accept: () => this.deactivate(admin)
     });
   }
@@ -167,10 +183,10 @@ export class AdminAccountsComponent implements OnInit {
     this.busyId.set(admin.id ?? null);
     try {
       await firstValueFrom(this.client.deactivate(admin.id!));
-      this.messageService.add({ severity: 'success', summary: 'Hesap pasifleştirildi', detail: admin.email });
+      this.messageService.add({ severity: 'success', summary: this.translate.instant('adminAccounts.toast.deactivated'), detail: admin.email });
       await this.loadAdmins();
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'İşlem başarısız', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('adminAccounts.toast.actionFailed'), detail: describeApiError(err) });
     } finally {
       this.busyId.set(null);
     }
@@ -178,11 +194,11 @@ export class AdminAccountsComponent implements OnInit {
 
   confirmRevokeSessions(admin: AdminUserSummary): void {
     this.confirmationService.confirm({
-      header: 'Kullanıcının oturumlarını sonlandır',
-      message: `"${admin.email}" hesabıyla giriş yapılmış tüm cihazlar/tarayıcılar oturumdan çıkarılacak. Hesap aktif kalır, sadece yeniden giriş yapması gerekecek. Devam edilsin mi?`,
+      header: this.translate.instant('adminAccounts.confirm.revokeSessionsHeader'),
+      message: this.translate.instant('adminAccounts.confirm.revokeSessionsMessage', { email: admin.email }),
       icon: 'pi pi-sign-out',
-      acceptLabel: 'Oturumları Sonlandır',
-      rejectLabel: 'Vazgeç',
+      acceptLabel: this.translate.instant('adminAccounts.confirm.revokeSessionsAccept'),
+      rejectLabel: this.translate.instant('common.cancel'),
       accept: () => this.revokeSessions(admin)
     });
   }
@@ -191,9 +207,9 @@ export class AdminAccountsComponent implements OnInit {
     this.sessionRevokeBusyId.set(admin.id ?? null);
     try {
       await firstValueFrom(this.client.revokeSessions(admin.id!));
-      this.messageService.add({ severity: 'success', summary: 'Oturumlar sonlandırıldı', detail: admin.email });
+      this.messageService.add({ severity: 'success', summary: this.translate.instant('adminAccounts.toast.sessionsRevoked'), detail: admin.email });
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'İşlem başarısız', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('adminAccounts.toast.actionFailed'), detail: describeApiError(err) });
     } finally {
       this.sessionRevokeBusyId.set(null);
     }
@@ -206,7 +222,7 @@ export class AdminAccountsComponent implements OnInit {
     try {
       this.invitations.set(await firstValueFrom(this.client.adminInvitationsAll()));
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'Davetler yüklenemedi', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('adminAccounts.toast.invitationsLoadFailed'), detail: describeApiError(err) });
     } finally {
       this.invitationsLoading.set(false);
     }
@@ -240,7 +256,7 @@ export class AdminAccountsComponent implements OnInit {
         }))
       );
       this.inviteDialogVisible.set(false);
-      this.messageService.add({ severity: 'success', summary: 'Davet gönderildi', detail: this.newInvitation.email });
+      this.messageService.add({ severity: 'success', summary: this.translate.instant('adminAccounts.toast.invitationSent'), detail: this.newInvitation.email });
       await this.loadInvitations();
     } catch (err) {
       this.inviteError.set(describeApiError(err));
@@ -251,34 +267,36 @@ export class AdminAccountsComponent implements OnInit {
 
   confirmRevokeInvitation(invitation: InvitationSummary): void {
     this.confirmationService.confirm({
-      header: 'Daveti iptal et',
-      message: `"${invitation.email}" adresine gönderilen daveti iptal etmek istediğinize emin misiniz?`,
+      header: this.translate.instant('adminAccounts.confirm.revokeInvitationHeader'),
+      message: this.translate.instant('adminAccounts.confirm.revokeInvitationMessage', { email: invitation.email }),
       icon: 'pi pi-ban',
-      acceptLabel: 'İptal Et',
-      rejectLabel: 'Vazgeç',
+      acceptLabel: this.translate.instant('adminAccounts.confirm.revokeInvitationAccept'),
+      rejectLabel: this.translate.instant('common.cancel'),
       accept: () => this.revokeInvitation(invitation)
     });
   }
 
   invitationStatus(invitation: InvitationSummary): { label: string; severity: 'success' | 'danger' | 'warn' | 'info' } {
-    if (invitation.acceptedAtUtc) return { label: 'Kabul Edildi', severity: 'success' };
-    if (invitation.revokedAtUtc) return { label: 'İptal Edildi', severity: 'danger' };
-    if (invitation.expiresAtUtc && new Date(invitation.expiresAtUtc) <= new Date()) return { label: 'Süresi Doldu', severity: 'warn' };
-    return { label: 'Bekliyor', severity: 'info' };
+    if (invitation.acceptedAtUtc) return { label: this.translate.instant('adminAccounts.invitationStatus.accepted'), severity: 'success' };
+    if (invitation.revokedAtUtc) return { label: this.translate.instant('adminAccounts.invitationStatus.revoked'), severity: 'danger' };
+    if (invitation.expiresAtUtc && new Date(invitation.expiresAtUtc) <= new Date()) {
+      return { label: this.translate.instant('adminAccounts.invitationStatus.expired'), severity: 'warn' };
+    }
+    return { label: this.translate.instant('adminAccounts.invitationStatus.pending'), severity: 'info' };
   }
 
   isPendingInvitation(invitation: InvitationSummary): boolean {
-    return this.invitationStatus(invitation).label === 'Bekliyor';
+    return this.invitationStatus(invitation).label === this.translate.instant('adminAccounts.invitationStatus.pending');
   }
 
   private async revokeInvitation(invitation: InvitationSummary): Promise<void> {
     this.invitationBusyId.set(invitation.id ?? null);
     try {
       await firstValueFrom(this.client.cancel(invitation.id!));
-      this.messageService.add({ severity: 'success', summary: 'Davet iptal edildi', detail: invitation.email });
+      this.messageService.add({ severity: 'success', summary: this.translate.instant('adminAccounts.toast.invitationRevoked'), detail: invitation.email });
       await this.loadInvitations();
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'İşlem başarısız', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('adminAccounts.toast.actionFailed'), detail: describeApiError(err) });
     } finally {
       this.invitationBusyId.set(null);
     }

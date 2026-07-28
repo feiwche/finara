@@ -1,8 +1,9 @@
-import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Observable, firstValueFrom } from 'rxjs';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { Observable, Subscription, firstValueFrom } from 'rxjs';
 
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
@@ -23,13 +24,13 @@ import {
   Client,
   CreateCampaignRequest,
   RealtimeService,
-  SPENDING_PROPENSITY_OPTIONS,
   SpendingPropensity,
-  TRANSACTION_CATEGORY_OPTIONS,
   TransactionCategory,
   campaignStatusLabel,
   campaignStatusSeverity,
   describeApiError,
+  getSpendingPropensityOptions,
+  getTransactionCategoryOptions,
   sanitizeCsvField,
   spendingPropensityLabel,
   toUtcDateOnlyIso,
@@ -51,17 +52,19 @@ import {
         MultiSelectModule,
         CheckboxModule,
         TagModule,
-        MessageModule
+        MessageModule,
+        TranslatePipe
     ],
     templateUrl: './campaign-management.component.html'
 })
-export class CampaignManagementComponent implements OnInit {
+export class CampaignManagementComponent implements OnInit, OnDestroy {
   private readonly client = inject(Client);
   private readonly messageService = inject(MessageService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly realtimeService = inject(RealtimeService);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly authService = inject(AuthService);
+  protected readonly translate = inject(TranslateService);
 
   protected campaigns = signal<CampaignSummary[]>([]);
   protected loading = signal(false);
@@ -72,14 +75,27 @@ export class CampaignManagementComponent implements OnInit {
   protected readonly activeCount = computed(() => this.campaigns().filter(c => c.status === 'Active').length);
   protected readonly draftCount = computed(() => this.campaigns().filter(c => c.status === 'Draft').length);
 
-  protected categories = TRANSACTION_CATEGORY_OPTIONS;
-  protected propensities = SPENDING_PROPENSITY_OPTIONS;
+  private readonly langTick = signal(0);
+  private readonly langChangeSub: Subscription;
+
+  protected readonly categories = computed(() => {
+    this.langTick();
+    return getTransactionCategoryOptions();
+  });
+  protected readonly propensities = computed(() => {
+    this.langTick();
+    return getSpendingPropensityOptions();
+  });
 
   protected dialogVisible = signal(false);
   protected createBusy = signal(false);
   protected createError = signal<string | null>(null);
   protected createSubmitted = false;
   protected newCampaign = this.emptyCampaign();
+
+  constructor() {
+    this.langChangeSub = this.translate.onLangChange.subscribe(() => this.langTick.update(n => n + 1));
+  }
 
   async ngOnInit(): Promise<void> {
     await this.loadCampaigns();
@@ -89,11 +105,18 @@ export class CampaignManagementComponent implements OnInit {
     this.realtimeService.campaignUpdated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(campaign => {
       this.messageService.add({
         severity: 'info',
-        summary: 'Kampanya güncellendi',
-        detail: `${campaign.name} artık ${campaignStatusLabel(campaign.status ?? '')}`
+        summary: this.translate.instant('campaigns.toast.campaignUpdated'),
+        detail: this.translate.instant('campaigns.toast.campaignUpdatedDetail', {
+          name: campaign.name,
+          status: campaignStatusLabel(campaign.status ?? '')
+        })
       });
       void this.loadCampaigns();
     });
+  }
+
+  ngOnDestroy(): void {
+    this.langChangeSub.unsubscribe();
   }
 
   async loadCampaigns(): Promise<void> {
@@ -101,7 +124,7 @@ export class CampaignManagementComponent implements OnInit {
     try {
       this.campaigns.set(await firstValueFrom(this.client.campaignsAll()));
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'Kampanyalar yüklenemedi', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('campaigns.toast.loadFailed'), detail: describeApiError(err) });
     } finally {
       this.loading.set(false);
     }
@@ -151,7 +174,7 @@ export class CampaignManagementComponent implements OnInit {
         )
       );
       this.dialogVisible.set(false);
-      this.messageService.add({ severity: 'success', summary: 'Kampanya oluşturuldu', detail: this.newCampaign.name });
+      this.messageService.add({ severity: 'success', summary: this.translate.instant('campaigns.toast.created'), detail: this.newCampaign.name });
       await this.loadCampaigns();
     } catch (err) {
       this.createError.set(describeApiError(err));
@@ -163,34 +186,34 @@ export class CampaignManagementComponent implements OnInit {
   // --- Yaşam döngüsü geçişleri ---
 
   activate(campaign: CampaignSummary): void {
-    this.runAction(campaign, this.client.activate(campaign.id!), 'Kampanya aktifleştirildi');
+    this.runAction(campaign, this.client.activate(campaign.id!), this.translate.instant('campaigns.toast.activated'));
   }
 
   pause(campaign: CampaignSummary): void {
-    this.runAction(campaign, this.client.pause(campaign.id!), 'Kampanya duraklatıldı');
+    this.runAction(campaign, this.client.pause(campaign.id!), this.translate.instant('campaigns.toast.paused'));
   }
 
   // Tamamlama ve arşivleme geri alınamaz durum geçişleri — onay dialogu zorunlu
   // (aktifleştir/duraklat geri döndürülebilir olduğu için onay istemiyor).
   confirmComplete(campaign: CampaignSummary): void {
     this.confirmationService.confirm({
-      header: 'Kampanyayı tamamla',
-      message: `"${campaign.name}" kampanyasını tamamlamak istediğinize emin misiniz? Tamamlanan bir kampanya tekrar aktifleştirilemez.`,
+      header: this.translate.instant('campaigns.confirm.completeHeader'),
+      message: this.translate.instant('campaigns.confirm.completeMessage', { name: campaign.name }),
       icon: 'pi pi-check-circle',
-      acceptLabel: 'Tamamla',
-      rejectLabel: 'Vazgeç',
-      accept: () => this.runAction(campaign, this.client.complete(campaign.id!), 'Kampanya tamamlandı')
+      acceptLabel: this.translate.instant('campaigns.confirm.completeAccept'),
+      rejectLabel: this.translate.instant('common.cancel'),
+      accept: () => this.runAction(campaign, this.client.complete(campaign.id!), this.translate.instant('campaigns.toast.completed'))
     });
   }
 
   confirmArchive(campaign: CampaignSummary): void {
     this.confirmationService.confirm({
-      header: 'Kampanyayı arşivle',
-      message: `"${campaign.name}" kampanyasını arşivlemek istediğinize emin misiniz? Arşivlenen bir kampanya artık kullanılamaz.`,
+      header: this.translate.instant('campaigns.confirm.archiveHeader'),
+      message: this.translate.instant('campaigns.confirm.archiveMessage', { name: campaign.name }),
       icon: 'pi pi-inbox',
-      acceptLabel: 'Arşivle',
-      rejectLabel: 'Vazgeç',
-      accept: () => this.runAction(campaign, this.client.archive(campaign.id!), 'Kampanya arşivlendi')
+      acceptLabel: this.translate.instant('campaigns.confirm.archiveAccept'),
+      rejectLabel: this.translate.instant('common.cancel'),
+      accept: () => this.runAction(campaign, this.client.archive(campaign.id!), this.translate.instant('campaigns.toast.archived'))
     });
   }
 
@@ -201,7 +224,7 @@ export class CampaignManagementComponent implements OnInit {
       this.messageService.add({ severity: 'success', summary: successSummary, detail: campaign.name });
       await this.loadCampaigns();
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'İşlem başarısız', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('campaigns.toast.actionFailed'), detail: describeApiError(err) });
     } finally {
       this.busyId.set(null);
     }
@@ -215,12 +238,12 @@ export class CampaignManagementComponent implements OnInit {
   // p-table'ın yerleşik exportCSV()'i için — enum değerleri ham İngilizce yerine
   // Türkçe etikete çevriliyor (bkz. client/campaign-list.component.ts'teki aynı desen).
   protected readonly exportColumns = [
-    { field: 'name', header: 'Ad' },
-    { field: 'status', header: 'Durum' },
-    { field: 'targetCategory', header: 'Hedef Kategori' },
-    { field: 'targetPropensities', header: 'Hedef Eğilimler' },
-    { field: 'startDateUtc', header: 'Başlangıç' },
-    { field: 'endDateUtc', header: 'Bitiş' }
+    { field: 'name', header: this.translate.instant('campaigns.table.name') },
+    { field: 'status', header: this.translate.instant('campaigns.table.status') },
+    { field: 'targetCategory', header: this.translate.instant('campaigns.table.targetCategory') },
+    { field: 'targetPropensities', header: this.translate.instant('campaigns.table.targetPropensities') },
+    { field: 'startDateUtc', header: this.translate.instant('campaigns.table.start') },
+    { field: 'endDateUtc', header: this.translate.instant('campaigns.table.end') }
   ];
 
   protected exportFn = (event: { data: unknown; field: string }): string => {

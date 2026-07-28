@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
@@ -20,13 +21,14 @@ import {
 
 @Component({
     selector: 'app-bank-management',
-    imports: [FormsModule, TableModule, ButtonModule, DialogModule, InputTextModule, TagModule, MessageModule],
+    imports: [FormsModule, TableModule, ButtonModule, DialogModule, InputTextModule, TagModule, MessageModule, TranslatePipe],
     templateUrl: './bank-management.component.html'
 })
 export class BankManagementComponent implements OnInit {
   private readonly client = inject(Client);
   private readonly messageService = inject(MessageService);
   private readonly confirmationService = inject(ConfirmationService);
+  protected readonly translate = inject(TranslateService);
 
   protected banks = signal<BankSummary[]>([]);
   protected loading = signal(false);
@@ -52,7 +54,7 @@ export class BankManagementComponent implements OnInit {
     try {
       this.banks.set(await firstValueFrom(this.client.banksAll()));
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'Banka listesi yüklenemedi', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('bankManagement.toast.loadFailed'), detail: describeApiError(err) });
     } finally {
       this.loading.set(false);
     }
@@ -80,7 +82,7 @@ export class BankManagementComponent implements OnInit {
         this.client.banks(new CreateBankRequest({ name: this.newBank.name, code: this.newBank.code }))
       );
       this.dialogVisible.set(false);
-      this.messageService.add({ severity: 'success', summary: 'Banka oluşturuldu', detail: this.newBank.name });
+      this.messageService.add({ severity: 'success', summary: this.translate.instant('bankManagement.toast.created'), detail: this.newBank.name });
       await this.loadBanks();
     } catch (err) {
       this.createError.set(describeApiError(err));
@@ -91,11 +93,11 @@ export class BankManagementComponent implements OnInit {
 
   confirmDeactivate(bank: BankSummary): void {
     this.confirmationService.confirm({
-      header: 'Bankayı pasifleştir',
-      message: `"${bank.name}" bankasını pasifleştirmek istediğinize emin misiniz? Bu geri alınamaz.`,
+      header: this.translate.instant('bankManagement.confirm.deactivateHeader'),
+      message: this.translate.instant('bankManagement.confirm.deactivateMessage', { name: bank.name }),
       icon: 'pi pi-building',
-      acceptLabel: 'Pasifleştir',
-      rejectLabel: 'Vazgeç',
+      acceptLabel: this.translate.instant('bankManagement.confirm.deactivateAccept'),
+      rejectLabel: this.translate.instant('common.cancel'),
       accept: () => this.deactivate(bank)
     });
   }
@@ -104,10 +106,10 @@ export class BankManagementComponent implements OnInit {
     this.busyId.set(bank.id ?? null);
     try {
       await firstValueFrom(this.client.deactivate2(bank.id!));
-      this.messageService.add({ severity: 'success', summary: 'Banka pasifleştirildi', detail: bank.name });
+      this.messageService.add({ severity: 'success', summary: this.translate.instant('bankManagement.toast.deactivated'), detail: bank.name });
       await this.loadBanks();
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'İşlem başarısız', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('bankManagement.toast.actionFailed'), detail: describeApiError(err) });
     } finally {
       this.busyId.set(null);
     }

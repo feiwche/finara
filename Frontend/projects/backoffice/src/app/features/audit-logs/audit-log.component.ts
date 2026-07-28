@@ -1,7 +1,8 @@
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { firstValueFrom } from 'rxjs';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { Subscription, firstValueFrom } from 'rxjs';
 
 import { TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
@@ -15,13 +16,13 @@ import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 
 import {
-  AUDIT_ACTION_TYPE_OPTIONS,
   AuditActionType,
   AuditLogSummary,
   Client,
   auditActionTypeLabel,
   auditActionTypeSeverity,
   describeApiError,
+  getAuditActionTypeOptions,
   sanitizeCsvField,
   toUtcDateOnlyIso
 } from '@finara/shared-ui';
@@ -39,13 +40,15 @@ import {
         IconFieldModule,
         InputIconModule,
         InputTextModule,
-        TooltipModule
+        TooltipModule,
+        TranslatePipe
     ],
     templateUrl: './audit-log.component.html'
 })
 export class AuditLogComponent implements OnInit, OnDestroy {
   private readonly client = inject(Client);
   private readonly messageService = inject(MessageService);
+  protected readonly translate = inject(TranslateService);
 
   protected readonly pageSize = 20;
 
@@ -53,7 +56,13 @@ export class AuditLogComponent implements OnInit, OnDestroy {
   protected totalRecords = signal(0);
   protected loading = signal(false);
 
-  protected actionTypes = AUDIT_ACTION_TYPE_OPTIONS;
+  private readonly langTick = signal(0);
+  private readonly langChangeSub: Subscription;
+
+  protected readonly actionTypes = computed(() => {
+    this.langTick();
+    return getAuditActionTypeOptions();
+  });
   protected actionTypeFilter: AuditActionType | null = null;
   protected fromUtc: Date | null = null;
   protected toUtc: Date | null = null;
@@ -70,6 +79,10 @@ export class AuditLogComponent implements OnInit, OnDestroy {
   // istekler arasındaki yarış durumunu önlemek için istek sıralama koruması.
   private requestSequence = 0;
 
+  constructor() {
+    this.langChangeSub = this.translate.onLangChange.subscribe(() => this.langTick.update(n => n + 1));
+  }
+
   async ngOnInit(): Promise<void> {
     // Tablo satırları burada değil — [lazy]="true" p-table, ilk render'da (onLazyLoad)
     // ile kendiliğinden tetikliyor.
@@ -77,6 +90,7 @@ export class AuditLogComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     if (this.searchDebounceHandle) clearTimeout(this.searchDebounceHandle);
+    this.langChangeSub.unsubscribe();
   }
 
   // Müşteri adı araması artık sunucuya gidiyor (bkz. GET /api/audit-logs/paged?search=) —
@@ -106,7 +120,7 @@ export class AuditLogComponent implements OnInit, OnDestroy {
       this.totalRecords.set(result.totalCount ?? 0);
     } catch (err) {
       if (requestId !== this.requestSequence) return;
-      this.messageService.add({ severity: 'error', summary: 'Denetim kayıtları yüklenemedi', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('auditLog.toast.loadFailed'), detail: describeApiError(err) });
     } finally {
       if (requestId === this.requestSequence) this.loading.set(false);
     }
@@ -144,10 +158,10 @@ export class AuditLogComponent implements OnInit, OnDestroy {
   // p-table'ın yerleşik exportCSV()'i için — aksiyon tipi ham İngilizce yerine
   // Türkçe etikete, tarih okunur bir formata çevriliyor.
   protected readonly exportColumns = [
-    { field: 'occurredAtUtc', header: 'Tarih' },
-    { field: 'customerName', header: 'Müşteri' },
-    { field: 'actionType', header: 'Aksiyon' },
-    { field: 'details', header: 'Detay' }
+    { field: 'occurredAtUtc', header: this.translate.instant('auditLog.table.date') },
+    { field: 'customerName', header: this.translate.instant('auditLog.table.customer') },
+    { field: 'actionType', header: this.translate.instant('auditLog.table.action') },
+    { field: 'details', header: this.translate.instant('auditLog.table.detail') }
   ];
 
   protected exportFn = (event: { data: unknown; field: string }): string => {

@@ -2,50 +2,49 @@
   <div class="auth-branding">
     <div class="auth-branding-content">
       <div class="auth-logo">Finara</div>
-      <span class="auth-badge"><i class="pi pi-send"></i> Davetle Katılım</span>
-      <h2>Ekibinize hoş geldiniz.</h2>
-      <p>Bankanızın BackOffice ekibi sizi Finara'ya davet etti. Devam etmek için sadece bir şifre belirlemeniz yeterli.</p>
+      <span class="auth-badge"><i class="pi pi-send"></i> {{ 'auth.acceptInvitation.badge' | translate }}</span>
+      <h2>{{ 'auth.acceptInvitation.welcomeHeadline' | translate }}</h2>
+      <p>{{ 'auth.acceptInvitation.description' | translate }}</p>
       <ul class="auth-points">
-        <li><i class="pi pi-check-circle"></i> Tek kullanımlık, 24 saat geçerli davet bağlantısı</li>
-        <li><i class="pi pi-check-circle"></i> Şifreniz sadece sizin bileceğiniz şekilde belirlenir</li>
-        <li><i class="pi pi-check-circle"></i> Hesap oluşur oluşmaz girişe hazır olursunuz</li>
+        <li><i class="pi pi-check-circle"></i> {{ 'auth.acceptInvitation.point1' | translate }}</li>
+        <li><i class="pi pi-check-circle"></i> {{ 'auth.acceptInvitation.point2' | translate }}</li>
+        <li><i class="pi pi-check-circle"></i> {{ 'auth.acceptInvitation.point3' | translate }}</li>
       </ul>
     </div>
   </div>
   <div class="auth-form-panel">
-  <p-card header="Daveti Kabul Et" styleClass="login-card">
+  <p-card [header]="'auth.acceptInvitation.cardHeader' | translate" styleClass="login-card">
     @if (previewLoading()) {
-      <p>Davet doğrulanıyor…</p>
+      <p>{{ 'auth.acceptInvitation.verifying' | translate }}</p>
     } @else if (!hasToken) {
-      <p-message severity="error" [text]="previewError() ?? 'Geçersiz veya süresi dolmuş davet bağlantısı.'" />
+      <p-message severity="error" [text]="previewError() ?? ('auth.acceptInvitation.invalidOrExpired' | translate)" />
     } @else if (submitted()) {
-      <p-message severity="success" text="Hesabınız oluşturuldu. Girişe yönlendiriliyorsunuz…" />
+      <p-message severity="success" [text]="'auth.acceptInvitation.success' | translate" />
     } @else {
       <p class="muted-text">
-        <strong>{{ previewEmail() }}</strong> e-postası için {{ roleLabel(previewRole() ?? '') }} olarak davet edildiniz.
-        Devam etmek için bir şifre belirleyin.
+        <strong>{{ previewEmail() }}</strong> {{ 'auth.acceptInvitation.invitedAs' | translate: { role: roleLabel(previewRole() ?? '') } }}
       </p>
       <div class="field">
-        <label for="newPassword">Şifre *</label>
+        <label for="newPassword">{{ 'auth.acceptInvitation.newPassword' | translate }}</label>
         <p-password inputId="newPassword" [(ngModel)]="newPassword" [feedback]="true" [toggleMask]="true" (keyup.enter)="submit()" />
         @if (formSubmitted && !newPassword) {
-          <small class="field-error">Şifre zorunlu (en az 8 karakter, harf ve rakam içermeli).</small>
+          <small class="field-error">{{ 'auth.acceptInvitation.newPasswordRequired' | translate }}</small>
         }
       </div>
       <div class="field">
-        <label for="confirmPassword">Şifre (Tekrar) *</label>
+        <label for="confirmPassword">{{ 'auth.acceptInvitation.confirmPassword' | translate }}</label>
         <p-password inputId="confirmPassword" [(ngModel)]="confirmPassword" [feedback]="false" [toggleMask]="true" (keyup.enter)="submit()" />
         @if (formSubmitted && newPassword !== confirmPassword) {
-          <small class="field-error">Şifreler eşleşmiyor.</small>
+          <small class="field-error">{{ 'auth.acceptInvitation.passwordMismatch' | translate }}</small>
         }
       </div>
       @if (error()) {
         <p-message severity="error" [text]="error()!" />
       }
-      <p-button label="Hesabı Oluştur" [loading]="busy()" (onClick)="submit()" />
+      <p-button [label]="'auth.acceptInvitation.submit' | translate" [loading]="busy()" (onClick)="submit()" />
     }
     <div class="auth-back-link">
-      <a routerLink="/login">Girişe dön</a>
+      <a routerLink="/login">{{ 'auth.acceptInvitation.backToLogin' | translate }}</a>
     </div>
   </p-card>
   </div>

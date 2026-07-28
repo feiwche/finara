@@ -125,7 +125,9 @@
   "common": {
     "cancel": "Cancel",
     "save": "Save",
-    "error": "An error occurred"
+    "error": "An error occurred",
+    "yes": "Yes",
+    "no": "No"
   },
   "scenarios": {
     "badge": "How It Works",
@@ -185,5 +187,384 @@
       "title": "Input Validation & Rate Limiting",
       "text": "Bulk import and export are sanitized against formula injection, all endpoints are protected against abuse with rate limiting, and the database runs in an isolated environment."
     }
+  },
+  "customers": {
+    "title": "Customers",
+    "toolbar": {
+      "downloadTemplate": "Download Template",
+      "import": "Import",
+      "exportPage": "Export Page",
+      "exportPageTooltip": "Because of server-side pagination, only the currently displayed page (20 records) is exported, not all customers matching the search.",
+      "newCustomer": "New Customer"
+    },
+    "stats": {
+      "total": "TOTAL CUSTOMERS",
+      "highlyResponsive": "HIGHLY RESPONSIVE",
+      "needsEngagement": "NEEDS ENGAGEMENT"
+    },
+    "table": {
+      "searchPlaceholder": "Search by first name, last name, or email…",
+      "fullName": "Full Name",
+      "email": "Email",
+      "age": "Age",
+      "propensity": "Propensity",
+      "openDetailAria": "Open customer detail: {{name}}",
+      "erased": "Anonymized"
+    },
+    "empty": {
+      "title": "No customers yet",
+      "text": "Add your first customer manually, bulk import via CSV, or generate sample (mock) data from the Tools page to try Finara right away.",
+      "createCta": "New Customer",
+      "generateMockCta": "Generate Sample Data"
+    },
+    "createDialog": {
+      "header": "New Customer",
+      "firstName": "First Name *",
+      "firstNameRequired": "First name is required.",
+      "lastName": "Last Name *",
+      "lastNameRequired": "Last name is required.",
+      "email": "Email *",
+      "emailRequired": "Email is required.",
+      "phone": "Phone (for SMS, E.164 — e.g. +905551234567)",
+      "phonePlaceholder": "+905551234567",
+      "dob": "Date of Birth *",
+      "dobRequired": "Date of birth is required.",
+      "education": "Education Level",
+      "educationPlaceholder": "Not specified",
+      "hasInvestment": "Has an investment account",
+      "hasSwift": "Uses international transfers (SWIFT)",
+      "submit": "Create"
+    },
+    "importResultDialog": {
+      "header": "Import Result",
+      "summary": "{{success}} / {{total}} rows imported successfully.",
+      "row": "Row",
+      "error": "Error"
+    },
+    "importTemplate": {
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email",
+      "dob": "Date of Birth",
+      "phone": "Phone",
+      "education": "Education Level",
+      "hasInvestment": "Has Investment Account",
+      "hasSwift": "Has International Transfers"
+    },
+    "export": {
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email",
+      "phone": "Phone",
+      "age": "Age",
+      "propensity": "Propensity",
+      "educationLevel": "Education Level"
+    },
+    "toast": {
+      "statsLoadFailed": "Failed to load summary information",
+      "loadFailed": "Failed to load customers",
+      "created": "Customer created",
+      "importFailed": "Import failed"
+    },
+    "detail": {
+      "fallbackName": "Customer",
+      "tabs": {
+        "profile": "Profile",
+        "transactions": "Transactions",
+        "offers": "Offers",
+        "consent": "Consent",
+        "aiAnalysis": "AI Analysis"
+      },
+      "profile": {
+        "erasedWarning": "This customer's data has been anonymized under the right to be forgotten (GDPR/KVKK) — name, email, and phone have been permanently deleted.",
+        "email": "Email:",
+        "age": "Age:",
+        "overallPropensity": "Overall propensity:",
+        "eraseButton": "Exercise Right to Be Forgotten",
+        "segmentHeader": "Segment (RFM)",
+        "recency": "Recency ({{score}}/5)",
+        "frequency": "Frequency ({{score}}/5)",
+        "monetary": "Monetary ({{score}}/5)",
+        "totalScore": "Total score:",
+        "dominantCategory": "Dominant category:",
+        "dominantCategoryUnknown": "Unknown",
+        "calculatedAt": "Calculated at:",
+        "aiCommentaryLabel": "AI Commentary",
+        "aiRegenerate": "Regenerate",
+        "aiGenerate": "Get AI Commentary",
+        "aiHint": "AI commentary does not replace RFM, it is only a brief additional explanation — the final decision always belongs to the RFM rule.",
+        "segmentHistoryHeader": "Segment History",
+        "segmentHistoryHint": "Point color shows propensity —",
+        "chartLabel": "Total RFM Score",
+        "noSegment": "No segment has been calculated for this customer yet — run segmentation from the Tools page."
+      },
+      "transactions": {
+        "addNew": "Add New Transaction",
+        "erasedMessage": "This customer has been anonymized, so new transactions cannot be added.",
+        "demoMessage": "Demo accounts cannot add new transactions.",
+        "analystMessage": "Analyst accounts cannot add new transactions.",
+        "amount": "Amount (TRY) *",
+        "amountRequired": "Amount must be greater than zero.",
+        "category": "Category",
+        "merchant": "Merchant *",
+        "merchantRequired": "Merchant is required.",
+        "date": "Date *",
+        "dateRequired": "Date is required.",
+        "save": "Save Transaction",
+        "recentHeader": "Recent Transactions",
+        "colDate": "Date",
+        "colCategory": "Category",
+        "colMerchant": "Merchant",
+        "colAmount": "Amount"
+      },
+      "offers": {
+        "intro": "Campaign offers presented to this customer",
+        "generate": "Generate Offers",
+        "colCampaign": "Campaign",
+        "colConfidence": "Confidence Score",
+        "colStatus": "Status",
+        "colPresentedAt": "Presented At",
+        "colActions": "Actions",
+        "accept": "Accept",
+        "decline": "Decline",
+        "sendSms": "Send SMS",
+        "sendEmail": "Send Email",
+        "empty": "No offers yet. Use \"Generate Offers\" (a segment must be calculated and an active campaign must exist)."
+      },
+      "consent": {
+        "hint": "Under GDPR/KVKK, a customer must have given explicit consent for a channel before a notification can be sent on it.",
+        "phoneLabel": "Phone:",
+        "phoneNotRegistered": "Not registered (SMS cannot be sent)",
+        "emailLabel": "Email:",
+        "colChannel": "Channel",
+        "colStatus": "Status",
+        "colGrantedAt": "Granted At",
+        "colRevokedAt": "Revoked At",
+        "colActions": "Actions",
+        "granted": "Granted",
+        "notGranted": "Not Granted",
+        "revoke": "Revoke Consent",
+        "grant": "Grant Consent"
+      },
+      "ai": {
+        "questionLabel": "Question (leave empty for a general summary)",
+        "analyze": "Analyze",
+        "demoMessage": "Demo accounts cannot start an AI analysis.",
+        "analystMessage": "Analyst accounts cannot start an AI analysis.",
+        "loadingHint": "The local model is generating a response, this may take ~10 seconds…",
+        "questionPrefix": "Question:"
+      },
+      "toast": {
+        "loadFailed": "Failed to load customer",
+        "segmentHistoryLoadFailed": "Failed to load segment history",
+        "aiCommentaryFailed": "Failed to generate AI commentary",
+        "transactionsLoadFailed": "Failed to load transactions",
+        "transactionSaved": "Transaction saved",
+        "transactionSaveFailed": "Failed to save transaction",
+        "offersLoadFailed": "Failed to load offers",
+        "offerGenerationDone": "Offer generation complete",
+        "offerGenerationDetail": "{{count}} new offer(s) created.",
+        "offerGenerationNone": "No suitable new offers found.",
+        "offerGenerationFailed": "Failed to generate offers",
+        "rejectOfferHeader": "Decline offer",
+        "rejectOfferMessage": "Are you sure you want to decline the \"{{name}}\" offer?",
+        "rejectOfferAccept": "Decline",
+        "rejectOfferReject": "Cancel",
+        "offerAccepted": "Offer accepted",
+        "offerDeclined": "Offer declined",
+        "offerActionFailed": "Action failed",
+        "eraseHeader": "Exercise Right to Be Forgotten",
+        "eraseMessage": "\"{{name}}\"'s name, email, and phone will be permanently anonymized. This action CANNOT BE UNDONE. Continue?",
+        "eraseAccept": "Anonymize",
+        "eraseReject": "Cancel",
+        "erased": "Customer anonymized",
+        "erasedDetail": "Data was permanently deleted under the right to be forgotten (GDPR/KVKK).",
+        "eraseFailed": "Anonymization failed",
+        "consentLoadFailed": "Failed to load consent status",
+        "consentGranted": "Consent granted",
+        "consentRevoked": "Consent revoked",
+        "consentUpdateFailed": "Failed to update consent",
+        "notificationSent": "Notification sent",
+        "notificationSkipped": "Notification skipped",
+        "distributionFailed": "Distribution failed"
+      }
+    }
+  },
+  "campaigns": {
+    "title": "Campaigns",
+    "exportButton": "Export",
+    "newCampaign": "New Campaign",
+    "stats": {
+      "total": "TOTAL CAMPAIGNS",
+      "active": "ACTIVE",
+      "draft": "DRAFT"
+    },
+    "table": {
+      "name": "Name",
+      "status": "Status",
+      "targetCategory": "Target Category",
+      "targetPropensities": "Target Propensities",
+      "dateRange": "Date Range",
+      "actions": "Actions",
+      "allCategories": "All categories",
+      "allPropensities": "All propensities",
+      "activate": "Activate"
+    },
+    "empty": {
+      "title": "No campaigns yet",
+      "text": "Define a target audience (category/propensity) and a date range to create your first campaign — once activated, offers are automatically generated for matching customers.",
+      "createCta": "New Campaign"
+    },
+    "createDialog": {
+      "header": "New Campaign",
+      "name": "Name *",
+      "nameRequired": "Campaign name is required.",
+      "description": "Description *",
+      "descriptionRequired": "Description is required.",
+      "startDate": "Start Date *",
+      "startDateRequired": "Start date is required.",
+      "endDate": "End Date (optional)",
+      "category": "Target Category (optional)",
+      "categoryPlaceholder": "Any",
+      "propensities": "Target Propensities (optional)",
+      "propensitiesPlaceholder": "Any (all)",
+      "targetsInvestment": "Targets investment account holders",
+      "targetsSwift": "Targets SWIFT users",
+      "submit": "Create"
+    },
+    "exportColumns": {
+      "name": "Name",
+      "status": "Status",
+      "targetCategory": "Target Category",
+      "targetPropensities": "Target Propensities",
+      "start": "Start",
+      "end": "End"
+    },
+    "toast": {
+      "loadFailed": "Failed to load campaigns",
+      "updated": "Campaign updated",
+      "updatedDetail": "{{name}} is now {{status}}",
+      "created": "Campaign created",
+      "activated": "Campaign activated",
+      "activateFailed": "Failed to activate"
+    }
+  },
+  "tools": {
+    "title": "Tools",
+    "mockData": {
+      "header": "Generate Mock Data",
+      "description": "Generates random customer and spending data for testing purposes (usable at most 5 times per minute).",
+      "customerCount": "Number of Customers",
+      "txPerCustomer": "Transactions per Customer",
+      "generate": "Generate",
+      "demoMessage": "Demo accounts cannot generate mock data.",
+      "analystMessage": "Analyst accounts cannot generate mock data.",
+      "successSummary": "Mock data generated",
+      "successDetail": "{{customers}} customer(s), {{transactions}} transaction(s) created.",
+      "errorSummary": "Failed to generate mock data"
+    },
+    "segmentation": {
+      "header": "Recalculate Segmentation",
+      "description": "Recalculates the RFM segment for all customers based on the last 90-day spending window.",
+      "recalculate": "Recalculate",
+      "demoMessage": "Demo accounts cannot recalculate segmentation.",
+      "analystMessage": "Analyst accounts cannot recalculate segmentation.",
+      "successSummary": "Segmentation complete",
+      "successDetail": "{{processed}} customer(s) processed, {{skipped}} skipped.",
+      "errorSummary": "Segmentation failed"
+    }
+  },
+  "enums": {
+    "transactionCategory": {
+      "Groceries": "Groceries",
+      "Fuel": "Fuel",
+      "Travel": "Travel",
+      "Entertainment": "Entertainment",
+      "Healthcare": "Healthcare",
+      "ECommerce": "E-Commerce",
+      "Motorcycle": "Motorcycle",
+      "Investment": "Investment",
+      "ForeignExchange": "Foreign Exchange",
+      "Utilities": "Utilities",
+      "Other": "Other"
+    },
+    "spendingPropensity": {
+      "NeedsEngagement": "Needs Engagement",
+      "Neutral": "Neutral",
+      "HighlyResponsive": "Highly Responsive"
+    },
+    "campaignStatus": {
+      "Draft": "Draft",
+      "Active": "Active",
+      "Paused": "Paused",
+      "Completed": "Completed",
+      "Archived": "Archived"
+    },
+    "offerResponse": {
+      "Pending": "Pending",
+      "Accepted": "Accepted",
+      "Declined": "Declined",
+      "Expired": "Expired"
+    },
+    "userRole": {
+      "SuperAdmin": "Super Admin",
+      "BankAdmin": "Bank Admin",
+      "Analyst": "Analyst (Read-Only)"
+    },
+    "auditActionType": {
+      "SegmentAssigned": "Segment Assigned",
+      "CampaignOfferPresented": "Offer Presented",
+      "CampaignOfferAccepted": "Offer Accepted",
+      "CampaignOfferDeclined": "Offer Declined",
+      "CustomerCreated": "Customer Created",
+      "TransactionRecorded": "Transaction Recorded",
+      "OfferDistributed": "Offer Distributed",
+      "ConsentGranted": "Consent Granted",
+      "ConsentRevoked": "Consent Revoked",
+      "AdminCreated": "Admin Created",
+      "AdminDeactivated": "Admin Deactivated",
+      "CustomerBulkImported": "Customers Bulk Imported",
+      "CustomerErased": "Customer Data Anonymized (GDPR)",
+      "AdminInvited": "Admin Invitation Sent",
+      "AdminInvitationAccepted": "Admin Invitation Accepted",
+      "AdminInvitationRevoked": "Admin Invitation Revoked",
+      "AdminSessionsRevoked": "Admin Sessions Revoked"
+    },
+    "consentChannel": {
+      "Sms": "SMS",
+      "Email": "Email",
+      "InAppBanking": "In-App Banking"
+    },
+    "educationLevel": {
+      "Ilkogretim": "Primary School",
+      "Lise": "High School",
+      "Onlisans": "Associate Degree",
+      "Lisans": "Bachelor's Degree",
+      "Lisansustu": "Postgraduate"
+    },
+    "bankDataProviderType": {
+      "Mock": "Simulated Data (Mock)",
+      "GarantiSandbox": "Garanti BBVA Sandbox"
+    },
+    "ageBracket": {
+      "Age18To25": "18-25",
+      "Age26To35": "26-35",
+      "Age36To45": "36-45",
+      "Age46To55": "46-55",
+      "Age56Plus": "56+"
+    }
+  },
+  "pageTitle": {
+    "login": "Finara — Log In",
+    "forgotPassword": "Finara — Forgot Password",
+    "resetPassword": "Finara — Reset Password",
+    "security": "Finara — Security & Data Privacy",
+    "scenarios": "Finara — How It Works",
+    "customers": "Finara — Customers",
+    "customerDetail": "Finara — Customer Detail",
+    "campaigns": "Finara — Campaigns",
+    "tools": "Finara — Tools",
+    "account": "Finara — My Account",
+    "settings": "Finara — Settings"
   }
 }

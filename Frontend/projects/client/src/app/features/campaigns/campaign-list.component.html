@@ -1,9 +1,9 @@
 <div class="toolbar">
-  <h1>Kampanyalar</h1>
+  <h1>{{ 'campaigns.title' | translate }}</h1>
   <div class="toolbar-actions">
-    <p-button label="Dışa Aktar" icon="pi pi-download" severity="secondary" [outlined]="true" (onClick)="dt.exportCSV()" />
+    <p-button [label]="'campaigns.exportButton' | translate" icon="pi pi-download" severity="secondary" [outlined]="true" (onClick)="dt.exportCSV()" />
     @if (authService.canWrite()) {
-      <p-button label="Yeni Kampanya" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+      <p-button [label]="'campaigns.newCampaign' | translate" icon="pi pi-plus" (onClick)="openCreateDialog()" />
     }
   </div>
 </div>
@@ -13,21 +13,21 @@
     <span class="stat-chip-icon"><i class="pi pi-megaphone"></i></span>
     <div>
       <div class="stat-chip-value">{{ campaigns().length }}</div>
-      <div class="stat-chip-label">TOPLAM KAMPANYA</div>
+      <div class="stat-chip-label">{{ 'campaigns.stats.total' | translate }}</div>
     </div>
   </div>
   <div class="stat-chip stat-chip--accent">
     <span class="stat-chip-icon"><i class="pi pi-bolt"></i></span>
     <div>
       <div class="stat-chip-value">{{ activeCount() }}</div>
-      <div class="stat-chip-label">AKTİF</div>
+      <div class="stat-chip-label">{{ 'campaigns.stats.active' | translate }}</div>
     </div>
   </div>
   <div class="stat-chip">
     <span class="stat-chip-icon"><i class="pi pi-file-edit"></i></span>
     <div>
       <div class="stat-chip-value">{{ draftCount() }}</div>
-      <div class="stat-chip-label">TASLAK</div>
+      <div class="stat-chip-label">{{ 'campaigns.stats.draft' | translate }}</div>
     </div>
   </div>
 </div>
@@ -38,27 +38,27 @@
   [loading]="loading()"
   [rows]="20"
   [paginator]="campaigns().length > 20"
-  [columns]="exportColumns"
+  [columns]="exportColumns()"
   [exportFunction]="exportFn"
   exportFilename="kampanyalar"
   styleClass="p-datatable-sm"
 >
   <ng-template pTemplate="header">
     <tr>
-      <th>Ad</th>
-      <th>Durum</th>
-      <th>Hedef Kategori</th>
-      <th>Hedef Eğilimler</th>
-      <th>Tarih Aralığı</th>
-      <th><span class="sr-only">İşlemler</span></th>
+      <th>{{ 'campaigns.table.name' | translate }}</th>
+      <th>{{ 'campaigns.table.status' | translate }}</th>
+      <th>{{ 'campaigns.table.targetCategory' | translate }}</th>
+      <th>{{ 'campaigns.table.targetPropensities' | translate }}</th>
+      <th>{{ 'campaigns.table.dateRange' | translate }}</th>
+      <th><span class="sr-only">{{ 'campaigns.table.actions' | translate }}</span></th>
     </tr>
   </ng-template>
   <ng-template pTemplate="body" let-campaign>
     <tr>
       <td>{{ campaign.name }}</td>
       <td><p-tag [value]="statusLabel(campaign.status ?? '')" [severity]="statusSeverity(campaign.status ?? '')" /></td>
-      <td>{{ campaign.targetCategory ? categoryLabel(campaign.targetCategory) : 'Tüm kategoriler' }}</td>
-      <td>{{ campaign.targetPropensities?.length ? campaign.targetPropensities.map(propensityLabel).join(' / ') : 'Tüm eğilimler' }}</td>
+      <td>{{ campaign.targetCategory ? categoryLabel(campaign.targetCategory) : ('campaigns.table.allCategories' | translate) }}</td>
+      <td>{{ campaign.targetPropensities?.length ? campaign.targetPropensities.map(propensityLabel).join(' / ') : ('campaigns.table.allPropensities' | translate) }}</td>
       <td>
         {{ campaign.startDateUtc | date: 'yyyy-MM-dd' }}
         @if (campaign.endDateUtc) {
@@ -68,7 +68,7 @@
       <td>
         @if ((campaign.status === 'Draft' || campaign.status === 'Paused') && authService.canWrite()) {
           <p-button
-            label="Aktifleştir"
+            [label]="'campaigns.table.activate' | translate"
             size="small"
             [loading]="activatingId() === campaign.id"
             (onClick)="activateCampaign(campaign)"
@@ -82,13 +82,13 @@
       <td colspan="6">
         <div class="empty-state">
           <i class="pi pi-megaphone empty-state-icon"></i>
-          <div class="empty-state-title">Henüz kampanya yok</div>
+          <div class="empty-state-title">{{ 'campaigns.empty.title' | translate }}</div>
           <p class="empty-state-text">
-            Bir hedef kitle (kategori/eğilim) ve tarih aralığı belirleyip ilk kampanyanızı oluşturun — aktifleştirdiğinizde uygun müşterilere otomatik teklif üretilir.
+            {{ 'campaigns.empty.text' | translate }}
           </p>
           @if (authService.canWrite()) {
             <div class="empty-state-actions">
-              <p-button label="Yeni Kampanya" icon="pi pi-plus" size="small" (onClick)="openCreateDialog()" />
+              <p-button [label]="'campaigns.empty.createCta' | translate" icon="pi pi-plus" size="small" (onClick)="openCreateDialog()" />
             </div>
           }
         </div>
@@ -97,23 +97,23 @@
   </ng-template>
 </p-table>
 
-<p-dialog header="Yeni Kampanya" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '480px' }">
+<p-dialog [header]="'campaigns.createDialog.header' | translate" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '480px' }">
   <div class="field">
-    <label for="campaign-name">Ad *</label>
+    <label for="campaign-name">{{ 'campaigns.createDialog.name' | translate }}</label>
     <input id="campaign-name" type="text" pInputText [(ngModel)]="newCampaign.name" [class.field-invalid]="createSubmitted && !newCampaign.name" />
     @if (createSubmitted && !newCampaign.name) {
-      <small class="field-error">Kampanya adı zorunlu.</small>
+      <small class="field-error">{{ 'campaigns.createDialog.nameRequired' | translate }}</small>
     }
   </div>
   <div class="field">
-    <label for="campaign-description">Açıklama *</label>
+    <label for="campaign-description">{{ 'campaigns.createDialog.description' | translate }}</label>
     <textarea id="campaign-description" pTextarea rows="2" [(ngModel)]="newCampaign.description" [class.field-invalid]="createSubmitted && !newCampaign.description"></textarea>
     @if (createSubmitted && !newCampaign.description) {
-      <small class="field-error">Açıklama zorunlu.</small>
+      <small class="field-error">{{ 'campaigns.createDialog.descriptionRequired' | translate }}</small>
     }
   </div>
   <div class="field">
-    <label for="campaign-start">Başlangıç Tarihi *</label>
+    <label for="campaign-start">{{ 'campaigns.createDialog.startDate' | translate }}</label>
     <p-datepicker
       inputId="campaign-start"
       [(ngModel)]="newCampaign.startDateUtc"
@@ -122,47 +122,47 @@
       [inputStyleClass]="createSubmitted && !newCampaign.startDateUtc ? 'field-invalid' : ''"
     />
     @if (createSubmitted && !newCampaign.startDateUtc) {
-      <small class="field-error">Başlangıç tarihi zorunlu.</small>
+      <small class="field-error">{{ 'campaigns.createDialog.startDateRequired' | translate }}</small>
     }
   </div>
   <div class="field">
-    <label for="campaign-end">Bitiş Tarihi (opsiyonel)</label>
+    <label for="campaign-end">{{ 'campaigns.createDialog.endDate' | translate }}</label>
     <p-datepicker inputId="campaign-end" [(ngModel)]="newCampaign.endDateUtc" dateFormat="yy-mm-dd" [showIcon]="true" />
   </div>
   <div class="field">
-    <label for="campaign-category">Hedef Kategori (opsiyonel)</label>
+    <label for="campaign-category">{{ 'campaigns.createDialog.category' | translate }}</label>
     <p-select
       inputId="campaign-category"
-      [options]="categories"
+      [options]="categories()"
       optionLabel="label"
       optionValue="value"
       [(ngModel)]="newCampaign.targetCategory"
       [showClear]="true"
-      placeholder="Fark etmez"
+      [placeholder]="'campaigns.createDialog.categoryPlaceholder' | translate"
     />
   </div>
   <div class="field">
-    <label for="campaign-propensities">Hedef Eğilimler (opsiyonel)</label>
+    <label for="campaign-propensities">{{ 'campaigns.createDialog.propensities' | translate }}</label>
     <p-multiselect
       inputId="campaign-propensities"
-      [options]="propensities"
+      [options]="propensities()"
       optionLabel="label"
       optionValue="value"
       [(ngModel)]="newCampaign.targetPropensities"
       display="chip"
-      placeholder="Fark etmez (tümü)"
+      [placeholder]="'campaigns.createDialog.propensitiesPlaceholder' | translate"
     />
   </div>
   <div class="field-checkbox">
     <p-checkbox [(ngModel)]="newCampaign.targetsInvestmentAccountHolders" [binary]="true" inputId="targetInvestment" />
-    <label for="targetInvestment">Yatırım hesabı sahiplerini hedefler</label>
+    <label for="targetInvestment">{{ 'campaigns.createDialog.targetsInvestment' | translate }}</label>
   </div>
   <div class="field-checkbox">
     <p-checkbox [(ngModel)]="newCampaign.targetsInternationalTransferUsers" [binary]="true" inputId="targetSwift" />
-    <label for="targetSwift">SWIFT kullanıcılarını hedefler</label>
+    <label for="targetSwift">{{ 'campaigns.createDialog.targetsSwift' | translate }}</label>
   </div>
   @if (createError()) {
     <p-message severity="error" [text]="createError()!" />
   }
-  <p-button label="Oluştur" [loading]="createBusy()" (onClick)="createCampaign()" />
+  <p-button [label]="'campaigns.createDialog.submit' | translate" [loading]="createBusy()" (onClick)="createCampaign()" />
 </p-dialog>

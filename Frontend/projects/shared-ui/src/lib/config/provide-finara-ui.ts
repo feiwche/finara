@@ -1,4 +1,5 @@
 import { APP_INITIALIZER, EnvironmentProviders, LOCALE_ID, makeEnvironmentProviders } from '@angular/core';
+import { TitleStrategy } from '@angular/router';
 import { providePrimeNG, PrimeNG } from 'primeng/config';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { TranslateService, provideTranslateService } from '@ngx-translate/core';
@@ -7,6 +8,8 @@ import { FinaraPreset } from './finara-preset';
 import { ThemeService } from '../theme/theme.service';
 import { GuestLanguageService } from '../i18n/guest-language.service';
 import { getPrimeNgTranslation } from '../i18n/primeng-locale';
+import { registerTranslateServiceForEnumLabels } from '../utils/enum-labels.util';
+import { FinaraTitleStrategy } from '../i18n/finara-title-strategy';
 
 // Client ve BackOffice aynı görsel kimliği paylaşsın diye PrimeNG tema kurulumu
 // (FinaraPreset — Aura'nın üzerine kurulu marka katmanı, bkz. finara-preset.ts) ve TR
@@ -18,6 +21,9 @@ export function provideFinaraUi(): EnvironmentProviders {
     { provide: LOCALE_ID, useValue: 'tr' },
     MessageService,
     ConfirmationService,
+    // Route'lardaki statik `title` yerine `data: { titleKey }` + bu strateji kullanılıyor —
+    // sekme başlığının da dil değişince (sayfa yeniden yüklenmeden) güncellenmesi için.
+    { provide: TitleStrategy, useClass: FinaraTitleStrategy },
     // ngx-translate: çeviri dosyaları her app'in kendi public/i18n/{dil}.json'undan
     // (statik varlık, favicon/og-image ile aynı klasör deseni) HTTP ile yükleniyor.
     // Varsayılan/geri düşme dili her zaman tr — giriş ekranındaki gerçek ziyaretçi
@@ -55,6 +61,7 @@ export function provideFinaraUi(): EnvironmentProviders {
       useFactory: (translate: TranslateService, primeng: PrimeNG) => () => {
         primeng.setTranslation(getPrimeNgTranslation(translate.currentLang() ?? 'tr'));
         translate.onLangChange.subscribe(event => primeng.setTranslation(getPrimeNgTranslation(event.lang)));
+        registerTranslateServiceForEnumLabels(translate);
       },
       deps: [TranslateService, PrimeNG],
       multi: true

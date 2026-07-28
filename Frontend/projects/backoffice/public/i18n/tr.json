@@ -55,6 +55,26 @@
       "invalidToken": "Geçersiz sıfırlama bağlantısı — e-postanızdaki bağlantıyı tekrar kullanın.",
       "newPasswordRequired": "Yeni şifre zorunlu (en az 8 karakter, harf ve rakam içermeli).",
       "passwordMismatch": "Şifreler eşleşmiyor."
+    },
+    "acceptInvitation": {
+      "badge": "Davetle Katılım",
+      "welcomeHeadline": "Ekibinize hoş geldiniz.",
+      "description": "Bankanızın BackOffice ekibi sizi Finara'ya davet etti. Devam etmek için sadece bir şifre belirlemeniz yeterli.",
+      "point1": "Tek kullanımlık, 24 saat geçerli davet bağlantısı",
+      "point2": "Şifreniz sadece sizin bileceğiniz şekilde belirlenir",
+      "point3": "Hesap oluşur oluşmaz girişe hazır olursunuz",
+      "cardHeader": "Daveti Kabul Et",
+      "verifying": "Davet doğrulanıyor…",
+      "invalidOrExpired": "Geçersiz veya süresi dolmuş davet bağlantısı.",
+      "invalidToken": "Geçersiz davet bağlantısı — e-postanızdaki bağlantıyı tekrar kullanın.",
+      "success": "Hesabınız oluşturuldu. Girişe yönlendiriliyorsunuz…",
+      "invitedAs": "e-postası için {{role}} olarak davet edildiniz. Devam etmek için bir şifre belirleyin.",
+      "newPassword": "Şifre *",
+      "confirmPassword": "Şifre (Tekrar) *",
+      "newPasswordRequired": "Şifre zorunlu (en az 8 karakter, harf ve rakam içermeli).",
+      "passwordMismatch": "Şifreler eşleşmiyor.",
+      "submit": "Hesabı Oluştur",
+      "backToLogin": "Girişe dön"
     }
   },
   "account": {
@@ -189,5 +209,393 @@
       "title": "Girdi Doğrulama & Hız Sınırlama",
       "text": "Toplu içe aktarma ve dışa aktarma formül enjeksiyonuna karşı sanitize edilir, tüm uçlar istismara karşı hız sınırlamasıyla korunur, veritabanı izole bir ortamda çalışır."
     }
+  },
+  "dashboard": {
+    "title": "Genel Bakış",
+    "kpi": {
+      "totalCustomers": "Toplam Müşteri",
+      "activeCampaigns": "Aktif Kampanya",
+      "offerAcceptDecline30d": "Son 30 Gün — Teklif Kabul/Red",
+      "acceptedDeclinedSub": "{{accepted}} kabul / {{declined}} red",
+      "noOffersLast30Days": "Son 30 günde yanıtlanan teklif yok",
+      "automationImpact": "Otomasyon Etkisi",
+      "automationTooltip": "Kural motorunun tüm zamanlar boyunca ürettiği teklif sayısı ve ortalama eşleşme güveni — 30 günlük pencereyle sınırlı değil.",
+      "offersGenerated": "teklif üretildi",
+      "reachedCustomers": "müşteriye ulaşıldı",
+      "avgConfidence": "ort. güven",
+      "noOffersYet": "Henüz teklif üretilmedi"
+    },
+    "charts": {
+      "propensityDistribution": "Eğilim Dağılımı",
+      "customerLabel": "Müşteri",
+      "offerTrend30d": "Son 30 Gün — Teklif Kabul/Red Trendi",
+      "customerGrowth30d": "Son 30 Gün — Yeni Müşteri Büyümesi",
+      "accepted": "Kabul",
+      "declined": "Red",
+      "newCustomers": "Yeni Müşteri"
+    },
+    "loadError": "Panel yüklenemedi"
+  },
+  "campaigns": {
+    "title": "Kampanya Yönetimi",
+    "export": "Dışa Aktar",
+    "newCampaign": "Yeni Kampanya",
+    "stats": {
+      "total": "TOPLAM KAMPANYA",
+      "active": "AKTİF",
+      "draft": "TASLAK"
+    },
+    "table": {
+      "name": "Ad",
+      "status": "Durum",
+      "targetCategory": "Hedef Kategori",
+      "targetPropensities": "Hedef Eğilimler",
+      "dateRange": "Tarih Aralığı",
+      "actions": "İşlemler",
+      "start": "Başlangıç",
+      "end": "Bitiş",
+      "allCategories": "Tüm kategoriler",
+      "allPropensities": "Tüm eğilimler"
+    },
+    "actions": {
+      "activate": "Aktifleştir",
+      "pause": "Duraklat",
+      "complete": "Tamamla",
+      "archive": "Arşivle"
+    },
+    "emptyState": {
+      "title": "Henüz kampanya yok",
+      "text": "Bir hedef kitle (kategori/eğilim) ve tarih aralığı belirleyip ilk kampanyanızı oluşturun — aktifleştirdiğinizde uygun müşterilere otomatik teklif üretilir."
+    },
+    "dialog": {
+      "header": "Yeni Kampanya",
+      "name": "Ad *",
+      "nameRequired": "Kampanya adı zorunlu.",
+      "description": "Açıklama *",
+      "descriptionRequired": "Açıklama zorunlu.",
+      "startDate": "Başlangıç Tarihi *",
+      "startDateRequired": "Başlangıç tarihi zorunlu.",
+      "endDate": "Bitiş Tarihi (opsiyonel)",
+      "targetCategory": "Hedef Kategori (opsiyonel)",
+      "categoryPlaceholder": "Fark etmez",
+      "targetPropensities": "Hedef Eğilimler (opsiyonel)",
+      "propensitiesPlaceholder": "Fark etmez (tümü)",
+      "targetsInvestment": "Yatırım hesabı sahiplerini hedefler",
+      "targetsSwift": "SWIFT kullanıcılarını hedefler",
+      "create": "Oluştur"
+    },
+    "toast": {
+      "campaignUpdated": "Kampanya güncellendi",
+      "campaignUpdatedDetail": "{{name}} artık {{status}}",
+      "loadFailed": "Kampanyalar yüklenemedi",
+      "created": "Kampanya oluşturuldu",
+      "activated": "Kampanya aktifleştirildi",
+      "paused": "Kampanya duraklatıldı",
+      "completed": "Kampanya tamamlandı",
+      "archived": "Kampanya arşivlendi",
+      "actionFailed": "İşlem başarısız"
+    },
+    "confirm": {
+      "completeHeader": "Kampanyayı tamamla",
+      "completeMessage": "\"{{name}}\" kampanyasını tamamlamak istediğinize emin misiniz? Tamamlanan bir kampanya tekrar aktifleştirilemez.",
+      "completeAccept": "Tamamla",
+      "archiveHeader": "Kampanyayı arşivle",
+      "archiveMessage": "\"{{name}}\" kampanyasını arşivlemek istediğinize emin misiniz? Arşivlenen bir kampanya artık kullanılamaz.",
+      "archiveAccept": "Arşivle"
+    }
+  },
+  "adminAccounts": {
+    "title": "Yönetici Hesapları",
+    "tabs": {
+      "admins": "Yöneticiler",
+      "invitations": "Davetler"
+    },
+    "newAdmin": "Yeni Yönetici",
+    "newInvitation": "Yeni Davet",
+    "stats": {
+      "totalAdmins": "TOPLAM YÖNETİCİ",
+      "active": "AKTİF",
+      "inactive": "PASİF"
+    },
+    "table": {
+      "email": "E-posta",
+      "role": "Rol",
+      "bank": "Banka",
+      "status": "Durum",
+      "createdAt": "Oluşturulma Tarihi",
+      "expiresAt": "Son Geçerlilik",
+      "actions": "İşlemler",
+      "you": "(siz)",
+      "active": "Aktif",
+      "inactive": "Pasif"
+    },
+    "actions": {
+      "revokeSessions": "Oturumları Sonlandır",
+      "deactivate": "Pasifleştir",
+      "revokeInvitation": "İptal Et"
+    },
+    "invitationStatus": {
+      "accepted": "Kabul Edildi",
+      "revoked": "İptal Edildi",
+      "expired": "Süresi Doldu",
+      "pending": "Bekliyor"
+    },
+    "emptyState": {
+      "admins": "Henüz yönetici hesabı yok.",
+      "invitations": "Henüz gönderilmiş bir davet yok."
+    },
+    "inviteHint": "Yeni bir yönetici hesabı için e-posta davetiyesi gönderin — kişi kendi şifresini kendi belirler.",
+    "dialog": {
+      "newAdminHeader": "Yeni Yönetici Hesabı",
+      "newInvitationHeader": "Yeni Davet",
+      "email": "E-posta *",
+      "emailRequired": "E-posta zorunlu.",
+      "password": "Şifre *",
+      "passwordRequired": "Şifre zorunlu (en az 8 karakter, harf ve rakam içermeli).",
+      "role": "Rol",
+      "bank": "Banka *",
+      "bankPlaceholder": "Banka seçin",
+      "bankRequiredFor": "{{role}} için banka seçimi zorunlu.",
+      "bankRequiredForInvite": "{{role}} daveti için banka seçimi zorunlu.",
+      "ownBankNoteAdmin": "Yeni hesap, sizin bankanız için oluşturulacak.",
+      "ownBankNoteInvite": "Davet, sizin bankanız için gönderilecek.",
+      "create": "Oluştur",
+      "sendInvite": "Davet Gönder"
+    },
+    "toast": {
+      "loadFailed": "Yönetici hesapları yüklenemedi",
+      "banksLoadFailed": "Banka listesi yüklenemedi",
+      "created": "Yönetici hesabı oluşturuldu",
+      "deactivated": "Hesap pasifleştirildi",
+      "actionFailed": "İşlem başarısız",
+      "sessionsRevoked": "Oturumlar sonlandırıldı",
+      "invitationsLoadFailed": "Davetler yüklenemedi",
+      "invitationSent": "Davet gönderildi",
+      "invitationRevoked": "Davet iptal edildi"
+    },
+    "confirm": {
+      "deactivateHeader": "Yönetici hesabını pasifleştir",
+      "deactivateMessage": "\"{{email}}\" hesabını pasifleştirmek istediğinize emin misiniz? Bu hesap artık giriş yapamayacak.",
+      "deactivateAccept": "Pasifleştir",
+      "revokeSessionsHeader": "Kullanıcının oturumlarını sonlandır",
+      "revokeSessionsMessage": "\"{{email}}\" hesabıyla giriş yapılmış tüm cihazlar/tarayıcılar oturumdan çıkarılacak. Hesap aktif kalır, sadece yeniden giriş yapması gerekecek. Devam edilsin mi?",
+      "revokeSessionsAccept": "Oturumları Sonlandır",
+      "revokeInvitationHeader": "Daveti iptal et",
+      "revokeInvitationMessage": "\"{{email}}\" adresine gönderilen daveti iptal etmek istediğinize emin misiniz?",
+      "revokeInvitationAccept": "İptal Et"
+    }
+  },
+  "auditLog": {
+    "title": "Denetim Kaydı",
+    "exportPage": "Sayfayı Dışa Aktar",
+    "exportTooltip": "Sunucu taraflı sayfalama nedeniyle sadece o an görüntülenen sayfa (20 kayıt) dışa aktarılır, filtrelere uyan tüm kayıtlar değil.",
+    "filters": {
+      "actionType": "Aksiyon Tipi",
+      "allActionTypes": "Tümü",
+      "fromDate": "Başlangıç Tarihi",
+      "toDate": "Bitiş Tarihi",
+      "clear": "Filtreleri Temizle",
+      "searchPlaceholder": "Müşteri ara…"
+    },
+    "table": {
+      "date": "Tarih",
+      "customer": "Müşteri",
+      "action": "Aksiyon",
+      "detail": "Detay"
+    },
+    "emptyState": "Seçilen filtrelere uyan bir denetim kaydı yok.",
+    "toast": {
+      "loadFailed": "Denetim kayıtları yüklenemedi"
+    }
+  },
+  "bankManagement": {
+    "title": "Banka Yönetimi",
+    "newBank": "Yeni Banka",
+    "stats": {
+      "total": "TOPLAM BANKA",
+      "active": "AKTİF",
+      "inactive": "PASİF"
+    },
+    "table": {
+      "name": "Ad",
+      "code": "Kod",
+      "dataProvider": "Veri Sağlayıcı",
+      "status": "Durum",
+      "actions": "İşlemler",
+      "active": "Aktif",
+      "inactive": "Pasif"
+    },
+    "actions": {
+      "deactivate": "Pasifleştir"
+    },
+    "emptyState": "Henüz banka yok.",
+    "dialog": {
+      "header": "Yeni Banka",
+      "name": "Ad *",
+      "nameRequired": "Banka adı zorunlu.",
+      "code": "Kod *",
+      "codeRequired": "Banka kodu zorunlu.",
+      "create": "Oluştur"
+    },
+    "toast": {
+      "loadFailed": "Banka listesi yüklenemedi",
+      "created": "Banka oluşturuldu",
+      "deactivated": "Banka pasifleştirildi",
+      "actionFailed": "İşlem başarısız"
+    },
+    "confirm": {
+      "deactivateHeader": "Bankayı pasifleştir",
+      "deactivateMessage": "\"{{name}}\" bankasını pasifleştirmek istediğinize emin misiniz? Bu geri alınamaz.",
+      "deactivateAccept": "Pasifleştir"
+    }
+  },
+  "cohortExplorer": {
+    "title": "Kohort Gezgini",
+    "stats": {
+      "total": "TOPLAM KOHORT",
+      "totalCustomers": "TOPLAM MÜŞTERİ",
+      "otherGroup": "\"DİĞER\" GRUP"
+    },
+    "hint": "Aktif segmenti olan (son 90 gün içinde işlemi bulunan) müşteriler yaş aralığı, eğitim durumu ve harcama eğilimine göre gruplanır. Bir grup 5 müşteriden azsa tek bir \"Diğer\" satırında birleştirilir.",
+    "table": {
+      "cohort": "Kohort",
+      "ageBracket": "Yaş Aralığı",
+      "educationLevel": "Eğitim Durumu",
+      "propensity": "Eğilim",
+      "dominantCategory": "Baskın Kategori",
+      "customerCount": "Müşteri Sayısı",
+      "other": "Diğer",
+      "cohortTag": "Kohort"
+    },
+    "emptyState": "Henüz kohort yok — segmentasyonun en az bir kez çalıştırılmış olması gerekir (Araçlar/Segmentasyon).",
+    "toast": {
+      "loadFailed": "Kohortlar yüklenemedi"
+    }
+  },
+  "notificationLog": {
+    "title": "Bildirim Kaydı",
+    "export": "Dışa Aktar",
+    "filters": {
+      "channel": "Kanal",
+      "allChannels": "Tümü",
+      "fromDate": "Başlangıç Tarihi",
+      "toDate": "Bitiş Tarihi",
+      "clear": "Filtreleri Temizle",
+      "searchPlaceholder": "Müşteri ara…"
+    },
+    "table": {
+      "date": "Tarih",
+      "customer": "Müşteri",
+      "channel": "Kanal",
+      "status": "Durum",
+      "skippedReason": "Atlanma Sebebi",
+      "message": "Mesaj"
+    },
+    "status": {
+      "sent": "Gönderildi",
+      "skipped": "Atlandı"
+    },
+    "emptyState": "Seçilen filtrelere uyan bir bildirim kaydı yok.",
+    "toast": {
+      "loadFailed": "Bildirim kayıtları yüklenemedi",
+      "newNotification": "Yeni bildirim"
+    }
+  },
+  "enums": {
+    "transactionCategory": {
+      "Groceries": "Market",
+      "Fuel": "Akaryakıt",
+      "Travel": "Seyahat",
+      "Entertainment": "Eğlence",
+      "Healthcare": "Sağlık",
+      "ECommerce": "E-Ticaret",
+      "Motorcycle": "Motosiklet",
+      "Investment": "Yatırım",
+      "ForeignExchange": "Döviz",
+      "Utilities": "Faturalar",
+      "Other": "Diğer"
+    },
+    "spendingPropensity": {
+      "NeedsEngagement": "Teşvik Gerekli",
+      "Neutral": "Nötr",
+      "HighlyResponsive": "Harcamaya Yatkın"
+    },
+    "campaignStatus": {
+      "Draft": "Taslak",
+      "Active": "Aktif",
+      "Paused": "Duraklatıldı",
+      "Completed": "Tamamlandı",
+      "Archived": "Arşivlendi"
+    },
+    "offerResponse": {
+      "Pending": "Bekliyor",
+      "Accepted": "Kabul Edildi",
+      "Declined": "Reddedildi",
+      "Expired": "Süresi Doldu"
+    },
+    "userRole": {
+      "SuperAdmin": "Süper Yönetici",
+      "BankAdmin": "Banka Yöneticisi",
+      "Analyst": "Analist (Salt Okunur)"
+    },
+    "auditActionType": {
+      "SegmentAssigned": "Segment Atandı",
+      "CampaignOfferPresented": "Teklif Sunuldu",
+      "CampaignOfferAccepted": "Teklif Kabul Edildi",
+      "CampaignOfferDeclined": "Teklif Reddedildi",
+      "CustomerCreated": "Müşteri Oluşturuldu",
+      "TransactionRecorded": "İşlem Kaydedildi",
+      "OfferDistributed": "Teklif Dağıtıldı",
+      "ConsentGranted": "Rıza Verildi",
+      "ConsentRevoked": "Rıza Kaldırıldı",
+      "AdminCreated": "Yönetici Oluşturuldu",
+      "AdminDeactivated": "Yönetici Pasifleştirildi",
+      "CustomerBulkImported": "Müşteri Toplu İçe Aktarıldı",
+      "CustomerErased": "Müşteri Verisi Anonimleştirildi (KVKK)",
+      "AdminInvited": "Yönetici Daveti Gönderildi",
+      "AdminInvitationAccepted": "Yönetici Daveti Kabul Edildi",
+      "AdminInvitationRevoked": "Yönetici Daveti İptal Edildi",
+      "AdminSessionsRevoked": "Yönetici Oturumları Sonlandırıldı"
+    },
+    "consentChannel": {
+      "Sms": "SMS",
+      "Email": "E-posta",
+      "InAppBanking": "Bankacılık Uygulaması İçi"
+    },
+    "educationLevel": {
+      "Ilkogretim": "İlköğretim",
+      "Lise": "Lise",
+      "Onlisans": "Önlisans",
+      "Lisans": "Lisans",
+      "Lisansustu": "Lisansüstü"
+    },
+    "bankDataProviderType": {
+      "Mock": "Simüle Veri (Mock)",
+      "GarantiSandbox": "Garanti BBVA Sandbox"
+    },
+    "ageBracket": {
+      "Age18To25": "18-25",
+      "Age26To35": "26-35",
+      "Age36To45": "36-45",
+      "Age46To55": "46-55",
+      "Age56Plus": "56+"
+    }
+  },
+  "pageTitle": {
+    "login": "Finara BackOffice — Giriş",
+    "forgotPassword": "Finara BackOffice — Şifremi Unuttum",
+    "resetPassword": "Finara BackOffice — Şifre Sıfırla",
+    "acceptInvitation": "Finara BackOffice — Daveti Kabul Et",
+    "security": "Finara BackOffice — Güvenlik ve Veri Gizliliği",
+    "scenarios": "Finara BackOffice — Nasıl Çalışır",
+    "dashboard": "Finara BackOffice — Genel Bakış",
+    "campaigns": "Finara BackOffice — Kampanya Yönetimi",
+    "auditLogs": "Finara BackOffice — Denetim Kaydı",
+    "adminAccounts": "Finara BackOffice — Yönetici Hesapları",
+    "banks": "Finara BackOffice — Banka Yönetimi",
+    "cohorts": "Finara BackOffice — Kohort Gezgini",
+    "notifications": "Finara BackOffice — Bildirim Kaydı",
+    "account": "Finara BackOffice — Hesabım",
+    "settings": "Finara BackOffice — Ayarlar"
   }
 }

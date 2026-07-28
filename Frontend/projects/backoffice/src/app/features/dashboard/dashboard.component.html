@@ -1,7 +1,7 @@
 <div class="dashboard-hero">
   <i class="pi pi-chart-line dashboard-hero-ghost-icon"></i>
   <span class="dashboard-hero-eyebrow">BackOffice</span>
-  <h1>Genel Bakış</h1>
+  <h1>{{ 'dashboard.title' | translate }}</h1>
   <p class="dashboard-hero-sub">{{ today | date: 'd MMMM y, EEEE' }}</p>
 </div>
 
@@ -9,7 +9,7 @@
   <p-card styleClass="panel kpi-card">
     <i class="pi pi-users kpi-card-ghost-icon"></i>
     <div class="kpi-card-head">
-      <span class="kpi-label">Toplam Müşteri</span>
+      <span class="kpi-label">{{ 'dashboard.kpi.totalCustomers' | translate }}</span>
       <span class="kpi-icon-chip"><i class="pi pi-users"></i></span>
     </div>
     <div class="kpi-value">{{ totalCustomers() }}</div>
@@ -18,7 +18,7 @@
   <p-card styleClass="panel kpi-card">
     <i class="pi pi-megaphone kpi-card-ghost-icon"></i>
     <div class="kpi-card-head">
-      <span class="kpi-label">Aktif Kampanya</span>
+      <span class="kpi-label">{{ 'dashboard.kpi.activeCampaigns' | translate }}</span>
       <span class="kpi-icon-chip"><i class="pi pi-megaphone"></i></span>
     </div>
     <div class="kpi-value">{{ activeCampaigns() }}</div>
@@ -27,59 +27,59 @@
   <p-card styleClass="panel kpi-card kpi-card--accent">
     <i class="pi pi-percentage kpi-card-ghost-icon"></i>
     <div class="kpi-card-head">
-      <span class="kpi-label">Son 30 Gün — Teklif Kabul/Red</span>
+      <span class="kpi-label">{{ 'dashboard.kpi.offerAcceptDecline30d' | translate }}</span>
       <span class="kpi-icon-chip kpi-icon-chip--ring" [style.--ring-pct]="offerAcceptRate ?? 0">
         <i class="pi pi-percentage"></i>
       </span>
     </div>
     @if (offerTotal > 0) {
       <div class="kpi-value">%{{ offerAcceptRate }}</div>
-      <div class="kpi-sublabel">{{ offerAccepted() }} kabul / {{ offerDeclined() }} red</div>
+      <div class="kpi-sublabel">{{ 'dashboard.kpi.acceptedDeclinedSub' | translate: { accepted: offerAccepted(), declined: offerDeclined() } }}</div>
     } @else {
       <div class="kpi-value muted-text">—</div>
-      <div class="kpi-sublabel">Son 30 günde yanıtlanan teklif yok</div>
+      <div class="kpi-sublabel">{{ 'dashboard.kpi.noOffersLast30Days' | translate }}</div>
     }
   </p-card>
 
-  <p-card styleClass="panel kpi-card" pTooltip="Kural motorunun tüm zamanlar boyunca ürettiği teklif sayısı ve ortalama eşleşme güveni — 30 günlük pencereyle sınırlı değil." tooltipPosition="bottom">
+  <p-card styleClass="panel kpi-card" [pTooltip]="'dashboard.kpi.automationTooltip' | translate" tooltipPosition="bottom">
     <i class="pi pi-sparkles kpi-card-ghost-icon"></i>
     <div class="kpi-card-head">
-      <span class="kpi-label">Otomasyon Etkisi</span>
+      <span class="kpi-label">{{ 'dashboard.kpi.automationImpact' | translate }}</span>
       <span class="kpi-icon-chip"><i class="pi pi-sparkles"></i></span>
     </div>
     @if (offerImpact(); as impact) {
       <div class="kpi-value">{{ impact.totalOffersGenerated }}</div>
       <div class="kpi-sublabel">
-        teklif üretildi
+        {{ 'dashboard.kpi.offersGenerated' | translate }}
         @if (engagementRate !== null) {
-          · %{{ engagementRate }} müşteriye ulaşıldı
+          · %{{ engagementRate }} {{ 'dashboard.kpi.reachedCustomers' | translate }}
         }
         @if (averageConfidenceScore !== null) {
-          · ort. güven %{{ averageConfidenceScore }}
+          · {{ 'dashboard.kpi.avgConfidence' | translate }} %{{ averageConfidenceScore }}
         }
       </div>
     } @else {
       <div class="kpi-value muted-text">—</div>
-      <div class="kpi-sublabel">Henüz teklif üretilmedi</div>
+      <div class="kpi-sublabel">{{ 'dashboard.kpi.noOffersYet' | translate }}</div>
     }
   </p-card>
 </div>
 
 <div class="dashboard-chart-grid">
-  <p-card header="Eğilim Dağılımı" styleClass="panel">
+  <p-card [header]="'dashboard.charts.propensityDistribution' | translate" styleClass="panel">
     <div class="chart-container">
       @if (chartData()) {
         <p-chart type="doughnut" [data]="chartData()" [options]="chartOptions" />
         <div class="chart-center-label">
           <div class="chart-center-value">{{ totalCustomers() }}</div>
-          <div class="chart-center-caption">Müşteri</div>
+          <div class="chart-center-caption">{{ 'dashboard.charts.customerLabel' | translate }}</div>
         </div>
       }
     </div>
   </p-card>
 
   <div class="dashboard-trend-stack">
-    <p-card header="Son 30 Gün — Teklif Kabul/Red Trendi" styleClass="panel">
+    <p-card [header]="'dashboard.charts.offerTrend30d' | translate" styleClass="panel">
       <div class="trend-chart-container">
         @if (offerTrendChartData()) {
           <p-chart type="line" [data]="offerTrendChartData()" [options]="trendChartOptions" />
@@ -87,7 +87,7 @@
       </div>
     </p-card>
 
-    <p-card header="Son 30 Gün — Yeni Müşteri Büyümesi" styleClass="panel">
+    <p-card [header]="'dashboard.charts.customerGrowth30d' | translate" styleClass="panel">
       <div class="trend-chart-container">
         @if (customerGrowthChartData()) {
           <p-chart type="line" [data]="customerGrowthChartData()" [options]="trendChartOptions" />

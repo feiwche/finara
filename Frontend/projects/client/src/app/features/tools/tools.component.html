@@ -1,33 +1,33 @@
-<h1>Araçlar</h1>
+<h1>{{ 'tools.title' | translate }}</h1>
 
 <div class="grid">
-  <p-card header="Mock Veri Üret" styleClass="panel">
-    <p>Test amaçlı rastgele müşteri ve harcama verisi üretir (dakikada en fazla 5 kez kullanılabilir).</p>
+  <p-card [header]="'tools.mockData.header' | translate" styleClass="panel">
+    <p>{{ 'tools.mockData.description' | translate }}</p>
     @if (authService.canWrite()) {
       <div class="field">
-        <label for="mock-customer-count">Müşteri Sayısı</label>
+        <label for="mock-customer-count">{{ 'tools.mockData.customerCount' | translate }}</label>
         <p-inputnumber inputId="mock-customer-count" [(ngModel)]="mockCustomerCount" [min]="1" [max]="500" />
       </div>
       <div class="field">
-        <label for="mock-tx-per-customer">Müşteri Başına İşlem Sayısı</label>
+        <label for="mock-tx-per-customer">{{ 'tools.mockData.txPerCustomer' | translate }}</label>
         <p-inputnumber inputId="mock-tx-per-customer" [(ngModel)]="mockTransactionsPerCustomer" [min]="1" [max]="200" />
       </div>
-      <p-button label="Üret" icon="pi pi-database" [loading]="mockBusy()" (onClick)="generateMockData()" />
+      <p-button [label]="'tools.mockData.generate' | translate" icon="pi pi-database" [loading]="mockBusy()" (onClick)="generateMockData()" />
     } @else if (authService.isDemoAccount()) {
-      <p-message severity="info" text="Demo hesaplar mock veri üretemez." />
+      <p-message severity="info" [text]="'tools.mockData.demoMessage' | translate" />
     } @else {
-      <p-message severity="info" text="Analist hesaplar mock veri üretemez." />
+      <p-message severity="info" [text]="'tools.mockData.analystMessage' | translate" />
     }
   </p-card>
 
-  <p-card header="Segmentasyonu Yeniden Hesapla" styleClass="panel">
-    <p>Son 90 günlük harcama penceresine göre tüm müşteriler için RFM segmentini yeniden hesaplar.</p>
+  <p-card [header]="'tools.segmentation.header' | translate" styleClass="panel">
+    <p>{{ 'tools.segmentation.description' | translate }}</p>
     @if (authService.canWrite()) {
-      <p-button label="Yeniden Hesapla" icon="pi pi-refresh" [loading]="segmentationBusy()" (onClick)="recalculateSegmentation()" />
+      <p-button [label]="'tools.segmentation.recalculate' | translate" icon="pi pi-refresh" [loading]="segmentationBusy()" (onClick)="recalculateSegmentation()" />
     } @else if (authService.isDemoAccount()) {
-      <p-message severity="info" text="Demo hesaplar segmentasyonu yeniden hesaplayamaz." />
+      <p-message severity="info" [text]="'tools.segmentation.demoMessage' | translate" />
     } @else {
-      <p-message severity="info" text="Analist hesaplar segmentasyonu yeniden hesaplayamaz." />
+      <p-message severity="info" [text]="'tools.segmentation.analystMessage' | translate" />
     }
   </p-card>
 </div>

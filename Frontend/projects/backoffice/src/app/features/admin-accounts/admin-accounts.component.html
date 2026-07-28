@@ -1,9 +1,9 @@
-<h1>Yönetici Hesapları</h1>
+<h1>{{ 'adminAccounts.title' | translate }}</h1>
 
 <p-tabs value="0">
 <p-tablist>
-  <p-tab value="0">Yöneticiler</p-tab>
-  <p-tab value="1">Davetler</p-tab>
+  <p-tab value="0">{{ 'adminAccounts.tabs.admins' | translate }}</p-tab>
+  <p-tab value="1">{{ 'adminAccounts.tabs.invitations' | translate }}</p-tab>
 </p-tablist>
 <p-tabpanels>
 <p-tabpanel value="0">
@@ -11,7 +11,7 @@
   <span></span>
   <div class="toolbar-actions">
     @if (authService.canWrite()) {
-      <p-button label="Yeni Yönetici" icon="pi pi-user-plus" (onClick)="openCreateDialog()" />
+      <p-button [label]="'adminAccounts.newAdmin' | translate" icon="pi pi-user-plus" (onClick)="openCreateDialog()" />
     }
   </div>
 </div>
@@ -21,21 +21,21 @@
     <span class="stat-chip-icon"><i class="pi pi-users"></i></span>
     <div>
       <div class="stat-chip-value">{{ admins().length }}</div>
-      <div class="stat-chip-label">TOPLAM YÖNETİCİ</div>
+      <div class="stat-chip-label">{{ 'adminAccounts.stats.totalAdmins' | translate }}</div>
     </div>
   </div>
   <div class="stat-chip stat-chip--accent">
     <span class="stat-chip-icon"><i class="pi pi-check-circle"></i></span>
     <div>
       <div class="stat-chip-value">{{ activeCount() }}</div>
-      <div class="stat-chip-label">AKTİF</div>
+      <div class="stat-chip-label">{{ 'adminAccounts.stats.active' | translate }}</div>
     </div>
   </div>
   <div class="stat-chip">
     <span class="stat-chip-icon"><i class="pi pi-ban"></i></span>
     <div>
       <div class="stat-chip-value">{{ inactiveCount() }}</div>
-      <div class="stat-chip-label">PASİF</div>
+      <div class="stat-chip-label">{{ 'adminAccounts.stats.inactive' | translate }}</div>
     </div>
   </div>
 </div>
@@ -43,32 +43,32 @@
 <p-table [value]="admins()" [loading]="loading()" [rows]="20" [paginator]="admins().length > 20" styleClass="p-datatable-sm">
   <ng-template pTemplate="header">
     <tr>
-      <th>E-posta</th>
-      <th>Rol</th>
+      <th>{{ 'adminAccounts.table.email' | translate }}</th>
+      <th>{{ 'adminAccounts.table.role' | translate }}</th>
       @if (authService.isSuperAdmin()) {
-        <th>Banka</th>
+        <th>{{ 'adminAccounts.table.bank' | translate }}</th>
       }
-      <th>Durum</th>
-      <th>Oluşturulma Tarihi</th>
-      <th>İşlemler</th>
+      <th>{{ 'adminAccounts.table.status' | translate }}</th>
+      <th>{{ 'adminAccounts.table.createdAt' | translate }}</th>
+      <th>{{ 'adminAccounts.table.actions' | translate }}</th>
     </tr>
   </ng-template>
   <ng-template pTemplate="body" let-admin>
     <tr>
-      <td>{{ admin.email }} @if (isSelf(admin)) { <span class="muted-text">(siz)</span> }</td>
+      <td>{{ admin.email }} @if (isSelf(admin)) { <span class="muted-text">{{ 'adminAccounts.table.you' | translate }}</span> }</td>
       <td>{{ roleLabel(admin.role ?? '') }}</td>
       @if (authService.isSuperAdmin()) {
         <td>{{ bankName(admin.bankId) }}</td>
       }
       <td>
-        <p-tag [value]="admin.isActive ? 'Aktif' : 'Pasif'" [severity]="admin.isActive ? 'success' : 'danger'" />
+        <p-tag [value]="admin.isActive ? ('adminAccounts.table.active' | translate) : ('adminAccounts.table.inactive' | translate)" [severity]="admin.isActive ? 'success' : 'danger'" />
       </td>
       <td>{{ admin.createdAtUtc | date: 'yyyy-MM-dd' }}</td>
       <td>
         @if (admin.isActive && !isSelf(admin) && authService.canWrite()) {
           <div class="row-actions">
             <p-button
-              label="Oturumları Sonlandır"
+              [label]="'adminAccounts.actions.revokeSessions' | translate"
               icon="pi pi-sign-out"
               size="small"
               severity="secondary"
@@ -77,7 +77,7 @@
               (onClick)="confirmRevokeSessions(admin)"
             />
             <p-button
-              label="Pasifleştir"
+              [label]="'adminAccounts.actions.deactivate' | translate"
               icon="pi pi-user-minus"
               size="small"
               severity="danger"
@@ -95,7 +95,7 @@
   </ng-template>
   <ng-template pTemplate="emptymessage">
     <tr>
-      <td [attr.colspan]="authService.isSuperAdmin() ? 6 : 5">Henüz yönetici hesabı yok.</td>
+      <td [attr.colspan]="authService.isSuperAdmin() ? 6 : 5">{{ 'adminAccounts.emptyState.admins' | translate }}</td>
     </tr>
   </ng-template>
 </p-table>
@@ -103,10 +103,10 @@
 
 <p-tabpanel value="1">
 <div class="toolbar">
-  <span class="muted-text">Yeni bir yönetici hesabı için e-posta davetiyesi gönderin — kişi kendi şifresini kendi belirler.</span>
+  <span class="muted-text">{{ 'adminAccounts.inviteHint' | translate }}</span>
   <div class="toolbar-actions">
     @if (authService.canWrite()) {
-      <p-button label="Yeni Davet" icon="pi pi-send" (onClick)="openInviteDialog()" />
+      <p-button [label]="'adminAccounts.newInvitation' | translate" icon="pi pi-send" (onClick)="openInviteDialog()" />
     }
   </div>
 </div>
@@ -114,14 +114,14 @@
 <p-table [value]="invitations()" [loading]="invitationsLoading()" [rows]="20" [paginator]="invitations().length > 20" styleClass="p-datatable-sm">
   <ng-template pTemplate="header">
     <tr>
-      <th>E-posta</th>
-      <th>Rol</th>
+      <th>{{ 'adminAccounts.table.email' | translate }}</th>
+      <th>{{ 'adminAccounts.table.role' | translate }}</th>
       @if (authService.isSuperAdmin()) {
-        <th>Banka</th>
+        <th>{{ 'adminAccounts.table.bank' | translate }}</th>
       }
-      <th>Durum</th>
-      <th>Son Geçerlilik</th>
-      <th>İşlemler</th>
+      <th>{{ 'adminAccounts.table.status' | translate }}</th>
+      <th>{{ 'adminAccounts.table.expiresAt' | translate }}</th>
+      <th>{{ 'adminAccounts.table.actions' | translate }}</th>
     </tr>
   </ng-template>
   <ng-template pTemplate="body" let-invitation>
@@ -138,7 +138,7 @@
       <td>
         @if (isPendingInvitation(invitation) && authService.canWrite()) {
           <p-button
-            label="İptal Et"
+            [label]="'adminAccounts.actions.revokeInvitation' | translate"
             icon="pi pi-ban"
             size="small"
             severity="danger"
@@ -154,7 +154,7 @@
   </ng-template>
   <ng-template pTemplate="emptymessage">
     <tr>
-      <td [attr.colspan]="authService.isSuperAdmin() ? 6 : 5">Henüz gönderilmiş bir davet yok.</td>
+      <td [attr.colspan]="authService.isSuperAdmin() ? 6 : 5">{{ 'adminAccounts.emptyState.invitations' | translate }}</td>
     </tr>
   </ng-template>
 </p-table>
@@ -162,26 +162,26 @@
 </p-tabpanels>
 </p-tabs>
 
-<p-dialog header="Yeni Yönetici Hesabı" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '420px' }">
+<p-dialog [header]="'adminAccounts.dialog.newAdminHeader' | translate" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '420px' }">
   <div class="field">
-    <label for="admin-email">E-posta *</label>
+    <label for="admin-email">{{ 'adminAccounts.dialog.email' | translate }}</label>
     <input id="admin-email" type="text" pInputText [(ngModel)]="newAdmin.email" [class.field-invalid]="createSubmitted && !newAdmin.email" />
     @if (createSubmitted && !newAdmin.email) {
-      <small class="field-error">E-posta zorunlu.</small>
+      <small class="field-error">{{ 'adminAccounts.dialog.emailRequired' | translate }}</small>
     }
   </div>
   <div class="field">
-    <label for="admin-password">Şifre *</label>
+    <label for="admin-password">{{ 'adminAccounts.dialog.password' | translate }}</label>
     <p-password inputId="admin-password" [(ngModel)]="newAdmin.password" [toggleMask]="true" [feedback]="true" [class.field-invalid]="createSubmitted && !newAdmin.password" />
     @if (createSubmitted && !newAdmin.password) {
-      <small class="field-error">Şifre zorunlu (en az 8 karakter, harf ve rakam içermeli).</small>
+      <small class="field-error">{{ 'adminAccounts.dialog.passwordRequired' | translate }}</small>
     }
   </div>
   <div class="field">
-    <label for="admin-role">Rol</label>
+    <label for="admin-role">{{ 'adminAccounts.dialog.role' | translate }}</label>
     <p-select
       inputId="admin-role"
-      [options]="authService.isSuperAdmin() ? roleOptions : bankScopedRoleOptions"
+      [options]="authService.isSuperAdmin() ? roleOptions() : bankScopedRoleOptions()"
       optionLabel="label"
       optionValue="value"
       [(ngModel)]="newAdmin.role"
@@ -189,43 +189,43 @@
   </div>
   @if (authService.isSuperAdmin() && newAdmin.role !== UserRole.SuperAdmin) {
     <div class="field">
-      <label for="admin-bank">Banka *</label>
+      <label for="admin-bank">{{ 'adminAccounts.dialog.bank' | translate }}</label>
       <p-select
         inputId="admin-bank"
         [options]="banks()"
         optionLabel="name"
         optionValue="id"
         [(ngModel)]="newAdmin.bankId"
-        placeholder="Banka seçin"
+        [placeholder]="'adminAccounts.dialog.bankPlaceholder' | translate"
         [class.field-invalid]="createSubmitted && !newAdmin.bankId"
       />
       @if (createSubmitted && !newAdmin.bankId) {
-        <small class="field-error">{{ roleLabel(newAdmin.role ?? '') }} için banka seçimi zorunlu.</small>
+        <small class="field-error">{{ 'adminAccounts.dialog.bankRequiredFor' | translate: { role: roleLabel(newAdmin.role ?? '') } }}</small>
       }
     </div>
   }
   @if (!authService.isSuperAdmin()) {
-    <p class="muted-text">Yeni hesap, sizin bankanız için oluşturulacak.</p>
+    <p class="muted-text">{{ 'adminAccounts.dialog.ownBankNoteAdmin' | translate }}</p>
   }
   @if (createError()) {
     <p-message severity="error" [text]="createError()!" />
   }
-  <p-button label="Oluştur" [loading]="createBusy()" (onClick)="createAdmin()" />
+  <p-button [label]="'adminAccounts.dialog.create' | translate" [loading]="createBusy()" (onClick)="createAdmin()" />
 </p-dialog>
 
-<p-dialog header="Yeni Davet" [(visible)]="inviteDialogVisible" [modal]="true" [style]="{ width: '420px' }">
+<p-dialog [header]="'adminAccounts.dialog.newInvitationHeader' | translate" [(visible)]="inviteDialogVisible" [modal]="true" [style]="{ width: '420px' }">
   <div class="field">
-    <label for="invite-email">E-posta *</label>
+    <label for="invite-email">{{ 'adminAccounts.dialog.email' | translate }}</label>
     <input id="invite-email" type="text" pInputText [(ngModel)]="newInvitation.email" [class.field-invalid]="inviteSubmitted && !newInvitation.email" />
     @if (inviteSubmitted && !newInvitation.email) {
-      <small class="field-error">E-posta zorunlu.</small>
+      <small class="field-error">{{ 'adminAccounts.dialog.emailRequired' | translate }}</small>
     }
   </div>
   <div class="field">
-    <label for="invite-role">Rol</label>
+    <label for="invite-role">{{ 'adminAccounts.dialog.role' | translate }}</label>
     <p-select
       inputId="invite-role"
-      [options]="authService.isSuperAdmin() ? roleOptions : bankScopedRoleOptions"
+      [options]="authService.isSuperAdmin() ? roleOptions() : bankScopedRoleOptions()"
       optionLabel="label"
       optionValue="value"
       [(ngModel)]="newInvitation.role"
@@ -233,26 +233,26 @@
   </div>
   @if (authService.isSuperAdmin() && newInvitation.role !== UserRole.SuperAdmin) {
     <div class="field">
-      <label for="invite-bank">Banka *</label>
+      <label for="invite-bank">{{ 'adminAccounts.dialog.bank' | translate }}</label>
       <p-select
         inputId="invite-bank"
         [options]="banks()"
         optionLabel="name"
         optionValue="id"
         [(ngModel)]="newInvitation.bankId"
-        placeholder="Banka seçin"
+        [placeholder]="'adminAccounts.dialog.bankPlaceholder' | translate"
         [class.field-invalid]="inviteSubmitted && !newInvitation.bankId"
       />
       @if (inviteSubmitted && !newInvitation.bankId) {
-        <small class="field-error">{{ roleLabel(newInvitation.role ?? '') }} daveti için banka seçimi zorunlu.</small>
+        <small class="field-error">{{ 'adminAccounts.dialog.bankRequiredForInvite' | translate: { role: roleLabel(newInvitation.role ?? '') } }}</small>
       }
     </div>
   }
   @if (!authService.isSuperAdmin()) {
-    <p class="muted-text">Davet, sizin bankanız için gönderilecek.</p>
+    <p class="muted-text">{{ 'adminAccounts.dialog.ownBankNoteInvite' | translate }}</p>
   }
   @if (inviteError()) {
     <p-message severity="error" [text]="inviteError()!" />
   }
-  <p-button label="Davet Gönder" icon="pi pi-send" [loading]="inviteBusy()" (onClick)="createInvitation()" />
+  <p-button [label]="'adminAccounts.dialog.sendInvite' | translate" icon="pi pi-send" [loading]="inviteBusy()" (onClick)="createInvitation()" />
 </p-dialog>

@@ -1,8 +1,9 @@
-import { Component, DestroyRef, ElementRef, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, OnDestroy, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { firstValueFrom } from 'rxjs';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { Subscription, firstValueFrom } from 'rxjs';
 
 import { Table, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
@@ -15,13 +16,13 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageService } from 'primeng/api';
 
 import {
-  CONSENT_CHANNEL_OPTIONS,
   Client,
   ConsentChannel,
   NotificationLogSummary,
   RealtimeService,
   consentChannelLabel,
   describeApiError,
+  getConsentChannelOptions,
   sanitizeCsvField,
   toUtcDateOnlyIso
 } from '@finara/shared-ui';
@@ -38,15 +39,17 @@ import {
         TagModule,
         IconFieldModule,
         InputIconModule,
-        InputTextModule
+        InputTextModule,
+        TranslatePipe
     ],
     templateUrl: './notification-log.component.html'
 })
-export class NotificationLogComponent implements OnInit {
+export class NotificationLogComponent implements OnInit, OnDestroy {
   private readonly client = inject(Client);
   private readonly messageService = inject(MessageService);
   private readonly realtimeService = inject(RealtimeService);
   private readonly destroyRef = inject(DestroyRef);
+  protected readonly translate = inject(TranslateService);
 
   // Audit Log ekranındaki aynı desen (bkz. audit-log.component.ts) — #searchBox
   // p-table'ın "caption" ng-template'i içinde tanımlı olduğu için dışarıdan erişim
@@ -56,12 +59,26 @@ export class NotificationLogComponent implements OnInit {
   protected logs = signal<NotificationLogSummary[]>([]);
   protected loading = signal(false);
 
-  protected channels = CONSENT_CHANNEL_OPTIONS;
+  private readonly langTick = signal(0);
+  private readonly langChangeSub: Subscription;
+
+  protected readonly channels = computed(() => {
+    this.langTick();
+    return getConsentChannelOptions();
+  });
   protected channelFilter: ConsentChannel | null = null;
   protected fromUtc: Date | null = null;
   protected toUtc: Date | null = null;
 
   protected readonly consentChannelLabel = consentChannelLabel;
+
+  constructor() {
+    this.langChangeSub = this.translate.onLangChange.subscribe(() => this.langTick.update(n => n + 1));
+  }
+
+  ngOnDestroy(): void {
+    this.langChangeSub.unsubscribe();
+  }
 
   async ngOnInit(): Promise<void> {
     await this.loadLogs();
@@ -71,7 +88,7 @@ export class NotificationLogComponent implements OnInit {
     this.realtimeService.offerDistributed$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(log => {
       this.messageService.add({
         severity: 'info',
-        summary: 'Yeni bildirim',
+        summary: this.translate.instant('notificationLog.toast.newNotification'),
         detail: `${consentChannelLabel(log.channel!)} · ${log.customerName}`
       });
       void this.loadLogs();
@@ -87,7 +104,7 @@ export class NotificationLogComponent implements OnInit {
         : undefined;
       this.logs.set(await firstValueFrom(this.client.notifications(undefined, this.channelFilter ?? undefined, from, to)));
     } catch (err) {
-      this.messageService.add({ severity: 'error', summary: 'Bildirim kayıtları yüklenemedi', detail: describeApiError(err) });
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('notificationLog.toast.loadFailed'), detail: describeApiError(err) });
     } finally {
       this.loading.set(false);
     }
@@ -107,12 +124,12 @@ export class NotificationLogComponent implements OnInit {
   // {data, field} alıyor (satırın tamamına erişim yok), bu yüzden "Durum" ve
   // "Atlanma Sebebi" tek bir birleşik metin yerine ayrı sütunlar olarak tutuldu.
   protected readonly exportColumns = [
-    { field: 'sentAtUtc', header: 'Tarih' },
-    { field: 'customerName', header: 'Müşteri' },
-    { field: 'channel', header: 'Kanal' },
-    { field: 'sent', header: 'Durum' },
-    { field: 'skippedReason', header: 'Atlanma Sebebi' },
-    { field: 'message', header: 'Mesaj' }
+    { field: 'sentAtUtc', header: this.translate.instant('notificationLog.table.date') },
+    { field: 'customerName', header: this.translate.instant('notificationLog.table.customer') },
+    { field: 'channel', header: this.translate.instant('notificationLog.table.channel') },
+    { field: 'sent', header: this.translate.instant('notificationLog.table.status') },
+    { field: 'skippedReason', header: this.translate.instant('notificationLog.table.skippedReason') },
+    { field: 'message', header: this.translate.instant('notificationLog.table.message') }
   ];
 
   protected exportFn = (event: { data: unknown; field: string }): string => {
@@ -122,7 +139,7 @@ export class NotificationLogComponent implements OnInit {
       case 'sentAtUtc':
         return event.data == null ? '' : new Date(event.data as string).toLocaleString('tr-TR');
       case 'sent':
-        return event.data ? 'Gönderildi' : 'Atlandı';
+        return event.data ? this.translate.instant('notificationLog.status.sent') : this.translate.instant('notificationLog.status.skipped');
       default:
         return event.data == null ? '' : sanitizeCsvField(String(event.data));
     }
