@@ -51,7 +51,7 @@ public class AdminUserService(
             if (role == UserRole.BankAdmin)
             {
                 if (request.BankId is null)
-                    throw new ArgumentException("BankAdmin oluşturmak için bir banka seçilmeli.", nameof(request.BankId));
+                    throw new DomainException(ErrorCodes.UserBankRequiredForRole, "BankAdmin oluşturmak için bir banka seçilmeli.");
                 bankId = request.BankId;
             }
             else
@@ -71,7 +71,10 @@ public class AdminUserService(
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
         var exists = await dbContext.Users.AnyAsync(u => u.Email == normalizedEmail, cancellationToken);
         if (exists)
-            throw new InvalidOperationException($"'{request.Email}' e-posta adresiyle kayıtlı bir kullanıcı zaten var.");
+            throw new DomainException(
+                ErrorCodes.UserEmailAlreadyExists,
+                $"'{request.Email}' e-posta adresiyle kayıtlı bir kullanıcı zaten var.",
+                parameters: new Dictionary<string, object?> { ["email"] = request.Email });
 
         var user = User.Create(request.Email, PasswordHasher.Hash(request.Password), role, bankId);
         dbContext.Users.Add(user);
@@ -94,7 +97,7 @@ public class AdminUserService(
     public async Task<AdminUserSummary?> DeactivateAdminAsync(Guid userId, Guid currentUserId, CancellationToken cancellationToken = default)
     {
         if (userId == currentUserId)
-            throw new InvalidOperationException("Kendi hesabınızı pasifleştiremezsiniz.");
+            throw new DomainException(ErrorCodes.UserCannotDeactivateSelf, "Kendi hesabınızı pasifleştiremezsiniz.");
 
         var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
         // Başka bankanın yöneticisine erişim denemesi de "bulunamadı" — o hesabın
@@ -156,7 +159,7 @@ public class AdminUserService(
             if (role == UserRole.BankAdmin)
             {
                 if (request.BankId is null)
-                    throw new ArgumentException("BankAdmin daveti için bir banka seçilmeli.", nameof(request.BankId));
+                    throw new DomainException(ErrorCodes.UserBankRequiredForRole, "BankAdmin daveti için bir banka seçilmeli.");
                 bankId = request.BankId;
             }
             else
@@ -175,13 +178,19 @@ public class AdminUserService(
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
         var userExists = await dbContext.Users.AnyAsync(u => u.Email == normalizedEmail, cancellationToken);
         if (userExists)
-            throw new InvalidOperationException($"'{request.Email}' e-posta adresiyle kayıtlı bir kullanıcı zaten var.");
+            throw new DomainException(
+                ErrorCodes.UserEmailAlreadyExists,
+                $"'{request.Email}' e-posta adresiyle kayıtlı bir kullanıcı zaten var.",
+                parameters: new Dictionary<string, object?> { ["email"] = request.Email });
 
         var hasPendingInvitation = await dbContext.UserInvitations.AnyAsync(
             i => i.Email == normalizedEmail && i.AcceptedAtUtc == null && i.RevokedAtUtc == null && i.ExpiresAtUtc > DateTime.UtcNow,
             cancellationToken);
         if (hasPendingInvitation)
-            throw new InvalidOperationException($"'{request.Email}' e-posta adresine zaten bekleyen bir davet var.");
+            throw new DomainException(
+                ErrorCodes.UserInvitationAlreadyPending,
+                $"'{request.Email}' e-posta adresine zaten bekleyen bir davet var.",
+                parameters: new Dictionary<string, object?> { ["email"] = request.Email });
 
         var rawToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
         var invitation = UserInvitation.Create(

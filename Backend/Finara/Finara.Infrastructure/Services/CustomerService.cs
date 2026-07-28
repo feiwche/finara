@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using Finara.Application.Contracts;
 using Finara.Application.Interfaces;
+using Finara.Domain.Common;
 using Finara.Domain.Entities;
 using Finara.Domain.Enums;
 using Finara.Infrastructure.Persistence;
@@ -25,7 +26,10 @@ public class CustomerService(
         // (BankId, Email) bileşik unique index).
         var emailInUse = await dbContext.Customers.AnyAsync(c => c.BankId == bankId && c.Email == normalizedEmail, cancellationToken);
         if (emailInUse)
-            throw new InvalidOperationException($"'{request.Email}' e-posta adresiyle kayıtlı bir müşteri zaten var.");
+            throw new DomainException(
+                ErrorCodes.CustomerEmailAlreadyExists,
+                $"'{request.Email}' e-posta adresiyle kayıtlı bir müşteri zaten var.",
+                parameters: new Dictionary<string, object?> { ["email"] = request.Email });
 
         var customer = Customer.Create(bankId, request.FirstName, request.LastName, request.Email, request.DateOfBirth);
         if (request.HasInvestmentAccount || request.HasInternationalTransfers)
@@ -114,7 +118,7 @@ public class CustomerService(
             return null;
 
         if (customer.IsErased)
-            throw new InvalidOperationException("Bu müşteri KVKK unutulma hakkı kapsamında anonimleştirilmiş, yeni işlem eklenemez.");
+            throw new DomainException(ErrorCodes.CustomerAlreadyErased, "Bu müşteri KVKK unutulma hakkı kapsamında anonimleştirilmiş, yeni işlem eklenemez.");
 
         var transaction = Transaction.Create(
             customer.BankId, customerId, request.Amount, request.Category, request.MerchantName,
@@ -220,7 +224,7 @@ public class CustomerService(
         using var reader = new StreamReader(csvStream);
         var headerLine = await reader.ReadLineAsync(cancellationToken);
         if (string.IsNullOrWhiteSpace(headerLine))
-            throw new ArgumentException("CSV dosyası boş.");
+            throw new DomainException(ErrorCodes.CustomerCsvEmpty, "CSV dosyası boş.");
 
         var headers = ParseCsvLine(headerLine).Select(NormalizeHeader).ToList();
         var columnIndex = new Dictionary<string, int>();
@@ -230,9 +234,11 @@ public class CustomerService(
         var requiredColumns = new[] { "AD", "SOYAD", "EPOSTA", "DOGUMTARIHI" };
         var missing = requiredColumns.Where(c => !columnIndex.ContainsKey(c)).ToList();
         if (missing.Count > 0)
-            throw new ArgumentException(
+            throw new DomainException(
+                ErrorCodes.CustomerCsvMissingColumns,
                 $"CSV başlığında zorunlu sütun(lar) eksik: {string.Join(", ", missing)}. " +
-                "Beklenen sütunlar: Ad, Soyad, E-posta, Doğum Tarihi, Telefon, Eğitim Durumu, Yatırım Hesabı Var, Yurtdışı Transfer Var.");
+                "Beklenen sütunlar: Ad, Soyad, E-posta, Doğum Tarihi, Telefon, Eğitim Durumu, Yatırım Hesabı Var, Yurtdışı Transfer Var.",
+                parameters: new Dictionary<string, object?> { ["columns"] = string.Join(", ", missing) });
 
         var existingEmails = (await dbContext.Customers
             .Where(c => c.BankId == bankId)
@@ -253,7 +259,10 @@ public class CustomerService(
         {
             rowNumber++;
             if (rowNumber - 1 > maxRows)
-                throw new ArgumentException($"CSV dosyası çok fazla satır içeriyor (en fazla {maxRows} satır desteklenir).");
+                throw new DomainException(
+                    ErrorCodes.CustomerCsvTooManyRows,
+                    $"CSV dosyası çok fazla satır içeriyor (en fazla {maxRows} satır desteklenir).",
+                    parameters: new Dictionary<string, object?> { ["maxRows"] = maxRows });
 
             if (string.IsNullOrWhiteSpace(line))
                 continue;

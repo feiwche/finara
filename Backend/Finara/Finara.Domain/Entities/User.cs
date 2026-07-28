@@ -106,7 +106,7 @@ public class User : BaseEntity
         if (TwoFactorSecretEncrypted is null)
             throw new InvalidOperationException("Önce bir sır üretilmeden iki faktörlü doğrulama onaylanamaz.");
         if (TwoFactorEnabled)
-            throw new InvalidOperationException("İki faktörlü doğrulama zaten etkin.");
+            throw new DomainException(ErrorCodes.UserTwoFactorAlreadyEnabled, "İki faktörlü doğrulama zaten etkin.");
 
         TwoFactorEnabled = true;
         TwoFactorEnabledAtUtc = DateTime.UtcNow;
@@ -116,7 +116,7 @@ public class User : BaseEntity
     public void DisableTwoFactor()
     {
         if (!TwoFactorEnabled)
-            throw new InvalidOperationException("İki faktörlü doğrulama zaten devre dışı.");
+            throw new DomainException(ErrorCodes.UserTwoFactorAlreadyDisabled, "İki faktörlü doğrulama zaten devre dışı.");
 
         TwoFactorSecretEncrypted = null;
         TwoFactorEnabled = false;

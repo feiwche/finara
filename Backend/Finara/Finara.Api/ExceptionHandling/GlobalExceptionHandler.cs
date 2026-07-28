@@ -1,4 +1,5 @@
 using Finara.Api.Middleware;
+using Finara.Domain.Common;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,11 @@ namespace Finara.Api.ExceptionHandling;
 // DbUpdateException (benzersiz index/FK ihlali gibi DB kısıtlaması ihlalleri) 409 sayılır —
 // bunlar da istemcinin gönderdiği veriden kaynaklanır, sunucu hatası değildir. Geri kalan
 // her şey 500 olarak, iç detay (SQL/stack trace) sızdırılmadan raporlanır.
+//
+// DomainException (yeni) diğerlerinden AYRI ele alınıyor — Message hâlâ (geriye dönük
+// uyumluluk ve loglama için) hep Türkçe, ama ayrıca ProblemDetails.Extensions["errorCode"]
+// olarak stabil bir kod dışa veriliyor. Frontend describeApiError() bu kodu errors.<code>
+// çeviri anahtarına çevirip gösteriyor — Message'ı hiç göstermiyor (bkz. o dosyadaki yorum).
 public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
@@ -20,6 +26,14 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
 
         var (statusCode, title, detail) = exception switch
         {
+            DomainException de => (de.StatusCode, de.StatusCode switch
+            {
+                StatusCodes.Status401Unauthorized => "Kimlik doğrulama başarısız",
+                StatusCodes.Status403Forbidden => "Yetkisiz erişim",
+                StatusCodes.Status409Conflict => "Çakışan veri",
+                _ => "Geçersiz istek"
+            }, de.Message),
+
             ArgumentException or InvalidOperationException =>
                 (StatusCodes.Status400BadRequest, "Geçersiz istek", exception.Message),
 
@@ -53,6 +67,12 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         };
         if (correlationId is not null)
             problemDetails.Extensions["correlationId"] = correlationId;
+        if (exception is DomainException domainException)
+        {
+            problemDetails.Extensions["errorCode"] = domainException.Code;
+            if (domainException.Parameters is not null)
+                problemDetails.Extensions["errorParams"] = domainException.Parameters;
+        }
 
         httpContext.Response.StatusCode = statusCode;
         httpContext.Response.ContentType = "application/problem+json";

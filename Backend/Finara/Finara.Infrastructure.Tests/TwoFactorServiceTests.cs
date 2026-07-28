@@ -27,7 +27,7 @@ public class TwoFactorServiceTests : AuthServiceTestBase
 
         var act = () => TwoFactorService.BeginSetupAsync(user.Id);
 
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        await act.Should().ThrowAsync<DomainException>();
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public class TwoFactorServiceTests : AuthServiceTestBase
     {
         var act = () => TwoFactorService.BeginSetupAsync(DemoAccount.Id);
 
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        await act.Should().ThrowAsync<DomainException>();
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public class TwoFactorServiceTests : AuthServiceTestBase
 
         var act = () => TwoFactorService.ConfirmSetupAsync(user.Id, "000000");
 
-        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+        await act.Should().ThrowAsync<DomainException>();
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public class TwoFactorServiceTests : AuthServiceTestBase
     {
         var act = () => TwoFactorService.ConfirmSetupAsync(DemoAccount.Id, "123456");
 
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        await act.Should().ThrowAsync<DomainException>();
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public class TwoFactorServiceTests : AuthServiceTestBase
     {
         var act = () => TwoFactorService.DisableAsync(DemoAccount.Id, "123456");
 
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        await act.Should().ThrowAsync<DomainException>();
     }
 
     [Fact]

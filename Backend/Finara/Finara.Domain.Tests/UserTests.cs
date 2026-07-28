@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using Finara.Domain.Common;
 using Finara.Domain.Enums;
 using Xunit;
 
@@ -191,7 +192,7 @@ public class UserTests
 
         var act = () => user.ConfirmTwoFactor();
 
-        act.Should().Throw<InvalidOperationException>();
+        act.Should().Throw<DomainException>();
     }
 
     [Fact]
@@ -215,6 +216,6 @@ public class UserTests
 
         var act = () => user.DisableTwoFactor();
 
-        act.Should().Throw<InvalidOperationException>();
+        act.Should().Throw<DomainException>();
     }
 }

@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using Finara.Domain.Common;
 using Finara.Domain.Enums;
 using Xunit;
 
@@ -91,7 +92,7 @@ public class CampaignTests
 
         var act = () => campaign.Activate();
 
-        act.Should().Throw<InvalidOperationException>();
+        act.Should().Throw<DomainException>();
     }
 
     [Fact]
@@ -103,7 +104,7 @@ public class CampaignTests
 
         var act = () => campaign.Activate();
 
-        act.Should().Throw<InvalidOperationException>();
+        act.Should().Throw<DomainException>();
     }
 
     [Fact]
@@ -124,7 +125,7 @@ public class CampaignTests
 
         var act = () => campaign.Pause();
 
-        act.Should().Throw<InvalidOperationException>();
+        act.Should().Throw<DomainException>();
     }
 
     [Fact]
@@ -157,7 +158,7 @@ public class CampaignTests
 
         var act = () => campaign.Complete();
 
-        act.Should().Throw<InvalidOperationException>();
+        act.Should().Throw<DomainException>();
     }
 
     [Fact]

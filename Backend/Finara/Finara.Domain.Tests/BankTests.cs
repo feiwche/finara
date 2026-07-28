@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using Finara.Domain.Common;
 using Xunit;
 
 namespace Finara.Domain.Tests;
@@ -54,7 +55,7 @@ public class BankTests
 
         var act = () => bank.Deactivate();
 
-        act.Should().Throw<InvalidOperationException>();
+        act.Should().Throw<DomainException>();
     }
 
     [Fact]

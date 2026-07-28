@@ -28,7 +28,7 @@ public class TwoFactorService : ITwoFactorService
         // demo hesabını 2FA'yla kilitleyip diğer herkesi (yeni demo-login denemelerini
         // etkilemese de) karışıklığa sokabilirdi.
         if (userId == DemoAccount.Id)
-            throw new InvalidOperationException("Demo hesabında bu işlem kullanılamaz.");
+            throw new DomainException(ErrorCodes.AuthDemoAccountRestricted, "Demo hesabında bu işlem kullanılamaz.");
 
         var user = await dbContext.Users.FirstAsync(u => u.Id == userId, cancellationToken);
 
@@ -36,7 +36,7 @@ public class TwoFactorService : ITwoFactorService
         // access token'la mevcut kurulumu sessizce değiştirip kendi cihazını ekleyemesin diye.
         // Önce DisableAsync ile (mevcut bir kodla) devre dışı bırakılması gerekiyor.
         if (user.TwoFactorEnabled)
-            throw new InvalidOperationException("İki faktörlü doğrulama zaten etkin — önce devre dışı bırakın.");
+            throw new DomainException(ErrorCodes.UserTwoFactorAlreadyEnabled, "İki faktörlü doğrulama zaten etkin — önce devre dışı bırakın.");
 
         var secretBytes = KeyGeneration.GenerateRandomKey(20);
         var base32Secret = Base32Encoding.ToString(secretBytes);
@@ -57,12 +57,12 @@ public class TwoFactorService : ITwoFactorService
     public async Task ConfirmSetupAsync(Guid userId, string code, CancellationToken cancellationToken = default)
     {
         if (userId == DemoAccount.Id)
-            throw new InvalidOperationException("Demo hesabında bu işlem kullanılamaz.");
+            throw new DomainException(ErrorCodes.AuthDemoAccountRestricted, "Demo hesabında bu işlem kullanılamaz.");
 
         var user = await dbContext.Users.FirstAsync(u => u.Id == userId, cancellationToken);
 
         if (!await VerifyCodeAsync(user, code, cancellationToken))
-            throw new UnauthorizedAccessException("Kod geçersiz veya süresi dolmuş.");
+            throw new DomainException(ErrorCodes.AuthTwoFactorInvalidCode, "Kod geçersiz veya süresi dolmuş.", 401);
 
         user.ConfirmTwoFactor();
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -71,12 +71,12 @@ public class TwoFactorService : ITwoFactorService
     public async Task DisableAsync(Guid userId, string code, CancellationToken cancellationToken = default)
     {
         if (userId == DemoAccount.Id)
-            throw new InvalidOperationException("Demo hesabında bu işlem kullanılamaz.");
+            throw new DomainException(ErrorCodes.AuthDemoAccountRestricted, "Demo hesabında bu işlem kullanılamaz.");
 
         var user = await dbContext.Users.FirstAsync(u => u.Id == userId, cancellationToken);
 
         if (!await VerifyCodeAsync(user, code, cancellationToken))
-            throw new UnauthorizedAccessException("Kod geçersiz veya süresi dolmuş.");
+            throw new DomainException(ErrorCodes.AuthTwoFactorInvalidCode, "Kod geçersiz veya süresi dolmuş.", 401);
 
         user.DisableTwoFactor();
         await dbContext.SaveChangesAsync(cancellationToken);

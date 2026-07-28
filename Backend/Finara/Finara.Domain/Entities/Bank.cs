@@ -39,7 +39,7 @@ public class Bank : BaseEntity
     public void Deactivate()
     {
         if (!IsActive)
-            throw new InvalidOperationException("Banka zaten pasif.");
+            throw new DomainException(ErrorCodes.BankAlreadyInactive, "Banka zaten pasif.");
 
         IsActive = false;
         MarkUpdated();

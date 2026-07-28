@@ -31,7 +31,7 @@ public class AuthServiceTests : AuthServiceTestBase
 
         var act = () => Sut.LoginAsync(new LoginRequest("user@example.com", "YanlisSifre1"));
 
-        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+        await act.Should().ThrowAsync<DomainException>();
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public class AuthServiceTests : AuthServiceTestBase
 
         var act = () => Sut.LoginAsync(new LoginRequest("user@example.com", "Password123"));
 
-        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+        await act.Should().ThrowAsync<DomainException>();
     }
 
     [Fact]
@@ -98,7 +98,7 @@ public class AuthServiceTests : AuthServiceTestBase
 
         var act = () => Sut.VerifyTwoFactorAsync(new VerifyTwoFactorRequest(login.ChallengeToken!, "000000"));
 
-        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+        await act.Should().ThrowAsync<DomainException>();
     }
 
     [Fact]
@@ -111,7 +111,7 @@ public class AuthServiceTests : AuthServiceTestBase
 
         refreshed.RefreshToken.Should().NotBe(login.RefreshToken);
         var act = () => Sut.RefreshAsync(new RefreshRequest(login.RefreshToken!));
-        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+        await act.Should().ThrowAsync<DomainException>();
     }
 
     [Fact]
@@ -123,7 +123,7 @@ public class AuthServiceTests : AuthServiceTestBase
         await Sut.RevokeAsync(new RevokeRequest(login.RefreshToken!));
 
         var act = () => Sut.RefreshAsync(new RefreshRequest(login.RefreshToken!));
-        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+        await act.Should().ThrowAsync<DomainException>();
     }
 
     [Fact]
@@ -149,8 +149,8 @@ public class AuthServiceTests : AuthServiceTestBase
 
         var act1 = () => Sut.RefreshAsync(new RefreshRequest(login1.RefreshToken!));
         var act2 = () => Sut.RefreshAsync(new RefreshRequest(login2.RefreshToken!));
-        await act1.Should().ThrowAsync<UnauthorizedAccessException>();
-        await act2.Should().ThrowAsync<UnauthorizedAccessException>();
+        await act1.Should().ThrowAsync<DomainException>();
+        await act2.Should().ThrowAsync<DomainException>();
     }
 
     [Fact]
@@ -158,7 +158,7 @@ public class AuthServiceTests : AuthServiceTestBase
     {
         var act = () => Sut.RevokeAllAsync(DemoAccount.Id);
 
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        await act.Should().ThrowAsync<DomainException>();
     }
 
     [Fact]
@@ -203,7 +203,7 @@ public class AuthServiceTests : AuthServiceTestBase
 
         var act = () => Sut.ResetPasswordAsync(new ResetPasswordRequest(rawToken, "BaskaSifre789"));
 
-        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+        await act.Should().ThrowAsync<DomainException>();
     }
 
     // ForgotPasswordAsync ham token'ı sadece e-postaya (mock/sahte gönderici) yazıyor, DB'ye

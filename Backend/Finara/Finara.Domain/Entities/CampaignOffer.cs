@@ -87,6 +87,6 @@ public class CampaignOffer : BaseEntity
     private void EnsurePending()
     {
         if (Response != OfferResponse.Pending)
-            throw new InvalidOperationException($"Bu teklife zaten '{Response}' olarak yanıt verilmiş.");
+            throw new DomainException(ErrorCodes.OfferAlreadyResponded, $"Bu teklife zaten '{Response}' olarak yanıt verilmiş.");
     }
 }

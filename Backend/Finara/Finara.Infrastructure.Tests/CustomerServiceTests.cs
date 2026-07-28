@@ -1,6 +1,7 @@
 using System.Text;
 using AwesomeAssertions;
 using Finara.Application.Contracts;
+using Finara.Domain.Common;
 using Finara.Domain.Entities;
 using Finara.Domain.Enums;
 using NSubstitute;
@@ -30,7 +31,7 @@ public class CustomerServiceTests : CustomerServiceTestBase
 
         var act = async () => await Sut.CreateCustomerAsync(request);
 
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        await act.Should().ThrowAsync<DomainException>();
     }
 
     [Fact]
@@ -126,7 +127,7 @@ public class CustomerServiceTests : CustomerServiceTestBase
 
         var act = async () => await Sut.RecordTransactionAsync(customer.Id, request);
 
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        await act.Should().ThrowAsync<DomainException>();
     }
 
     [Fact]
@@ -164,7 +165,7 @@ public class CustomerServiceTests : CustomerServiceTestBase
 
         var act = async () => await Sut.ImportCustomersAsync(stream);
 
-        await act.Should().ThrowAsync<ArgumentException>();
+        await act.Should().ThrowAsync<DomainException>();
     }
 
     [Fact]

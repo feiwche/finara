@@ -84,10 +84,10 @@ public class Campaign : BaseEntity
     public void Activate()
     {
         if (Status != CampaignStatus.Draft && Status != CampaignStatus.Paused)
-            throw new InvalidOperationException($"'{Status}' durumundaki bir kampanya aktive edilemez.");
+            throw new DomainException(ErrorCodes.CampaignCannotActivate, $"'{Status}' durumundaki bir kampanya aktive edilemez.");
 
         if (EndDateUtc.HasValue && EndDateUtc.Value <= DateTime.UtcNow)
-            throw new InvalidOperationException("Bitiş tarihi geçmişte kalan bir kampanya aktive edilemez.");
+            throw new DomainException(ErrorCodes.CampaignExpired, "Bitiş tarihi geçmişte kalan bir kampanya aktive edilemez.");
 
         Status = CampaignStatus.Active;
         MarkUpdated();
@@ -96,7 +96,7 @@ public class Campaign : BaseEntity
     public void Pause()
     {
         if (Status != CampaignStatus.Active)
-            throw new InvalidOperationException("Sadece aktif kampanyalar duraklatılabilir.");
+            throw new DomainException(ErrorCodes.CampaignCannotPause, "Sadece aktif kampanyalar duraklatılabilir.");
 
         Status = CampaignStatus.Paused;
         MarkUpdated();
@@ -105,7 +105,7 @@ public class Campaign : BaseEntity
     public void Complete()
     {
         if (Status != CampaignStatus.Active)
-            throw new InvalidOperationException("Sadece aktif kampanyalar tamamlanabilir.");
+            throw new DomainException(ErrorCodes.CampaignCannotComplete, "Sadece aktif kampanyalar tamamlanabilir.");
 
         Status = CampaignStatus.Completed;
         MarkUpdated();

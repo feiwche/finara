@@ -1,5 +1,6 @@
 using Finara.Application.Contracts;
 using Finara.Application.Interfaces;
+using Finara.Domain.Common;
 using Finara.Domain.Entities;
 using Finara.Domain.Enums;
 using Finara.Domain.Services;
@@ -19,7 +20,7 @@ public class NextBestOfferService(FinaraDbContext dbContext, IAuditLogRepository
         var segment = await dbContext.Segments
             .FirstOrDefaultAsync(s => s.CustomerId == customerId && s.IsActive, cancellationToken);
         if (segment is null)
-            throw new InvalidOperationException("Müşterinin aktif bir segmenti yok — önce POST /api/segmentation/recalculate çalıştırılmalı.");
+            throw new DomainException(ErrorCodes.OfferNoActiveSegment, "Müşterinin aktif bir segmenti yok — önce POST /api/segmentation/recalculate çalıştırılmalı.");
 
         var created = await GenerateOffersForCustomerAsync(customer, segment, maxOffers, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);

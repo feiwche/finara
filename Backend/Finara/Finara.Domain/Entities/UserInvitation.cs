@@ -56,9 +56,9 @@ public class UserInvitation : BaseEntity
     public void Revoke()
     {
         if (AcceptedAtUtc is not null)
-            throw new InvalidOperationException("Kabul edilmiş bir davet iptal edilemez.");
+            throw new DomainException(ErrorCodes.UserInvitationAlreadyAccepted, "Kabul edilmiş bir davet iptal edilemez.");
         if (RevokedAtUtc is not null)
-            throw new InvalidOperationException("Davet zaten iptal edilmiş.");
+            throw new DomainException(ErrorCodes.UserInvitationAlreadyRevoked, "Davet zaten iptal edilmiş.");
 
         RevokedAtUtc = DateTime.UtcNow;
         MarkUpdated();

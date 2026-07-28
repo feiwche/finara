@@ -1,5 +1,6 @@
 using AwesomeAssertions;
 using Finara.Application.Contracts;
+using Finara.Domain.Common;
 using Finara.Domain.Enums;
 using NSubstitute;
 using Xunit;
@@ -39,7 +40,7 @@ public class CampaignServiceTests : CampaignServiceTestBase
 
         var act = async () => await Sut.ActivateCampaignAsync(campaign.Id);
 
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        await act.Should().ThrowAsync<DomainException>();
     }
 
     [Fact]
@@ -50,7 +51,7 @@ public class CampaignServiceTests : CampaignServiceTestBase
 
         var act = async () => await Sut.CompleteCampaignAsync(campaign.Id);
 
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        await act.Should().ThrowAsync<DomainException>();
     }
 
     [Fact]
@@ -71,7 +72,7 @@ public class CampaignServiceTests : CampaignServiceTestBase
 
         var act = async () => await Sut.PauseCampaignAsync(campaign.Id);
 
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        await act.Should().ThrowAsync<DomainException>();
     }
 
     [Fact]

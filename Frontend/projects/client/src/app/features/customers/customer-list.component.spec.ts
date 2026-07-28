@@ -2,10 +2,20 @@ import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
+import { TranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 
 import { CustomerListComponent } from './customer-list.component';
 import { AuthService, Client, CustomerImportResult, CustomerSummaryPagedResult } from '@finara/shared-ui';
+
+// Enum seçenekleri/langTick artık TranslateService'e bağlı (bkz. component'teki langTick
+// signal deseni) — auth.service.spec.ts'teki aynı sahte servis, sadece anahtarı olduğu gibi
+// geri döndürüyor (gerçek çeviri metnini test etmiyoruz, sadece DI'ın çökmemesini istiyoruz).
+const translateStub = {
+  instant: (key: string) => key,
+  onLangChange: { subscribe: () => ({ unsubscribe: () => {} }) },
+  currentLang: () => 'tr'
+};
 
 describe('CustomerListComponent', () => {
   let client: jest.Mocked<Pick<Client, 'customers' | 'paged2' | 'stats' | 'import'>>;
@@ -29,6 +39,7 @@ describe('CustomerListComponent', () => {
         { provide: Client, useValue: client },
         { provide: Router, useValue: router },
         { provide: AuthService, useValue: authService },
+        { provide: TranslateService, useValue: translateStub },
         MessageService
       ]
     });

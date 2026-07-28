@@ -9,6 +9,7 @@ import { ThemeService } from '../theme/theme.service';
 import { GuestLanguageService } from '../i18n/guest-language.service';
 import { getPrimeNgTranslation } from '../i18n/primeng-locale';
 import { registerTranslateServiceForEnumLabels } from '../utils/enum-labels.util';
+import { registerTranslateServiceForApiErrors } from '../utils/api-error.util';
 import { FinaraTitleStrategy } from '../i18n/finara-title-strategy';
 
 // Client ve BackOffice aynı görsel kimliği paylaşsın diye PrimeNG tema kurulumu
@@ -62,6 +63,7 @@ export function provideFinaraUi(): EnvironmentProviders {
         primeng.setTranslation(getPrimeNgTranslation(translate.currentLang() ?? 'tr'));
         translate.onLangChange.subscribe(event => primeng.setTranslation(getPrimeNgTranslation(event.lang)));
         registerTranslateServiceForEnumLabels(translate);
+        registerTranslateServiceForApiErrors(translate);
       },
       deps: [TranslateService, PrimeNG],
       multi: true

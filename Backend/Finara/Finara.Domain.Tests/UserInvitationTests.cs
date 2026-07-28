@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using Finara.Domain.Common;
 using Finara.Domain.Enums;
 using Xunit;
 
@@ -70,6 +71,6 @@ public class UserInvitationTests
 
         var act = () => invitation.Revoke();
 
-        act.Should().Throw<InvalidOperationException>();
+        act.Should().Throw<DomainException>();
     }
 }

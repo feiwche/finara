@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using Finara.Domain.Common;
 using Xunit;
 
 namespace Finara.Domain.Tests;
@@ -77,7 +78,7 @@ public class CampaignOfferTests
 
         var act = () => offer.Accept();
 
-        act.Should().Throw<InvalidOperationException>();
+        act.Should().Throw<DomainException>();
     }
 
     [Fact]

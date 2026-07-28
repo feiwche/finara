@@ -53,7 +53,7 @@ public class AuthService(
         // risk; e-posta benzersizlik kısıtı en azından aynı e-postayla çakışmayı önler.)
         var anyUserExists = await dbContext.Users.AnyAsync(cancellationToken);
         if (anyUserExists)
-            throw new InvalidOperationException("Kayıt kapalı — yeni hesaplar yalnızca davetle oluşturulabilir.");
+            throw new DomainException(ErrorCodes.AuthRegistrationClosed, "Kayıt kapalı — yeni hesaplar yalnızca davetle oluşturulabilir.");
 
         PasswordPolicy.Validate(request.Password);
 
@@ -73,7 +73,7 @@ public class AuthService(
         // farkıyla ayrı bir oracle oluşturmasın.
         var passwordValid = user is not null && PasswordHasher.Verify(request.Password, user.PasswordHash);
         if (user is null || !passwordValid || !user.IsActive)
-            throw new UnauthorizedAccessException("E-posta veya şifre hatalı.");
+            throw new DomainException(ErrorCodes.AuthInvalidCredentials, "E-posta veya şifre hatalı.", 401);
 
         if (!user.TwoFactorEnabled)
         {
@@ -95,7 +95,7 @@ public class AuthService(
             ?? throw new InvalidOperationException("Demo hesabı bulunamadı — migration uygulanmamış olabilir.");
 
         if (!user.IsActive)
-            throw new UnauthorizedAccessException("Demo hesabı devre dışı.");
+            throw new DomainException(ErrorCodes.AuthInvalidCredentials, "Demo hesabı devre dışı.", 401);
 
         var tokens = await IssueTokensAsync(user, cancellationToken);
         return new LoginResult(tokens.AccessToken, tokens.AccessTokenExpiresAtUtc, tokens.RefreshToken, tokens.RefreshTokenExpiresAtUtc, false, null);
@@ -107,7 +107,7 @@ public class AuthService(
         var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
         if (user is null || !user.IsActive || !user.TwoFactorEnabled || !await twoFactorService.VerifyCodeAsync(user, request.Code, cancellationToken))
-            throw new UnauthorizedAccessException("Kod geçersiz veya süresi dolmuş.");
+            throw new DomainException(ErrorCodes.AuthTwoFactorInvalidCode, "Kod geçersiz veya süresi dolmuş.", 401);
 
         return await IssueTokensAsync(user, cancellationToken);
     }
@@ -117,7 +117,7 @@ public class AuthService(
         var tokenHash = RefreshTokenHasher.Hash(request.RefreshToken);
         var existing = await dbContext.RefreshTokens.FirstOrDefaultAsync(t => t.Token == tokenHash, cancellationToken);
         if (existing is null || !existing.IsActive)
-            throw new UnauthorizedAccessException("Geçersiz veya süresi dolmuş refresh token.");
+            throw new DomainException(ErrorCodes.AuthRefreshTokenInvalid, "Geçersiz veya süresi dolmuş refresh token.", 401);
 
         var user = await dbContext.Users.FirstAsync(u => u.Id == existing.UserId, cancellationToken);
 
@@ -146,7 +146,7 @@ public class AuthService(
         // ziyaretçi, o an demo hesabını kullanan TÜM diğer ziyaretçilerin oturumunu tek
         // istekle sonlandırabilirdi.
         if (userId == DemoAccount.Id)
-            throw new InvalidOperationException("Demo hesabında bu işlem kullanılamaz.");
+            throw new DomainException(ErrorCodes.AuthDemoAccountRestricted, "Demo hesabında bu işlem kullanılamaz.");
 
         var activeRefreshTokens = await dbContext.RefreshTokens
             .Where(t => t.UserId == userId && t.RevokedAtUtc == null)
@@ -208,7 +208,7 @@ public class AuthService(
             $"UPDATE PasswordResetTokens SET UsedAtUtc = {now} WHERE TokenHash = {tokenHash} AND UsedAtUtc IS NULL AND ExpiresAtUtc > {now}",
             cancellationToken);
         if (rowsAffected == 0)
-            throw new UnauthorizedAccessException("Geçersiz veya süresi dolmuş sıfırlama bağlantısı.");
+            throw new DomainException(ErrorCodes.AuthResetLinkInvalid, "Geçersiz veya süresi dolmuş sıfırlama bağlantısı.", 401);
 
         var resetToken = await dbContext.PasswordResetTokens.AsNoTracking().FirstAsync(t => t.TokenHash == tokenHash, cancellationToken);
         var user = await dbContext.Users.FirstAsync(u => u.Id == resetToken.UserId, cancellationToken);
@@ -258,7 +258,7 @@ public class AuthService(
             $"UPDATE UserInvitations SET AcceptedAtUtc = {now} WHERE TokenHash = {tokenHash} AND AcceptedAtUtc IS NULL AND RevokedAtUtc IS NULL AND ExpiresAtUtc > {now}",
             cancellationToken);
         if (rowsAffected == 0)
-            throw new UnauthorizedAccessException("Geçersiz veya süresi dolmuş davet bağlantısı.");
+            throw new DomainException(ErrorCodes.AuthInvitationLinkInvalid, "Geçersiz veya süresi dolmuş davet bağlantısı.", 401);
 
         var invitation = await dbContext.UserInvitations.AsNoTracking().FirstAsync(i => i.TokenHash == tokenHash, cancellationToken);
 
@@ -266,7 +266,10 @@ public class AuthService(
         // savunma hattı (birincisi CreateInvitationAsync'teki oluşturma-zamanı kontrolü).
         var userExists = await dbContext.Users.AnyAsync(u => u.Email == invitation.Email, cancellationToken);
         if (userExists)
-            throw new InvalidOperationException($"'{invitation.Email}' e-posta adresiyle kayıtlı bir kullanıcı zaten var.");
+            throw new DomainException(
+                ErrorCodes.UserEmailAlreadyExists,
+                $"'{invitation.Email}' e-posta adresiyle kayıtlı bir kullanıcı zaten var.",
+                parameters: new Dictionary<string, object?> { ["email"] = invitation.Email });
 
         var user = User.Create(invitation.Email, PasswordHasher.Hash(request.NewPassword), invitation.Role, invitation.BankId);
         dbContext.Users.Add(user);
@@ -374,14 +377,14 @@ public class AuthService(
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            throw new UnauthorizedAccessException("Meydan okuma token'ı geçersiz veya süresi dolmuş.");
+            throw new DomainException(ErrorCodes.AuthChallengeTokenInvalid, "Meydan okuma token'ı geçersiz veya süresi dolmuş.", 401);
         }
 
         // "purpose" claim kontrolü — bu, gerçek bir access token'ın (ki onda bu claim hiç
         // yok) burada yanlışlıkla kabul edilmesini engelleyen asıl savunma hattı.
         var purpose = principal.FindFirst(TwoFactorChallengeClaimType)?.Value;
         if (purpose != TwoFactorChallengeClaimValue)
-            throw new UnauthorizedAccessException("Meydan okuma token'ı geçersiz.");
+            throw new DomainException(ErrorCodes.AuthChallengeTokenInvalid, "Meydan okuma token'ı geçersiz.", 401);
 
         // JwtSecurityTokenHandler varsayılan olarak "sub" claim'ini ClaimTypes.NameIdentifier'a
         // yeniden eşliyor (bkz. Api/Security/CurrentUserContext.cs'teki aynı fallback) — bu
@@ -389,7 +392,7 @@ public class AuthService(
         var sub = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
             ?? principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(sub) || !Guid.TryParse(sub, out var userId))
-            throw new UnauthorizedAccessException("Meydan okuma token'ı geçersiz.");
+            throw new DomainException(ErrorCodes.AuthChallengeTokenInvalid, "Meydan okuma token'ı geçersiz.", 401);
 
         return userId;
     }
