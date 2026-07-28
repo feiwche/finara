@@ -179,7 +179,7 @@ public class AuthService(
         var resetUrl = $"{request.ResetUrlBase}/reset-password?token={Uri.EscapeDataString(rawToken)}";
         try
         {
-            await emailSender.SendPasswordResetEmailAsync(user.Email, resetUrl, cancellationToken);
+            await emailSender.SendPasswordResetEmailAsync(user.Email, resetUrl, user.Preferences.Language, cancellationToken);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

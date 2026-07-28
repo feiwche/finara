@@ -9,11 +9,11 @@ import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
-import { Client, ResetPasswordRequest, describeApiError } from '@finara/shared-ui';
+import { Client, LanguageSwitcherComponent, ResetPasswordRequest, describeApiError } from '@finara/shared-ui';
 
 @Component({
     selector: 'app-reset-password',
-    imports: [FormsModule, RouterLink, PasswordModule, ButtonModule, CardModule, MessageModule, TranslatePipe],
+    imports: [FormsModule, RouterLink, PasswordModule, ButtonModule, CardModule, MessageModule, TranslatePipe, LanguageSwitcherComponent],
     templateUrl: './reset-password.component.html'
 })
 export class ResetPasswordComponent implements OnInit, OnDestroy {

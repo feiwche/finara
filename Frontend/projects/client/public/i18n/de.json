@@ -24,6 +24,16 @@
       "verify": "Bestätigen",
       "backToCredentials": "Zurück"
     },
+    "branding": {
+      "badge": "CRM-Panel",
+      "headline": "Kennen Sie Ihre Kunden, unterbreiten Sie das richtige Angebot zur richtigen Zeit.",
+      "description": "Verwalten Sie Kampagnen, die von einer regelbasierten Next-Best-Offer-Engine mit nach Ausgabeverhalten segmentierten Kunden abgeglichen werden — alles auf einem Bildschirm.",
+      "point1": "Kundenprofil und Ausgabenverlauf",
+      "point2": "Segment- und Kampagnenangebote",
+      "point3": "KI-gestützte Zusatzanalyse",
+      "howItWorks": "So funktioniert's",
+      "security": "Sicherheit & Datenschutz"
+    },
     "forgotPassword": {
       "cardHeader": "Passwort vergessen",
       "success": "Falls ein Konto mit dieser E-Mail-Adresse registriert ist, wurde ein Link zum Zurücksetzen des Passworts gesendet.",
@@ -116,5 +126,64 @@
     "cancel": "Abbrechen",
     "save": "Speichern",
     "error": "Ein Fehler ist aufgetreten"
+  },
+  "scenarios": {
+    "badge": "So funktioniert's",
+    "title": "Wie trifft unsere Regel-Engine ihre Entscheidung?",
+    "introBefore": "Die folgenden drei Profile sind",
+    "introStrong": "beispielhafte (synthetische) Szenarien",
+    "introAfter": "die zeigen sollen, wie unsere Regel-Engine (RFM-Segmentierung + Next-Best-Offer-Bewertung) mit echten Daten entscheidet — sie gehören keinem echten Kunden. Die Werte sind echte, in unserer Testsuite verifizierte Berechnungsergebnisse.",
+    "backToLogin": "Zurück zur Anmeldung",
+    "ayse": {
+      "name": "Ayşe — Motorrad-Enthusiastin",
+      "profile": "Ein Profil mit häufigen, regelmäßigen Ausgaben in den letzten 90 Tagen, meist in der Kategorie Motorrad.",
+      "propensity": "Sehr aufgeschlossen",
+      "campaign": "Kampagne \"Motorradversicherung\" wird empfohlen",
+      "why": "Kategorieübereinstimmung (+45) · RFM-Aktivitätsbonus (+16) · Neigung (+25, eine nicht zielgerichtete Kampagne gilt für alle als geeignet)"
+    },
+    "mehmet": {
+      "name": "Mehmet — Investor & SWIFT-Nutzer",
+      "profile": "Ein Profil mit Investmentkonto, regelmäßigen Auslandsüberweisungen und Ausgabenschwerpunkt in der Kategorie Reisen.",
+      "propensity": "Neutral",
+      "campaign": "Kampagne \"Reiseversicherung\" wird empfohlen",
+      "why": "Kategorieübereinstimmung (+45) · spezielle Produkteignung für SWIFT-Nutzer (+10) · RFM-Aktivitätsbonus (+17) · Neigung (+25, nicht zielgerichtet)"
+    },
+    "zeynep": {
+      "name": "Zeynep — Profil mit geringer Aktivität",
+      "profile": "Ein Profil mit zuletzt geringer Transaktionshäufigkeit und -höhe, mit nur wenigen Einkäufen in der Kategorie Lebensmittel.",
+      "propensity": "Braucht Ansprache",
+      "campaign": "Kampagne \"E-Commerce-Punkte\" wird NICHT empfohlen (Schwelle: 30 %)",
+      "why": "Weder Kategorie noch Neigung stimmen überein — die Regel-Engine entscheidet sich für Zurückhaltung, statt dem falschen Kunden ein Angebot zu senden."
+    }
+  },
+  "securityPage": {
+    "badge": "Sicherheit & Datenschutz",
+    "title": "Ihre Daten verlassen niemals Ihre Bank.",
+    "intro": "Finara führt Kundensegmentierung und Kampagnenabgleich mit erklärbaren Regel-Engines durch; die KI-Schicht verbindet sich mit einem lokalen Modell (Ollama), das auf Ihrer eigenen Infrastruktur läuft, nicht mit Cloud-APIs. Es werden niemals Kundendaten an einen KI-Anbieter eines Drittanbieters gesendet.",
+    "backToLogin": "Zurück zur Anmeldung",
+    "localAi": {
+      "title": "Lokale KI",
+      "text": "Segmentkommentare und Kundenanalysen werden von einem lokalen Sprachmodell erstellt, das auf der eigenen Infrastruktur Ihrer Bank läuft. Die Regel-Engine (RFM/Next-Best-Offer) ist immer der primäre Entscheidungsmechanismus — die KI liefert lediglich eine erläuternde Zweitmeinung und ändert nie die Entscheidung."
+    },
+    "auth": {
+      "title": "Authentifizierung & Zugriff",
+      "text": "Passwörter werden mit PBKDF2-SHA256 gehasht und niemals im Klartext gespeichert. Sitzungen sind durch kurzlebige JWTs plus rotierende Refresh-Token geschützt; Token werden in der Datenbank nur in gehashter Form gespeichert."
+    },
+    "isolation": {
+      "title": "Bankbezogene Isolation",
+      "text": "In der Multi-Tenant-Architektur sieht jede Bank nur ihre eigenen Daten. Die rollenbasierte Zugriffskontrolle (Super-Admin/Bank-Admin) wird sowohl in der Oberfläche als auch in der API getrennt durchgesetzt."
+    },
+    "kvkk": {
+      "title": "DSGVO-Konformität",
+      "text": "Kundendaten werden bei Ausübung des Rechts auf Vergessenwerden dauerhaft anonymisiert und danach nie wieder in Segmentierungs-/Automatisierungsprozesse einbezogen."
+    },
+    "audit": {
+      "title": "Prüfprotokoll",
+      "text": "Alle Änderungen an Kampagnen, Angeboten, Einwilligungen und Administratorkonten werden mit Wer/Wann-Information im Prüfprotokoll festgehalten — zur rückblickenden Nachverfolgbarkeit über einen separaten Berichtsbildschirm einsehbar."
+    },
+    "validation": {
+      "title": "Eingabevalidierung & Ratenbegrenzung",
+      "text": "Massenimport und -export werden gegen Formel-Injection bereinigt, alle Endpunkte sind durch Ratenbegrenzung vor Missbrauch geschützt, und die Datenbank läuft in einer isolierten Umgebung."
+    }
   }
 }

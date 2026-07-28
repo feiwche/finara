@@ -21,3 +21,7 @@ export * from './lib/realtime/realtime.service';
 export * from './lib/theme/theme.service';
 
 export * from './lib/preferences/user-preferences.service';
+
+export * from './lib/i18n/guest-language.service';
+export * from './lib/i18n/language-switcher.component';
+export * from './lib/i18n/primeng-locale';

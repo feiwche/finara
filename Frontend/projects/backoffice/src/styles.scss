@@ -272,8 +272,16 @@ h1, h2, h3 {
 // asıl form. Dar ekranlarda (< 900px) vitrin tamamen gizlenip tek sütuna düşüyor —
 // B2B/masaüstü öncelikli bir araç için mobil, "işe yarar" olması yeterli, vitrin şart değil.
 .login-page {
+  position: relative;
   min-height: 100vh;
   display: flex;
+}
+
+.login-lang-switcher {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
 }
 
 .auth-branding {

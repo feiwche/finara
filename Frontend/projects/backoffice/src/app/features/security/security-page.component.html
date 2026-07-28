@@ -1,13 +1,9 @@
 <div class="security-page">
   <div class="security-hero">
     <div class="security-hero-content">
-      <span class="auth-badge"><i class="pi pi-shield"></i> Güvenlik &amp; Veri Gizliliği</span>
-      <h1>Verileriniz bankanızın dışına asla çıkmaz.</h1>
-      <p>
-        Finara, müşteri segmentasyonunu ve kampanya eşleştirmesini açıklanabilir kural motorlarıyla yapar; yapay zeka
-        katmanı bulut API'lerine değil, kendi altyapınızda çalışan yerel bir modele (Ollama) bağlanır. Hiçbir müşteri
-        verisi üçüncü parti bir AI sağlayıcısına gönderilmez.
-      </p>
+      <span class="auth-badge"><i class="pi pi-shield"></i> {{ 'securityPage.badge' | translate }}</span>
+      <h1>{{ 'securityPage.title' | translate }}</h1>
+      <p>{{ 'securityPage.intro' | translate }}</p>
     </div>
   </div>
 
@@ -15,62 +11,43 @@
     <div class="security-grid">
       <p-card styleClass="panel">
         <i class="pi pi-microchip-ai security-card-icon"></i>
-        <h3>Yerel Yapay Zeka</h3>
-        <p>
-          Segment yorumları ve müşteri analizleri, bankanızın kendi altyapısında çalışan yerel bir dil modeliyle
-          üretilir. Kural motoru (RFM/Next-Best-Offer) her zaman birincil karar mekanizmasıdır — AI sadece açıklayıcı
-          bir ikinci görüş sunar, kararı değiştirmez.
-        </p>
+        <h3>{{ 'securityPage.localAi.title' | translate }}</h3>
+        <p>{{ 'securityPage.localAi.text' | translate }}</p>
       </p-card>
 
       <p-card styleClass="panel">
         <i class="pi pi-lock security-card-icon"></i>
-        <h3>Kimlik Doğrulama &amp; Erişim</h3>
-        <p>
-          Şifreler PBKDF2-SHA256 ile hash'lenir, hiçbir zaman düz metin saklanmaz. Oturumlar kısa ömürlü JWT + rotasyonlu
-          refresh token ile korunur; token'lar DB'de yalnızca hash'lenmiş haliyle tutulur.
-        </p>
+        <h3>{{ 'securityPage.auth.title' | translate }}</h3>
+        <p>{{ 'securityPage.auth.text' | translate }}</p>
       </p-card>
 
       <p-card styleClass="panel">
         <i class="pi pi-sitemap security-card-icon"></i>
-        <h3>Banka Bazlı İzolasyon</h3>
-        <p>
-          Çoklu kiracı (multi-tenant) mimaride her banka yalnızca kendi verisini görür. Rol tabanlı erişim kontrolü
-          (Süper Yönetici/Banka Yöneticisi) hem arayüzde hem API'de ayrı ayrı uygulanır.
-        </p>
+        <h3>{{ 'securityPage.isolation.title' | translate }}</h3>
+        <p>{{ 'securityPage.isolation.text' | translate }}</p>
       </p-card>
 
       <p-card styleClass="panel">
         <i class="pi pi-eraser security-card-icon"></i>
-        <h3>KVKK Uyumluluğu</h3>
-        <p>
-          Müşteri verileri, unutulma hakkı talep edildiğinde kalıcı olarak anonimleştirilir ve segmentasyon/otomasyon
-          süreçlerine bir daha hiç dahil edilmez.
-        </p>
+        <h3>{{ 'securityPage.kvkk.title' | translate }}</h3>
+        <p>{{ 'securityPage.kvkk.text' | translate }}</p>
       </p-card>
 
       <p-card styleClass="panel">
         <i class="pi pi-history security-card-icon"></i>
-        <h3>Denetim Kaydı</h3>
-        <p>
-          Kampanya, teklif, rıza ve yönetici hesabı değişikliklerinin tamamı kim/ne-zaman bilgisiyle denetim kaydına
-          yazılır — geriye dönük izlenebilirlik için ayrı bir raporlama ekranından görüntülenebilir.
-        </p>
+        <h3>{{ 'securityPage.audit.title' | translate }}</h3>
+        <p>{{ 'securityPage.audit.text' | translate }}</p>
       </p-card>
 
       <p-card styleClass="panel">
         <i class="pi pi-server security-card-icon"></i>
-        <h3>Girdi Doğrulama &amp; Hız Sınırlama</h3>
-        <p>
-          Toplu içe aktarma ve dışa aktarma formül enjeksiyonuna karşı sanitize edilir, tüm uçlar istismara karşı hız
-          sınırlamasıyla korunur, veritabanı izole bir ortamda çalışır.
-        </p>
+        <h3>{{ 'securityPage.validation.title' | translate }}</h3>
+        <p>{{ 'securityPage.validation.text' | translate }}</p>
       </p-card>
     </div>
 
     <div class="auth-back-link">
-      <a routerLink="/login">Girişe dön</a>
+      <a routerLink="/login">{{ 'securityPage.backToLogin' | translate }}</a>
     </div>
   </div>
 </div>

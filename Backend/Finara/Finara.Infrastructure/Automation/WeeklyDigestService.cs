@@ -81,7 +81,7 @@ public class WeeklyDigestService(
 
             try
             {
-                await emailSender.SendWeeklyDigestEmailAsync(user.Email, bankName, stats, weekStart, now, stoppingToken);
+                await emailSender.SendWeeklyDigestEmailAsync(user.Email, bankName, stats, weekStart, now, user.Preferences.Language, stoppingToken);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {

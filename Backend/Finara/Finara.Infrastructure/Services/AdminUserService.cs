@@ -198,7 +198,14 @@ public class AdminUserService(
         var acceptUrl = $"{request.InviteUrlBase}/accept-invitation?token={Uri.EscapeDataString(rawToken)}";
         try
         {
-            await emailSender.SendInvitationEmailAsync(invitation.Email, acceptUrl, cancellationToken);
+            // Davet edilen kişinin henüz bir User satırı (dolayısıyla kendi dil tercihi) yok —
+            // en yakın anlamlı sinyal daveti gönderen kişinin (currentUser) kendi tercihi.
+            var inviterLanguage = await dbContext.Users
+                .Where(u => u.Id == currentUser.UserId)
+                .Select(u => (UiLanguage?)u.Preferences.Language)
+                .FirstOrDefaultAsync(cancellationToken) ?? UiLanguage.Turkish;
+
+            await emailSender.SendInvitationEmailAsync(invitation.Email, acceptUrl, inviterLanguage, cancellationToken);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

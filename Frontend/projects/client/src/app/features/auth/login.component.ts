@@ -9,11 +9,11 @@ import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { AuthService, describeApiError } from '@finara/shared-ui';
+import { AuthService, LanguageSwitcherComponent, describeApiError } from '@finara/shared-ui';
 
 @Component({
     selector: 'app-login',
-    imports: [FormsModule, RouterLink, InputTextModule, PasswordModule, ButtonModule, CardModule, MessageModule, TranslatePipe],
+    imports: [FormsModule, RouterLink, InputTextModule, PasswordModule, ButtonModule, CardModule, MessageModule, TranslatePipe, LanguageSwitcherComponent],
     templateUrl: './login.component.html'
 })
 export class LoginComponent implements OnInit {

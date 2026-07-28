@@ -177,7 +177,7 @@ public class AuthServiceTests : AuthServiceTestBase
         var act = () => Sut.ForgotPasswordAsync(new ForgotPasswordRequest("yok@example.com", "http://localhost:4200"));
 
         await act.Should().NotThrowAsync();
-        await EmailSender.DidNotReceive().SendPasswordResetEmailAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await EmailSender.DidNotReceive().SendPasswordResetEmailAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<UiLanguage>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]

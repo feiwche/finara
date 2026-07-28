@@ -294,8 +294,16 @@ h1, h2, h3 {
 // aynı bloğun birebir kopyası (bkz. o dosyadaki yorum), iki app aynı marka vitrinini
 // paylaşıyor, sadece component şablonlarındaki metin/rozet farklı.
 .login-page {
+  position: relative;
   min-height: 100vh;
   display: flex;
+}
+
+.login-lang-switcher {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
 }
 
 .auth-branding {

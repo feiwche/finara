@@ -28,6 +28,16 @@
       "verify": "Doğrula",
       "backToCredentials": "Geri dön"
     },
+    "branding": {
+      "badge": "BackOffice — Yönetim Paneli",
+      "headline": "Segmentasyonu ve kampanyaları tek merkezden yönetin.",
+      "description": "RFM tabanlı kural motoru, yerel AI ikinci görüşü ve zamanlanmış otomasyonla bankanızın kampanya operasyonunu uçtan uca kontrol edin.",
+      "point1": "Banka bazlı çoklu kiracı yönetimi",
+      "point2": "Yönetici hesapları ve davet akışı",
+      "point3": "Uçtan uca denetim kaydı",
+      "howItWorks": "Nasıl Çalışır",
+      "security": "Güvenlik & Veri Gizliliği"
+    },
     "forgotPassword": {
       "cardHeader": "Şifremi Unuttum",
       "success": "Bu e-posta adresine kayıtlı bir hesap varsa, şifre sıfırlama bağlantısı gönderildi.",
@@ -120,5 +130,64 @@
     "cancel": "Vazgeç",
     "save": "Kaydet",
     "error": "Bir hata oluştu"
+  },
+  "scenarios": {
+    "badge": "Nasıl Çalışır",
+    "title": "Kural motorumuz kararını nasıl veriyor?",
+    "introBefore": "Aşağıdaki üç profil, kural motorumuzun (RFM segmentasyonu + Next-Best-Offer skorlayıcısı) gerçek verilerle nasıl karar verdiğini göstermek için hazırlanmış",
+    "introStrong": "örnek (sentetik) senaryolardır",
+    "introAfter": "— gerçek bir müşteriye ait değildir. Puanlar, test paketimizde doğrulanmış gerçek hesaplama sonuçlarıdır.",
+    "backToLogin": "Girişe dön",
+    "ayse": {
+      "name": "Ayşe — Motosiklet Meraklısı",
+      "profile": "Son 90 günde sık ve düzenli harcama yapan, en çok motosiklet kategorisinde işlem gerçekleştiren bir profil.",
+      "propensity": "Harcamaya Yatkın",
+      "campaign": "\"Motosiklet Kaskosu\" kampanyası önerilir",
+      "why": "Kategori eşleşmesi (+45) · RFM aktiflik bonusu (+16) · eğilim (+25, hedefsiz kampanya herkese uygun sayılır)"
+    },
+    "mehmet": {
+      "name": "Mehmet — Yatırımcı & SWIFT Kullanıcısı",
+      "profile": "Yatırım hesabı olan, düzenli yurt dışı transferi yapan, seyahat kategorisinde yoğunlaşan bir profil.",
+      "propensity": "Nötr",
+      "campaign": "\"Seyahat Sigortası\" kampanyası önerilir",
+      "why": "Kategori eşleşmesi (+45) · SWIFT kullanıcısına özel ürün uygunluğu (+10) · RFM aktiflik bonusu (+17) · eğilim (+25, hedefsiz)"
+    },
+    "zeynep": {
+      "name": "Zeynep — Düşük Aktiviteli Profil",
+      "profile": "Son dönemde işlem sıklığı ve tutarı düşük, market kategorisinde az sayıda harcaması olan bir profil.",
+      "propensity": "Teşvik Gerekli",
+      "campaign": "\"E-Ticaret Puan Kampanyası\" önerilmez (eşik: %30)",
+      "why": "Ne kategori ne eğilim eşleşiyor — kural motoru yanlış müşteriye teklif göndermek yerine sessiz kalmayı tercih ediyor."
+    }
+  },
+  "securityPage": {
+    "badge": "Güvenlik & Veri Gizliliği",
+    "title": "Verileriniz bankanızın dışına asla çıkmaz.",
+    "intro": "Finara, müşteri segmentasyonunu ve kampanya eşleştirmesini açıklanabilir kural motorlarıyla yapar; yapay zeka katmanı bulut API'lerine değil, kendi altyapınızda çalışan yerel bir modele (Ollama) bağlanır. Hiçbir müşteri verisi üçüncü parti bir AI sağlayıcısına gönderilmez.",
+    "backToLogin": "Girişe dön",
+    "localAi": {
+      "title": "Yerel Yapay Zeka",
+      "text": "Segment yorumları ve müşteri analizleri, bankanızın kendi altyapısında çalışan yerel bir dil modeliyle üretilir. Kural motoru (RFM/Next-Best-Offer) her zaman birincil karar mekanizmasıdır — AI sadece açıklayıcı bir ikinci görüş sunar, kararı değiştirmez."
+    },
+    "auth": {
+      "title": "Kimlik Doğrulama & Erişim",
+      "text": "Şifreler PBKDF2-SHA256 ile hash'lenir, hiçbir zaman düz metin saklanmaz. Oturumlar kısa ömürlü JWT + rotasyonlu refresh token ile korunur; token'lar DB'de yalnızca hash'lenmiş haliyle tutulur."
+    },
+    "isolation": {
+      "title": "Banka Bazlı İzolasyon",
+      "text": "Çoklu kiracı (multi-tenant) mimaride her banka yalnızca kendi verisini görür. Rol tabanlı erişim kontrolü (Süper Yönetici/Banka Yöneticisi) hem arayüzde hem API'de ayrı ayrı uygulanır."
+    },
+    "kvkk": {
+      "title": "KVKK Uyumluluğu",
+      "text": "Müşteri verileri, unutulma hakkı talep edildiğinde kalıcı olarak anonimleştirilir ve segmentasyon/otomasyon süreçlerine bir daha hiç dahil edilmez."
+    },
+    "audit": {
+      "title": "Denetim Kaydı",
+      "text": "Kampanya, teklif, rıza ve yönetici hesabı değişikliklerinin tamamı kim/ne-zaman bilgisiyle denetim kaydına yazılır — geriye dönük izlenebilirlik için ayrı bir raporlama ekranından görüntülenebilir."
+    },
+    "validation": {
+      "title": "Girdi Doğrulama & Hız Sınırlama",
+      "text": "Toplu içe aktarma ve dışa aktarma formül enjeksiyonuna karşı sanitize edilir, tüm uçlar istismara karşı hız sınırlamasıyla korunur, veritabanı izole bir ortamda çalışır."
+    }
   }
 }

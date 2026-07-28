@@ -1,12 +1,10 @@
 <div class="security-page">
   <div class="security-hero">
     <div class="security-hero-content">
-      <span class="auth-badge"><i class="pi pi-eye"></i> Nasıl Çalışır</span>
-      <h1>Kural motorumuz kararını nasıl veriyor?</h1>
+      <span class="auth-badge"><i class="pi pi-eye"></i> {{ 'scenarios.badge' | translate }}</span>
+      <h1>{{ 'scenarios.title' | translate }}</h1>
       <p>
-        Aşağıdaki üç profil, kural motorumuzun (RFM segmentasyonu + Next-Best-Offer skorlayıcısı) gerçek verilerle
-        nasıl karar verdiğini göstermek için hazırlanmış <strong>örnek (sentetik) senaryolardır</strong> — gerçek bir
-        müşteriye ait değildir. Puanlar, test paketimizde doğrulanmış gerçek hesaplama sonuçlarıdır.
+        {{ 'scenarios.introBefore' | translate }} <strong>{{ 'scenarios.introStrong' | translate }}</strong> {{ 'scenarios.introAfter' | translate }}
       </p>
     </div>
   </div>
@@ -17,21 +15,21 @@
         <div class="scenario-header">
           <span class="scenario-avatar">A</span>
           <div>
-            <h3>Ayşe — Motosiklet Meraklısı</h3>
-            <p class="scenario-profile">Son 90 günde sık ve düzenli harcama yapan, en çok motosiklet kategorisinde işlem gerçekleştiren bir profil.</p>
+            <h3>{{ 'scenarios.ayse.name' | translate }}</h3>
+            <p class="scenario-profile">{{ 'scenarios.ayse.profile' | translate }}</p>
           </div>
         </div>
         <div class="scenario-rfm">
           <span class="scenario-rfm-chip">Recency 4/5</span>
           <span class="scenario-rfm-chip">Frequency 3/5</span>
           <span class="scenario-rfm-chip">Monetary 5/5</span>
-          <span class="scenario-rfm-chip scenario-rfm-chip--propensity">Harcamaya Yatkın</span>
+          <span class="scenario-rfm-chip scenario-rfm-chip--propensity">{{ 'scenarios.ayse.propensity' | translate }}</span>
         </div>
         <div class="scenario-outcome scenario-outcome--positive">
           <div class="scenario-outcome-score">%86</div>
           <div class="scenario-outcome-detail">
-            <div class="scenario-outcome-campaign"><i class="pi pi-check-circle"></i> "Motosiklet Kaskosu" kampanyası önerilir</div>
-            <div class="scenario-outcome-why">Kategori eşleşmesi (+45) · RFM aktiflik bonusu (+16) · eğilim (+25, hedefsiz kampanya herkese uygun sayılır)</div>
+            <div class="scenario-outcome-campaign"><i class="pi pi-check-circle"></i> {{ 'scenarios.ayse.campaign' | translate }}</div>
+            <div class="scenario-outcome-why">{{ 'scenarios.ayse.why' | translate }}</div>
           </div>
         </div>
       </p-card>
@@ -40,21 +38,21 @@
         <div class="scenario-header">
           <span class="scenario-avatar">M</span>
           <div>
-            <h3>Mehmet — Yatırımcı &amp; SWIFT Kullanıcısı</h3>
-            <p class="scenario-profile">Yatırım hesabı olan, düzenli yurt dışı transferi yapan, seyahat kategorisinde yoğunlaşan bir profil.</p>
+            <h3>{{ 'scenarios.mehmet.name' | translate }}</h3>
+            <p class="scenario-profile">{{ 'scenarios.mehmet.profile' | translate }}</p>
           </div>
         </div>
         <div class="scenario-rfm">
           <span class="scenario-rfm-chip">Recency 4/5</span>
           <span class="scenario-rfm-chip">Frequency 4/5</span>
           <span class="scenario-rfm-chip">Monetary 5/5</span>
-          <span class="scenario-rfm-chip scenario-rfm-chip--propensity">Nötr</span>
+          <span class="scenario-rfm-chip scenario-rfm-chip--propensity">{{ 'scenarios.mehmet.propensity' | translate }}</span>
         </div>
         <div class="scenario-outcome scenario-outcome--positive">
           <div class="scenario-outcome-score">%97</div>
           <div class="scenario-outcome-detail">
-            <div class="scenario-outcome-campaign"><i class="pi pi-check-circle"></i> "Seyahat Sigortası" kampanyası önerilir</div>
-            <div class="scenario-outcome-why">Kategori eşleşmesi (+45) · SWIFT kullanıcısına özel ürün uygunluğu (+10) · RFM aktiflik bonusu (+17) · eğilim (+25, hedefsiz)</div>
+            <div class="scenario-outcome-campaign"><i class="pi pi-check-circle"></i> {{ 'scenarios.mehmet.campaign' | translate }}</div>
+            <div class="scenario-outcome-why">{{ 'scenarios.mehmet.why' | translate }}</div>
           </div>
         </div>
       </p-card>
@@ -63,28 +61,28 @@
         <div class="scenario-header">
           <span class="scenario-avatar">Z</span>
           <div>
-            <h3>Zeynep — Düşük Aktiviteli Profil</h3>
-            <p class="scenario-profile">Son dönemde işlem sıklığı ve tutarı düşük, market kategorisinde az sayıda harcaması olan bir profil.</p>
+            <h3>{{ 'scenarios.zeynep.name' | translate }}</h3>
+            <p class="scenario-profile">{{ 'scenarios.zeynep.profile' | translate }}</p>
           </div>
         </div>
         <div class="scenario-rfm">
           <span class="scenario-rfm-chip">Recency 2/5</span>
           <span class="scenario-rfm-chip">Frequency 1/5</span>
           <span class="scenario-rfm-chip">Monetary 2/5</span>
-          <span class="scenario-rfm-chip scenario-rfm-chip--propensity">Teşvik Gerekli</span>
+          <span class="scenario-rfm-chip scenario-rfm-chip--propensity">{{ 'scenarios.zeynep.propensity' | translate }}</span>
         </div>
         <div class="scenario-outcome scenario-outcome--negative">
           <div class="scenario-outcome-score">%7</div>
           <div class="scenario-outcome-detail">
-            <div class="scenario-outcome-campaign"><i class="pi pi-times-circle"></i> "E-Ticaret Puan Kampanyası" önerilmez (eşik: %30)</div>
-            <div class="scenario-outcome-why">Ne kategori ne eğilim eşleşiyor — kural motoru yanlış müşteriye teklif göndermek yerine sessiz kalmayı tercih ediyor.</div>
+            <div class="scenario-outcome-campaign"><i class="pi pi-times-circle"></i> {{ 'scenarios.zeynep.campaign' | translate }}</div>
+            <div class="scenario-outcome-why">{{ 'scenarios.zeynep.why' | translate }}</div>
           </div>
         </div>
       </p-card>
     </div>
 
     <div class="auth-back-link">
-      <a routerLink="/login">Girişe dön</a>
+      <a routerLink="/login">{{ 'scenarios.backToLogin' | translate }}</a>
     </div>
   </div>
 </div>

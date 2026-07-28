@@ -28,6 +28,16 @@
       "verify": "Verify",
       "backToCredentials": "Go back"
     },
+    "branding": {
+      "badge": "BackOffice — Management Console",
+      "headline": "Manage segmentation and campaigns from a single hub.",
+      "description": "Control your bank's campaign operations end-to-end with a rule-based engine, a local AI second opinion, and scheduled automation.",
+      "point1": "Bank-scoped multi-tenant management",
+      "point2": "Admin accounts and invitation flow",
+      "point3": "End-to-end audit log",
+      "howItWorks": "How It Works",
+      "security": "Security & Data Privacy"
+    },
     "forgotPassword": {
       "cardHeader": "Forgot Password",
       "success": "If an account is registered with this email address, a password reset link has been sent.",
@@ -120,5 +130,64 @@
     "cancel": "Cancel",
     "save": "Save",
     "error": "An error occurred"
+  },
+  "scenarios": {
+    "badge": "How It Works",
+    "title": "How does our rule engine decide?",
+    "introBefore": "The three profiles below are",
+    "introStrong": "example (synthetic) scenarios",
+    "introAfter": "prepared to show how our rule engine (RFM segmentation + Next-Best-Offer scorer) decides using real data — they do not belong to a real customer. The scores are real, verified results from our test suite.",
+    "backToLogin": "Back to login",
+    "ayse": {
+      "name": "Ayşe — Motorcycle Enthusiast",
+      "profile": "A profile with frequent, regular spending over the last 90 days, mostly in the motorcycle category.",
+      "propensity": "Highly Responsive",
+      "campaign": "\"Motorcycle Insurance\" campaign is recommended",
+      "why": "Category match (+45) · RFM activity bonus (+16) · propensity (+25, an untargeted campaign is considered suitable for everyone)"
+    },
+    "mehmet": {
+      "name": "Mehmet — Investor & SWIFT User",
+      "profile": "A profile with an investment account, regular international transfers, and concentrated spending in the travel category.",
+      "propensity": "Neutral",
+      "campaign": "\"Travel Insurance\" campaign is recommended",
+      "why": "Category match (+45) · special product fit for SWIFT users (+10) · RFM activity bonus (+17) · propensity (+25, untargeted)"
+    },
+    "zeynep": {
+      "name": "Zeynep — Low-Activity Profile",
+      "profile": "A profile with low recent transaction frequency and amount, with only a handful of purchases in the groceries category.",
+      "propensity": "Needs Engagement",
+      "campaign": "\"E-Commerce Points Campaign\" is NOT recommended (threshold: 30%)",
+      "why": "Neither the category nor the propensity matches — the rule engine chooses to stay silent rather than send an offer to the wrong customer."
+    }
+  },
+  "securityPage": {
+    "badge": "Security & Data Privacy",
+    "title": "Your data never leaves your bank.",
+    "intro": "Finara performs customer segmentation and campaign matching with explainable rule engines; the AI layer connects to a local model (Ollama) running on your own infrastructure, not to cloud APIs. No customer data is ever sent to a third-party AI provider.",
+    "backToLogin": "Back to login",
+    "localAi": {
+      "title": "Local AI",
+      "text": "Segment commentary and customer analyses are produced by a local language model running on your bank's own infrastructure. The rule engine (RFM/Next-Best-Offer) is always the primary decision mechanism — AI only offers an explanatory second opinion, it never changes the decision."
+    },
+    "auth": {
+      "title": "Authentication & Access",
+      "text": "Passwords are hashed with PBKDF2-SHA256 and never stored as plain text. Sessions are protected with short-lived JWTs plus rotating refresh tokens; tokens are stored in the DB only in hashed form."
+    },
+    "isolation": {
+      "title": "Bank-Scoped Isolation",
+      "text": "In the multi-tenant architecture, each bank sees only its own data. Role-based access control (Super Admin/Bank Admin) is enforced separately in both the UI and the API."
+    },
+    "kvkk": {
+      "title": "GDPR/KVKK Compliance",
+      "text": "Customer data is permanently anonymized when the right to be forgotten is requested and is never included in segmentation/automation processes again."
+    },
+    "audit": {
+      "title": "Audit Log",
+      "text": "All campaign, offer, consent, and admin account changes are written to the audit log with who/when information — viewable from a separate reporting screen for retrospective traceability."
+    },
+    "validation": {
+      "title": "Input Validation & Rate Limiting",
+      "text": "Bulk import and export are sanitized against formula injection, all endpoints are protected against abuse with rate limiting, and the database runs in an isolated environment."
+    }
   }
 }
