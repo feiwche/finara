@@ -19,6 +19,15 @@ public class CustomerTests
         customer.Email.Should().Be("ayse@example.com");
         customer.CurrentPropensity.Should().Be(SpendingPropensity.Neutral);
         customer.Transactions.Should().BeEmpty();
+        customer.PreferredLanguage.Should().Be(UiLanguage.Turkish);
+    }
+
+    [Fact]
+    public void Create_DilBelirtilirse_TercihEdilenDiliKaydeder()
+    {
+        var customer = Domain.Entities.Customer.Create(ValidBankId, "John", "Doe", "john@example.com", ValidBirthDate, UiLanguage.English);
+
+        customer.PreferredLanguage.Should().Be(UiLanguage.English);
     }
 
     [Fact]

@@ -10,7 +10,8 @@ public record CreateCustomerRequest(
     bool HasInvestmentAccount = false,
     bool HasInternationalTransfers = false,
     EducationLevel? EducationLevel = null,
-    string? PhoneNumber = null);
+    string? PhoneNumber = null,
+    UiLanguage? PreferredLanguage = null);
 
 public record RecordTransactionRequest(
     decimal Amount,
@@ -33,6 +34,7 @@ public record CustomerSummary(
     bool HasInternationalTransfers,
     EducationLevel? EducationLevel,
     string? PhoneNumber,
+    UiLanguage PreferredLanguage,
     bool IsErased);
 
 public record TransactionSummary(

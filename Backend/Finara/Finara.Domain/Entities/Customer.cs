@@ -22,6 +22,12 @@ public class Customer : BaseEntity
     public string? PhoneNumber { get; private set; }
     public SpendingPropensity CurrentPropensity { get; private set; } = SpendingPropensity.Neutral;
 
+    // Kampanya teklifi SMS/e-posta bildirimlerinin (OfferDistributionService) hangi dilde
+    // gideceğini belirler — User.Preferences.Language ile BİLİNÇLİ OLARAK AYRI bir kavram
+    // (personel/admin dili değil, bankanın KENDİ MÜŞTERİSİNİN dili). Varsayılan Türkçe;
+    // var olan müşteriler için migration'da da Türkçe varsayılıyor (geriye dönük uyumlu).
+    public UiLanguage PreferredLanguage { get; private set; } = UiLanguage.Turkish;
+
     // KVKK/GDPR "unutulma hakkı" — satır silinmiyor (Transaction/Segment/CampaignOffer gibi
     // Cascade FK'li geçmiş kayıtların referans bütünlüğü ve denetlenebilirlik için müşteri
     // yaşamaya devam etmeli), sadece doğrudan kimlik belirleyiciler (Erase() içinde) siliniyor.
@@ -35,7 +41,7 @@ public class Customer : BaseEntity
     // 'private' yaparak bunu sadece EF Core'un kullanmasını sağlıyoruz, uygulama kodu kullanamaz.
     private Customer() { }
 
-    public static Customer Create(Guid bankId, string firstName, string lastName, string email, DateTime dateOfBirth)
+    public static Customer Create(Guid bankId, string firstName, string lastName, string email, DateTime dateOfBirth, UiLanguage preferredLanguage = UiLanguage.Turkish)
     {
         if (bankId == Guid.Empty)
             throw new ArgumentException("Geçerli bir banka kimliği gerekli.", nameof(bankId));
@@ -58,7 +64,8 @@ public class Customer : BaseEntity
             FirstName = firstName.Trim(),
             LastName = lastName.Trim(),
             Email = email.Trim().ToLowerInvariant(),
-            DateOfBirth = dateOfBirth
+            DateOfBirth = dateOfBirth,
+            PreferredLanguage = preferredLanguage
         };
     }
 

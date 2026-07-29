@@ -6,7 +6,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 
 import { CustomerListComponent } from './customer-list.component';
-import { AuthService, Client, CustomerImportResult, CustomerSummaryPagedResult } from '@finara/shared-ui';
+import { AuthService, Client, CustomerImportResult, CustomerSummaryPagedResult, UiLanguage } from '@finara/shared-ui';
 
 // Enum seçenekleri/langTick artık TranslateService'e bağlı (bkz. component'teki langTick
 // signal deseni) — auth.service.spec.ts'teki aynı sahte servis, sadece anahtarı olduğu gibi
@@ -110,7 +110,8 @@ describe('CustomerListComponent', () => {
       dateOfBirth: new Date('1990-01-01'),
       hasInvestmentAccount: false,
       hasInternationalTransfers: false,
-      educationLevel: null
+      educationLevel: null,
+      preferredLanguage: UiLanguage.Turkish
     };
     client.customers.mockReturnValue(of({} as any));
     client.paged2.mockReturnValue(of(new CustomerSummaryPagedResult({ items: [], totalCount: 0 })));

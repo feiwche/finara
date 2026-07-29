@@ -4770,6 +4770,7 @@ export class CreateCustomerRequest implements ICreateCustomerRequest {
     hasInternationalTransfers?: boolean;
     educationLevel?: EducationLevel;
     phoneNumber?: string | undefined;
+    preferredLanguage?: UiLanguage;
 
     constructor(data?: ICreateCustomerRequest) {
         if (data) {
@@ -4790,6 +4791,7 @@ export class CreateCustomerRequest implements ICreateCustomerRequest {
             this.hasInternationalTransfers = _data["hasInternationalTransfers"];
             this.educationLevel = _data["educationLevel"];
             this.phoneNumber = _data["phoneNumber"];
+            this.preferredLanguage = _data["preferredLanguage"];
         }
     }
 
@@ -4810,6 +4812,7 @@ export class CreateCustomerRequest implements ICreateCustomerRequest {
         data["hasInternationalTransfers"] = this.hasInternationalTransfers;
         data["educationLevel"] = this.educationLevel;
         data["phoneNumber"] = this.phoneNumber;
+        data["preferredLanguage"] = this.preferredLanguage;
         return data;
     }
 }
@@ -4823,6 +4826,7 @@ export interface ICreateCustomerRequest {
     hasInternationalTransfers?: boolean;
     educationLevel?: EducationLevel;
     phoneNumber?: string | undefined;
+    preferredLanguage?: UiLanguage;
 }
 
 export class CreateInvitationRequest implements ICreateInvitationRequest {
@@ -5072,6 +5076,7 @@ export class CustomerSummary implements ICustomerSummary {
     hasInternationalTransfers?: boolean;
     educationLevel?: EducationLevel;
     phoneNumber?: string | undefined;
+    preferredLanguage?: UiLanguage;
     isErased?: boolean;
 
     constructor(data?: ICustomerSummary) {
@@ -5095,6 +5100,7 @@ export class CustomerSummary implements ICustomerSummary {
             this.hasInternationalTransfers = _data["hasInternationalTransfers"];
             this.educationLevel = _data["educationLevel"];
             this.phoneNumber = _data["phoneNumber"];
+            this.preferredLanguage = _data["preferredLanguage"];
             this.isErased = _data["isErased"];
         }
     }
@@ -5118,6 +5124,7 @@ export class CustomerSummary implements ICustomerSummary {
         data["hasInternationalTransfers"] = this.hasInternationalTransfers;
         data["educationLevel"] = this.educationLevel;
         data["phoneNumber"] = this.phoneNumber;
+        data["preferredLanguage"] = this.preferredLanguage;
         data["isErased"] = this.isErased;
         return data;
     }
@@ -5134,6 +5141,7 @@ export interface ICustomerSummary {
     hasInternationalTransfers?: boolean;
     educationLevel?: EducationLevel;
     phoneNumber?: string | undefined;
+    preferredLanguage?: UiLanguage;
     isErased?: boolean;
 }
 

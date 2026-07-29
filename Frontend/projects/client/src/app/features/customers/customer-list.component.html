@@ -184,6 +184,18 @@
       styleClass="w-full"
     />
   </div>
+  <div class="field">
+    <label for="customer-language">{{ 'customers.createDialog.preferredLanguage' | translate }}</label>
+    <p-select
+      inputId="customer-language"
+      [(ngModel)]="newCustomer.preferredLanguage"
+      [options]="uiLanguageOptions()"
+      optionLabel="label"
+      optionValue="value"
+      styleClass="w-full"
+    />
+    <small class="field-hint">{{ 'customers.createDialog.preferredLanguageHint' | translate }}</small>
+  </div>
   <div class="field-checkbox">
     <p-checkbox [(ngModel)]="newCustomer.hasInvestmentAccount" [binary]="true" inputId="hasInvestment" />
     <label for="hasInvestment">{{ 'customers.createDialog.hasInvestment' | translate }}</label>

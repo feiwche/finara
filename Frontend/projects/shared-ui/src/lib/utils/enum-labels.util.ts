@@ -1,4 +1,4 @@
-import { AgeBracket, AuditActionType, BankDataProviderType, ConsentChannel, EducationLevel, SpendingPropensity, TransactionCategory, UserRole } from '../api/finara-client';
+import { AgeBracket, AuditActionType, BankDataProviderType, ConsentChannel, EducationLevel, SpendingPropensity, TransactionCategory, UiLanguage, UserRole } from '../api/finara-client';
 import { TranslateService } from '@ngx-translate/core';
 
 // Bu modüldeki label fonksiyonları çoğu bileşende doğrudan şablonda ({{ xLabel(value) }})
@@ -112,6 +112,17 @@ const AGE_BRACKET_LABELS: Record<string, string> = {
   Age56Plus: '56+'
 };
 
+// Customer.PreferredLanguage için (bkz. o alandaki backend yorumu — kampanya SMS/e-postası
+// bu dile göre gidiyor). Ayarlar sayfasındaki dil seçicinin AKSİNE burada isteyerek staff'ın
+// KENDİ aktif arayüz diline çevriliyor ("Turkish/English/German" gibi) — orası "bu benim
+// dilim" seçimi olduğu için her zaman kendi native adıyla gösteriliyordu, burası ise bir
+// müşteri hakkında bilgi girişi, personelin okuyabileceği dilde gösterilmesi daha doğru.
+const UI_LANGUAGE_LABELS: Record<string, string> = {
+  Turkish: 'Türkçe',
+  English: 'İngilizce',
+  German: 'Almanca'
+};
+
 export function transactionCategoryLabel(category: string): string {
   return translateEnumValue('transactionCategory', category, TRANSACTION_CATEGORY_LABELS);
 }
@@ -152,6 +163,10 @@ export function bankDataProviderTypeLabel(type: string): string {
   return translateEnumValue('bankDataProviderType', type, BANK_DATA_PROVIDER_TYPE_LABELS);
 }
 
+export function uiLanguageLabel(language: string): string {
+  return translateEnumValue('uiLanguage', language, UI_LANGUAGE_LABELS);
+}
+
 // p-select gibi dropdown'lar için: değer İngilizce enum olarak kalır (API'ye o gönderilir),
 // kullanıcıya sadece label gösterilir (optionLabel="label" optionValue="value" ile).
 // Fonksiyon olarak tanımlanıyor (modül yüklenirken bir kere hesaplanan sabit DEĞİL) —
@@ -184,4 +199,8 @@ export function getAgeBracketOptions() {
 
 export function getConsentChannelOptions() {
   return Object.values(ConsentChannel).map(value => ({ label: consentChannelLabel(value), value }));
+}
+
+export function getUiLanguageOptions() {
+  return Object.values(UiLanguage).map(value => ({ label: uiLanguageLabel(value), value }));
 }

@@ -31,7 +31,7 @@ public class CustomerService(
                 $"'{request.Email}' e-posta adresiyle kayıtlı bir müşteri zaten var.",
                 parameters: new Dictionary<string, object?> { ["email"] = request.Email });
 
-        var customer = Customer.Create(bankId, request.FirstName, request.LastName, request.Email, request.DateOfBirth);
+        var customer = Customer.Create(bankId, request.FirstName, request.LastName, request.Email, request.DateOfBirth, request.PreferredLanguage ?? UiLanguage.Turkish);
         if (request.HasInvestmentAccount || request.HasInternationalTransfers)
             customer.UpdateFinancialFlags(request.HasInvestmentAccount, request.HasInternationalTransfers);
         if (request.EducationLevel is not null)
@@ -217,7 +217,8 @@ public class CustomerService(
 
     // Beklenen CSV başlıkları (Türkçe, sıra önemsiz — NormalizeHeader ile eşleştiriliyor):
     // Ad, Soyad, E-posta, Doğum Tarihi zorunlu; Telefon, Eğitim Durumu, Yatırım Hesabı Var,
-    // Yurtdışı Transfer Var opsiyonel.
+    // Yurtdışı Transfer Var, Dil opsiyonel (Dil boşsa Türkçe varsayılır — bkz.
+    // ParsePreferredLanguage).
     public async Task<CustomerImportResult> ImportCustomersAsync(Stream csvStream, CancellationToken cancellationToken = default)
     {
         var bankId = currentUser.ResolveBankIdForWrite();
@@ -237,7 +238,7 @@ public class CustomerService(
             throw new DomainException(
                 ErrorCodes.CustomerCsvMissingColumns,
                 $"CSV başlığında zorunlu sütun(lar) eksik: {string.Join(", ", missing)}. " +
-                "Beklenen sütunlar: Ad, Soyad, E-posta, Doğum Tarihi, Telefon, Eğitim Durumu, Yatırım Hesabı Var, Yurtdışı Transfer Var.",
+                "Beklenen sütunlar: Ad, Soyad, E-posta, Doğum Tarihi, Telefon, Eğitim Durumu, Yatırım Hesabı Var, Yurtdışı Transfer Var, Dil.",
                 parameters: new Dictionary<string, object?> { ["columns"] = string.Join(", ", missing) });
 
         var existingEmails = (await dbContext.Customers
@@ -286,7 +287,15 @@ public class CustomerService(
                 if (!DateTime.TryParseExact(dobRaw, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dob))
                     throw new ArgumentException($"Geçersiz doğum tarihi formatı: '{dobRaw}' (beklenen: yyyy-aa-gg, ör. 1990-05-12).");
 
-                var customer = Customer.Create(bankId, Get("AD"), Get("SOYAD"), email, dob);
+                var languageRaw = Get("DIL");
+                var preferredLanguage = UiLanguage.Turkish;
+                if (!string.IsNullOrWhiteSpace(languageRaw))
+                {
+                    preferredLanguage = ParsePreferredLanguage(languageRaw)
+                        ?? throw new ArgumentException($"Geçersiz dil: '{languageRaw}' (beklenen: Türkçe/English/Deutsch veya TR/EN/DE).");
+                }
+
+                var customer = Customer.Create(bankId, Get("AD"), Get("SOYAD"), email, dob, preferredLanguage);
 
                 var hasInvestment = ParseBool(Get("YATIRIMHESABIVAR"));
                 var hasInternational = ParseBool(Get("YURTDISITRANSFERVAR"));
@@ -339,6 +348,23 @@ public class CustomerService(
                 return level;
         }
         return null;
+    }
+
+    // Kampanya SMS/e-postalarının hangi dilde gideceğini (Customer.PreferredLanguage)
+    // CSV'den ayarlamak için — enum adının kendisinin (Turkish/English/German) yanı sıra
+    // kısa kodları (TR/EN/DE) ve müşteri-dostu tam adları (Türkçe/İngilizce/Almanca/Deutsch)
+    // da kabul ediyor, ParseEducationLevel'ın aksine tek bir normalize karşılaştırmasına
+    // güvenmek yeterli olmuyordu.
+    private static UiLanguage? ParsePreferredLanguage(string value)
+    {
+        var normalized = NormalizeHeader(value);
+        return normalized switch
+        {
+            "TURKISH" or "TR" or "TURKCE" => UiLanguage.Turkish,
+            "ENGLISH" or "EN" or "INGILIZCE" => UiLanguage.English,
+            "GERMAN" or "DE" or "ALMANCA" or "DEUTSCH" => UiLanguage.German,
+            _ => null
+        };
     }
 
     // Türkçe karakterleri (İ/ı/ş/ğ/ü/ö/ç) ASCII karşılıklarına indirip büyük harfe çevirir,
@@ -414,7 +440,7 @@ public class CustomerService(
     private static CustomerSummary ToSummary(Customer customer) =>
         new(customer.Id, customer.FirstName, customer.LastName, customer.Email, customer.GetAge(), customer.CurrentPropensity,
             customer.HasInvestmentAccount, customer.HasInternationalTransfers, customer.EducationLevel, customer.PhoneNumber,
-            customer.IsErased);
+            customer.PreferredLanguage, customer.IsErased);
 
     private static TransactionSummary ToSummary(Transaction transaction) =>
         new(transaction.Id, transaction.CustomerId, transaction.Amount, transaction.Category,

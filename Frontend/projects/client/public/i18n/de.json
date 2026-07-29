@@ -233,7 +233,9 @@
       "educationPlaceholder": "Nicht angegeben",
       "hasInvestment": "Hat ein Anlagekonto",
       "hasSwift": "Nutzt internationale Überweisungen (SWIFT)",
-      "submit": "Erstellen"
+      "submit": "Erstellen",
+      "preferredLanguage": "Bevorzugte Sprache",
+      "preferredLanguageHint": "Kampagnen-SMS/E-Mails werden in dieser Sprache gesendet."
     },
     "importResultDialog": {
       "header": "Importergebnis",
@@ -552,6 +554,11 @@
       "Age36To45": "36-45",
       "Age46To55": "46-55",
       "Age56Plus": "56+"
+    },
+    "uiLanguage": {
+      "Turkish": "Türkisch",
+      "English": "Englisch",
+      "German": "Deutsch"
     }
   },
   "pageTitle": {

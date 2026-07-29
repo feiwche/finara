@@ -27,7 +27,13 @@ public class OfferDistributionService(
 
         var campaignName = offer.Campaign?.Name ?? "Kampanya";
 
-        var message = $"{campaignName} teklifiniz sizi bekliyor! Güven skoru: %{offer.ConfidenceScore:0}";
+        // Müşterinin KENDİ dil tercihi (Customer.PreferredLanguage) — bankanın personel
+        // arayüz diliyle (User.Preferences.Language) karıştırılmıyor, bkz. Customer.cs.
+        var preferredLanguage = await dbContext.Customers
+            .Where(c => c.Id == customerId)
+            .Select(c => c.PreferredLanguage)
+            .FirstOrDefaultAsync(cancellationToken);
+        var message = CampaignMessageTemplates.OfferDistributionMessage(campaignName, offer.ConfidenceScore, preferredLanguage);
 
         // InAppBanking için rıza takip ediliyor ama gerçek bir dispatcher YOK (bankaya
         // veri geri gönderen bir OUTBOUND entegrasyon gerektiriyor, kapsam dışı — bkz.

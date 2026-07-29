@@ -210,6 +210,21 @@ public class CustomerServiceTests : CustomerServiceTestBase
     }
 
     [Fact]
+    public async Task ImportCustomersAsync_WithLanguageColumn_ParsesPreferredLanguage()
+    {
+        var csv = "Ad,Soyad,E-posta,Doğum Tarihi,Dil\n" +
+                   "Ayşe,Yılmaz,ayse@example.com,1990-01-01,English\n" +
+                   "Mehmet,Demir,mehmet@example.com,1985-05-12,\n";
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(csv));
+
+        var result = await Sut.ImportCustomersAsync(stream);
+
+        result.SuccessCount.Should().Be(2);
+        DbContext.Customers.Should().Contain(c => c.Email == "ayse@example.com" && c.PreferredLanguage == UiLanguage.English);
+        DbContext.Customers.Should().Contain(c => c.Email == "mehmet@example.com" && c.PreferredLanguage == UiLanguage.Turkish);
+    }
+
+    [Fact]
     public async Task GenerateMockDataAsync_WithInvalidCounts_Throws()
     {
         var request = new GenerateMockDataRequest(CustomerCount: 0, TransactionsPerCustomer: 1);

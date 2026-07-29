@@ -579,6 +579,11 @@
       "Age36To45": "36-45",
       "Age46To55": "46-55",
       "Age56Plus": "56+"
+    },
+    "uiLanguage": {
+      "Turkish": "Turkish",
+      "English": "English",
+      "German": "German"
     }
   },
   "pageTitle": {

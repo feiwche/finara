@@ -29,10 +29,12 @@ import {
   educationLevelLabel,
   EducationLevel,
   getEducationLevelOptions,
+  getUiLanguageOptions,
   propensitySeverity,
   sanitizeCsvField,
   spendingPropensityLabel,
-  toUtcDateOnlyIso
+  toUtcDateOnlyIso,
+  UiLanguage
 } from '@finara/shared-ui';
 
 @Component({
@@ -71,6 +73,11 @@ export class CustomerListComponent implements OnInit, OnDestroy {
   protected readonly educationLevelOptions = computed(() => {
     this.langTick();
     return getEducationLevelOptions();
+  });
+
+  protected readonly uiLanguageOptions = computed(() => {
+    this.langTick();
+    return getUiLanguageOptions();
   });
 
   protected readonly pageSize = 20;
@@ -146,7 +153,8 @@ export class CustomerListComponent implements OnInit, OnDestroy {
     dateOfBirth: null as Date | null,
     hasInvestmentAccount: false,
     hasInternationalTransfers: false,
-    educationLevel: null as EducationLevel | null
+    educationLevel: null as EducationLevel | null,
+    preferredLanguage: UiLanguage.Turkish
   };
 
   constructor() {
@@ -229,7 +237,8 @@ export class CustomerListComponent implements OnInit, OnDestroy {
       dateOfBirth: null,
       hasInvestmentAccount: false,
       hasInternationalTransfers: false,
-      educationLevel: null
+      educationLevel: null,
+      preferredLanguage: UiLanguage.Turkish
     };
     this.createError.set(null);
     this.createSubmitted = false;
@@ -255,7 +264,8 @@ export class CustomerListComponent implements OnInit, OnDestroy {
             dateOfBirth: new Date(toUtcDateOnlyIso(this.newCustomer.dateOfBirth)),
             hasInvestmentAccount: this.newCustomer.hasInvestmentAccount,
             hasInternationalTransfers: this.newCustomer.hasInternationalTransfers,
-            educationLevel: this.newCustomer.educationLevel ?? undefined
+            educationLevel: this.newCustomer.educationLevel ?? undefined,
+            preferredLanguage: this.newCustomer.preferredLanguage
           })
         )
       );
@@ -303,17 +313,19 @@ export class CustomerListComponent implements OnInit, OnDestroy {
   }
 
   downloadImportTemplate(): void {
-    const header = [
-      this.translate.instant('customers.importTemplate.firstName'),
-      this.translate.instant('customers.importTemplate.lastName'),
-      this.translate.instant('customers.importTemplate.email'),
-      this.translate.instant('customers.importTemplate.dob'),
-      this.translate.instant('customers.importTemplate.phone'),
-      this.translate.instant('customers.importTemplate.education'),
-      this.translate.instant('customers.importTemplate.hasInvestment'),
-      this.translate.instant('customers.importTemplate.hasSwift')
-    ].join(',');
-    const example = `Ayşe,Yılmaz,ayse.yilmaz@example.com,1990-05-12,+905551234567,${this.translate.instant('enums.educationLevel.Lisans')},${this.translate.instant('common.yes')},${this.translate.instant('common.no')}`;
+    // BİLEREK Türkçe ve SABİT — backend'in CSV parser'ı (CustomerService.ImportCustomersAsync,
+    // NormalizeHeader) sütun adlarını yalnızca bu Türkçe kelimelerle (AD/SOYAD/EPOSTA/...)
+    // eşleştiriyor, arayüz dilinden bağımsız bir teknik sözleşme. Önceden bu satır
+    // this.translate.instant(...) ile başlıkları çeviriyordu — yani İngilizce/Almanca arayüzde
+    // indirilen şablon ("First Name,Last Name,...") geri yüklendiğinde backend "zorunlu sütun
+    // eksik" hatası verirdi (bulundu, örnek veri de İngilizce/Almanca'ya çevrilmiş ama sütun
+    // ADLARI çevrilmemiş olsaydı bile aynı sorun oluşurdu). Kullanıcıya gösterilen sütun
+    // AÇIKLAMALARI (customers.importTemplate.* — dosya adı hariç) hâlâ çevrili, sadece CSV'nin
+    // kendi başlık satırı sabit Türkçe.
+    const header = 'Ad,Soyad,E-posta,Doğum Tarihi,Telefon,Eğitim Durumu,Yatırım Hesabı Var,Yurtdışı Transfer Var,Dil';
+    // ParseBool de aynı şekilde sadece "evet/var/true/1" kabul ediyor (backend) — "Yes"/"No"
+    // gibi çevrilmiş bir örnek değer de aynı sınıftan bir hataya yol açardı, o yüzden bu da sabit.
+    const example = 'Ayşe,Yılmaz,ayse.yilmaz@example.com,1990-05-12,+905551234567,Lisans,Evet,Hayır,Türkçe';
     const blob = new Blob([`${header}\n${example}\n`], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
