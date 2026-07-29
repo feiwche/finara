@@ -40,12 +40,15 @@ public class SegmentationService(
             segmentsQuery = segmentsQuery.Where(s => s.BankId == currentUser.BankId);
         }
 
+        // BankId de gruplamaya dahil — RFM quintile skorlaması (aşağıda banka bazlı ayrı ayrı
+        // hesaplanıyor, bkz. o bölümdeki yorum) hangi bankaya ait olduğunu bilmek zorunda.
         var activitySummaries = await transactionsQuery
             .Where(t => t.OccurredAtUtc >= lookbackStart)
-            .GroupBy(t => t.CustomerId)
+            .GroupBy(t => new { t.CustomerId, t.BankId })
             .Select(g => new
             {
-                CustomerId = g.Key,
+                g.Key.CustomerId,
+                g.Key.BankId,
                 LastTransactionUtc = g.Max(t => t.OccurredAtUtc),
                 Count = g.Count(),
                 Total = g.Sum(t => t.Amount)
@@ -80,10 +83,24 @@ public class SegmentationService(
 
         if (activitySummaries.Count > 0)
         {
-            var rfmInputs = activitySummaries
-                .Select(a => new RfmCalculator.CustomerActivity(a.CustomerId, a.LastTransactionUtc, a.Count, a.Total))
-                .ToList();
-            var rfmScores = RfmCalculator.CalculateScores(rfmInputs, referenceUtc).ToDictionary(s => s.CustomerId);
+            // KRİTİK: quintile skorlaması (RfmCalculator.CalculateScores) popülasyona GÖRECELİ —
+            // "bu müşteri diğerlerine göre ne kadar aktif" sorusuna cevap veriyor. Otomatik
+            // döngü SuperAdmin kimliğiyle (SystemCurrentUserContext) çalıştığı için banka
+            // filtresi hiç uygulanmıyordu — bulundu: TÜM BANKALARIN müşterileri TEK bir
+            // popülasyonda karışıyordu, yani bir bankanın müşterisinin "harcamaya yatkın mı"
+            // skoru o an sistemde kayıtlı BAŞKA bir bankanın müşteri hacmine göre şekilleniyordu
+            // (çok-kiracılı bir sistemde kabul edilemez bir izolasyon ihlali — VakıfBank gibi
+            // ikinci bir gerçek banka eklenince yanlış/tutarsız segmentasyona yol açardı). Şimdi
+            // her banka KENDİ popülasyonu içinde ayrı ayrı skorlanıp sonuçlar birleştiriliyor.
+            var rfmScores = new Dictionary<Guid, RfmCalculator.RfmScore>();
+            foreach (var bankGroup in activitySummaries.GroupBy(a => a.BankId))
+            {
+                var bankRfmInputs = bankGroup
+                    .Select(a => new RfmCalculator.CustomerActivity(a.CustomerId, a.LastTransactionUtc, a.Count, a.Total))
+                    .ToList();
+                foreach (var score in RfmCalculator.CalculateScores(bankRfmInputs, referenceUtc))
+                    rfmScores[score.CustomerId] = score;
+            }
 
             // Baskın kategori: pencere içinde en çok harcanan kategori (tutar bazlı).
             var categoryTotals = await transactionsQuery
