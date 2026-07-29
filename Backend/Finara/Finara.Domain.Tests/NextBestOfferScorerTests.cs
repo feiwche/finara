@@ -96,4 +96,47 @@ public class NextBestOfferScorerTests
         // kategori hedefsiz +15, eğilim hedefsiz +25, RFM 9/15*20=12, özel bayrak yok
         score.Should().Be(52);
     }
+
+    [Fact]
+    public void SurekliReddedilenKampanya_YeterliOrneklemVarsaDusukPuanAlir()
+    {
+        var customer = CreateCustomer();
+        var segment = CreateSegment(4, 3, 5, SpendingPropensity.HighlyResponsive, TransactionCategory.Motorcycle);
+        var kaskoKampanyasi = Campaign.Create(ValidBankId, "Motosiklet Kaskosu", "Açıklama", DateTime.UtcNow, targetCategory: TransactionCategory.Motorcycle);
+
+        // Ayse_MotosikletMeraklisi testindeki AYNI senaryo (ceza olmadan 86 puan alıyordu) —
+        // ama bu kampanya şimdiye kadar 10 kez yanıtlanmış ve 8'i reddedilmiş (%80 ret oranı).
+        var scoreWithoutHistory = NextBestOfferScorer.Score(segment, customer, kaskoKampanyasi);
+        var scoreWithBadHistory = NextBestOfferScorer.Score(segment, customer, kaskoKampanyasi, respondedCount: 10, declinedCount: 8);
+
+        scoreWithoutHistory.Should().Be(86);
+        // %80 ret oranı * 15 maksimum ceza = 12 puan düşüş → 86 - 12 = 74.
+        scoreWithBadHistory.Should().Be(74);
+    }
+
+    [Fact]
+    public void AzSayidaYanitlanmisKampanya_CezaAlmaz_OrneklemKucukOlduguIcin()
+    {
+        var customer = CreateCustomer();
+        var segment = CreateSegment(4, 3, 5, SpendingPropensity.HighlyResponsive, TransactionCategory.Motorcycle);
+        var kaskoKampanyasi = Campaign.Create(ValidBankId, "Motosiklet Kaskosu", "Açıklama", DateTime.UtcNow, targetCategory: TransactionCategory.Motorcycle);
+
+        // Sadece 2 yanıt (MinRespondedSampleSize=5'in altında), ikisi de ret — yine de erken
+        // gürültülü bir örneklemle yeni bir kampanyayı haksız cezalandırmamak için ceza YOK.
+        var score = NextBestOfferScorer.Score(segment, customer, kaskoKampanyasi, respondedCount: 2, declinedCount: 2);
+
+        score.Should().Be(86);
+    }
+
+    [Fact]
+    public void TamamenKabulEdilenKampanya_CezaAlmaz()
+    {
+        var customer = CreateCustomer();
+        var segment = CreateSegment(4, 3, 5, SpendingPropensity.HighlyResponsive, TransactionCategory.Motorcycle);
+        var kaskoKampanyasi = Campaign.Create(ValidBankId, "Motosiklet Kaskosu", "Açıklama", DateTime.UtcNow, targetCategory: TransactionCategory.Motorcycle);
+
+        var score = NextBestOfferScorer.Score(segment, customer, kaskoKampanyasi, respondedCount: 10, declinedCount: 0);
+
+        score.Should().Be(86);
+    }
 }

@@ -16,6 +16,7 @@ namespace Finara.Infrastructure.Automation;
 public class FinaraAutomationService(
     IServiceScopeFactory scopeFactory,
     IOptions<AutomationOptions> options,
+    IAutomationHealthTracker healthTracker,
     ILogger<FinaraAutomationService> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -60,5 +61,9 @@ public class FinaraAutomationService(
         var offerService = new NextBestOfferService(dbContext, auditLogRepository, systemUser);
         var offerResult = await offerService.GenerateOffersForAllEligibleCustomersAsync(config.MaxOffersPerCustomer, stoppingToken);
         logger.LogInformation("Otomatik teklif üretimi tamamlandı: {Created} yeni teklif oluşturuldu.", offerResult.OffersCreated);
+
+        // İkisi de (segmentasyon + teklif üretimi) istisna fırlatmadan buraya ulaştıysa tur
+        // başarılı sayılır — bkz. AutomationHealthTracker'daki gerekçe.
+        healthTracker.RecordSuccess("segmentation");
     }
 }

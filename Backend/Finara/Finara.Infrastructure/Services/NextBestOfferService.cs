@@ -76,9 +76,23 @@ public class NextBestOfferService(FinaraDbContext dbContext, IAuditLogRepository
             .Select(o => o.CampaignId)
             .ToListAsync(cancellationToken);
 
+        // Kampanyanın (bu müşteriye özel değil, TÜM müşteriler genelinde) geçmiş kabul/ret
+        // geçmişi — NextBestOfferScorer'daki ret-geçmişi cezasına girdi. Sürekli reddedilen
+        // bir kampanya artık aynı skoru almaya devam etmiyor (bkz. o dosyadaki gerekçe).
+        var campaignIds = activeCampaigns.Select(c => c.Id).ToList();
+        var responseHistory = await dbContext.CampaignOffers
+            .Where(o => campaignIds.Contains(o.CampaignId) && o.Response != OfferResponse.Pending)
+            .GroupBy(o => o.CampaignId)
+            .Select(g => new { CampaignId = g.Key, Responded = g.Count(), Declined = g.Count(o => o.Response == OfferResponse.Declined) })
+            .ToDictionaryAsync(x => x.CampaignId, x => (x.Responded, x.Declined), cancellationToken);
+
         var scoredCampaigns = activeCampaigns
             .Where(c => !campaignsWithPendingOffer.Contains(c.Id))
-            .Select(c => (Campaign: c, Score: NextBestOfferScorer.Score(segment, customer, c)))
+            .Select(c =>
+            {
+                var (responded, declined) = responseHistory.GetValueOrDefault(c.Id);
+                return (Campaign: c, Score: NextBestOfferScorer.Score(segment, customer, c, responded, declined));
+            })
             .Where(x => NextBestOfferScorer.MeetsThreshold(x.Score))
             .OrderByDescending(x => x.Score)
             .Take(maxOffers)

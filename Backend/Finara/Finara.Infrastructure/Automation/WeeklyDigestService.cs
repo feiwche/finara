@@ -19,6 +19,7 @@ namespace Finara.Infrastructure.Automation;
 public class WeeklyDigestService(
     IServiceScopeFactory scopeFactory,
     IOptions<WeeklyDigestOptions> options,
+    IAutomationHealthTracker healthTracker,
     ILogger<WeeklyDigestService> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -62,7 +63,12 @@ public class WeeklyDigestService(
             .ToListAsync(stoppingToken);
 
         if (dueUsers.Count == 0)
+        {
+            // Kimsenin e-postası gecikmemiş olması da BAŞARILI bir tur — erken dönüş
+            // AutomationHealthTracker'ın "hiç çalışmadı" sanmasına yol açmamalı.
+            healthTracker.RecordSuccess("weeklyDigest");
             return;
+        }
 
         var bankIds = dueUsers.Select(u => u.BankId!.Value).Distinct().ToList();
         var bankNames = await dbContext.Banks
@@ -97,5 +103,6 @@ public class WeeklyDigestService(
 
         await dbContext.SaveChangesAsync(stoppingToken);
         logger.LogInformation("Haftalık özet turu tamamlandı: {Sent} e-posta gönderildi.", sentCount);
+        healthTracker.RecordSuccess("weeklyDigest");
     }
 }

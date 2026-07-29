@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Finara.Api.Persistence;
 using Microsoft.AspNetCore.RateLimiting;
 using Finara.Api.Endpoints;
+using Finara.Api.HealthChecks;
 using Finara.Api.ExceptionHandling;
 using Finara.Api.Middleware;
 using Finara.Api.RateLimiting;
@@ -78,8 +79,14 @@ builder.Services.AddDbContext<DataProtectionKeysDbContext>(options =>
 // yani DB bağlantısının kurulabildiğini kontrol eder — "ready" tag'iyle işaretlenen
 // kontroller ikinci uçta, hiçbiri birincisinde çalışır (orkestrasyon araçlarının
 // standart liveness/readiness ayrımı).
+// Otomasyonların (segmentasyon/teklif üretimi, haftalık özet) son başarılı çalışma zamanını
+// tutan tekil kayıt — daha önce bir tur sessizce çökerse (ör. hata) sadece log'a yazılıyordu,
+// kimse fark etmiyordu. AutomationHealthCheck bunu /health/automation ucundan dışa veriyor.
+builder.Services.AddSingleton<IAutomationHealthTracker, AutomationHealthTracker>();
+
 builder.Services.AddHealthChecks()
-    .AddDbContextCheck<FinaraDbContext>("database", tags: ["ready"]);
+    .AddDbContextCheck<FinaraDbContext>("database", tags: ["ready"])
+    .AddCheck<AutomationHealthCheck>("automation", tags: ["automation"]);
 
 // Anahtar halkası artık dosya sistemi yerine veritabanında (zaten tüm instance'lar arasında
 // paylaşılan tek kaynak) tutuluyor — bkz. DataProtectionKeysDbContext'teki not (önceki
@@ -416,6 +423,14 @@ app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => fa
 app.MapHealthChecks("/health/ready", new HealthCheckOptions
 {
     Predicate = check => check.Tags.Contains("ready")
+});
+// Bilerek /health/ready'nin DIŞINDA — otomasyonun gecikmiş olması API'nin trafik almasını
+// engellememeli, bu ayrı bir uç: harici bir izleme aracı (ör. ücretsiz bir uptime monitor)
+// bunu ayrıca yoklayıp gerçek bir alarm kurabilir (bkz. AutomationHealthCheck'teki yorum).
+app.MapHealthChecks("/health/automation", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("automation"),
+    ResponseWriter = JsonHealthCheckResponseWriter.Write
 });
 
 app.MapAuthEndpoints();
