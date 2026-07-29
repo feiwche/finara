@@ -53,7 +53,86 @@ jobs:
       - run: npm test
       - run: npm run build
 
-  # CD: backend+frontend testleri geçince, sadece main/master'a gerçek bir push'ta
+  # E2E: gerçek bir backend + MSSQL'e karşı Playwright çalıştırıyor (demo-login gerçek
+  # bir kullanıcı satırına ihtiyaç duyuyor — bkz. playwright.config.ts'teki yorum). MSSQL
+  # burada bir "service container" olarak ayağa kaldırılıyor; SA şifresi sadece bu
+  # ephemeral CI veritabanı için (gerçek bir sır değil, hiçbir yerde yeniden kullanılmıyor).
+  # Migration'lar `dotnet ef database update` ile elle uygulanıyor (backend kendiliğinden
+  # migrate ETMİYOR, bkz. Finara.Api/Dockerfile'daki aynı gerekçe) — bu migration'lardan biri
+  # (AddDemoAnalystUser) demo hesabını da seed ediyor, testlerin dayandığı hesap bu.
+  e2e:
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    services:
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: "Y"
+          MSSQL_SA_PASSWORD: "Finara_CI_2026!"
+          MSSQL_PID: Express
+        ports:
+          - 1433:1433
+    env:
+      ConnectionStrings__DefaultConnection: "Server=localhost,1433;Database=FinaraDb;User Id=sa;Password=Finara_CI_2026!;TrustServerCertificate=True;"
+      Jwt__Key: "ci-only-ephemeral-signing-key-not-a-real-secret-32chars+"
+      Notifications__Email__Provider: Mock
+      Notifications__Sms__Provider: Mock
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: "http://localhost:5068"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: 'npm'
+          cache-dependency-path: Frontend/package-lock.json
+
+      - run: dotnet tool install --global dotnet-ef
+      # İki ayrı DbContext var (dotnet ef dbcontext list ile doğrulandı) — ikisinin de
+      # migration'ları uygulanmalı, DataProtectionKeysDbContext'inki olmadan 2FA/Data
+      # Protection anahtar deposu (DataProtectionKeys tablosu) hiç oluşmaz.
+      - name: Migration'ları uygula (MSSQL henüz bağlantı kabul etmiyorsa yeniden dener)
+        run: |
+          for i in $(seq 1 20); do
+            if dotnet ef database update --project Finara.Infrastructure --startup-project Finara.Api --context FinaraDbContext; then
+              echo "FinaraDbContext migration'ları uygulandı."; break
+            fi
+            echo "MSSQL henüz hazır değil, yeniden denenecek... ($i/20)"; sleep 3
+            if [ "$i" -eq 20 ]; then echo "MSSQL 60 saniyede hazır olmadı."; exit 1; fi
+          done
+          dotnet ef database update --project Finara.Api --startup-project Finara.Api --context DataProtectionKeysDbContext
+        working-directory: Backend/Finara
+
+      - name: Backend'i arka planda başlat
+        run: nohup dotnet run --project Finara.Api --no-launch-profile > /tmp/backend.log 2>&1 &
+        working-directory: Backend/Finara
+      - name: Backend'in hazır olmasını bekle
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:5068/health/ready > /dev/null; then
+              echo "Backend hazır."; exit 0
+            fi
+            sleep 2
+          done
+          echo "Backend hazır olmadı, loglar:"; cat /tmp/backend.log; exit 1
+
+      - run: npm ci
+        working-directory: Frontend
+      - run: npx playwright install --with-deps chromium
+        working-directory: Frontend
+      - run: npx playwright test
+        working-directory: Frontend
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: Frontend/playwright-report/
+          retention-days: 7
+
+  # CD: backend+frontend+E2E testleri geçince, sadece main/master'a gerçek bir push'ta
   # (PR'larda DEĞİL — her PR için gereksiz imaj yayınlamamak için) üç Docker imajı da
   # build edilip GitHub Container Registry'ye (ghcr.io, ek bir secret gerektirmiyor —
   # otomatik sağlanan GITHUB_TOKEN yeterli) gönderiliyor. Gerçek bir dağıtım hedefi
@@ -62,7 +141,7 @@ jobs:
   # PRODUCTION.md'deki ortam değişkeni listesi, deploy adımının o container'lara
   # sağlaması gereken sırlar).
   docker:
-    needs: [backend, frontend]
+    needs: [backend, frontend, e2e]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
