@@ -13,7 +13,7 @@
       >
         <i class="pi pi-cog"></i> {{ 'nav.management' | translate }} <i class="pi pi-chevron-down app-shell-nav-caret"></i>
       </button>
-      <p-menu #managementMenu [model]="managementMenuItems" [popup]="true" />
+      <p-menu #managementMenu [model]="managementMenuItems()" [popup]="true" />
     </nav>
   </ng-template>
   <ng-template #end>
@@ -33,7 +33,7 @@
         text
         (onClick)="userMenu.toggle($event)"
       />
-      <p-menu #userMenu [model]="userMenuItems" [popup]="true" />
+      <p-menu #userMenu [model]="userMenuItems()" [popup]="true" />
     </div>
   </ng-template>
 </p-menubar>

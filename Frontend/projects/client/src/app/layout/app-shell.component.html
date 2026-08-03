@@ -27,7 +27,7 @@
         text
         (onClick)="userMenu.toggle($event)"
       />
-      <p-menu #userMenu [model]="userMenuItems" [popup]="true" />
+      <p-menu #userMenu [model]="userMenuItems()" [popup]="true" />
     </div>
   </ng-template>
 </p-menubar>
