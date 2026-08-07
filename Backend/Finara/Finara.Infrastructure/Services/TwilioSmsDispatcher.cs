@@ -54,10 +54,15 @@ public class TwilioSmsDispatcher(FinaraDbContext dbContext, IConsentGate consent
 
         try
         {
-            await RetryPolicy.ExecuteAsync(() => MessageResource.CreateAsync(
+            // SmtpEmailDispatcher'daki aynı desen — cancellationToken önceden ExecuteAsync'e hiç
+            // verilmiyordu (denetimde bulundu), bu yüzden istek iptal edilse bile Polly deneme
+            // arası bekleme sürelerinde iptali fark etmiyor, gereksiz yeniden denemelere devam
+            // ediyordu. Twilio SDK'nın kendisi CreateAsync'e bir token almasa da (delegate içinde
+            // kullanılmıyor), Polly'nin bu overload'ı token'ı denemeler ARASINDA kontrol ediyor.
+            await RetryPolicy.ExecuteAsync(_ => MessageResource.CreateAsync(
                 body: message,
                 from: new PhoneNumber(_options.FromNumber),
-                to: new PhoneNumber(phoneNumber)));
+                to: new PhoneNumber(phoneNumber)), cancellationToken);
 
             return new NotificationDispatchResult(true, null);
         }

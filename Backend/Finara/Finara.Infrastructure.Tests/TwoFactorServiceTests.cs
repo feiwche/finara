@@ -39,7 +39,7 @@ public class TwoFactorServiceTests : AuthServiceTestBase
     }
 
     [Fact]
-    public async Task ConfirmSetupAsync_GecerliKodla_EtkinlestirirVeDogruKoduKabulEder()
+    public async Task ConfirmSetupAsync_GecerliKodla_Etkinlestirir()
     {
         var user = CreateUser();
         var setup = await TwoFactorService.BeginSetupAsync(user.Id);
@@ -47,8 +47,26 @@ public class TwoFactorServiceTests : AuthServiceTestBase
 
         await TwoFactorService.ConfirmSetupAsync(user.Id, code);
 
-        var again = await TwoFactorService.VerifyCodeAsync(await ReloadUserAsync(user.Id), code);
-        again.Should().BeTrue();
+        var reloaded = await ReloadUserAsync(user.Id);
+        reloaded.TwoFactorEnabled.Should().BeTrue();
+    }
+
+    // Denetimde bulunan bug: TOTP replay koruması yoktu — aynı kod, ±1 adımlık tolerans
+    // penceresi içinde tekrar tekrar gönderilip kabul edilebiliyordu (ör. ağdan yakalanmış
+    // bir kodun kısa sürede tekrar kullanılması). ConfirmSetupAsync zaten VerifyCodeAsync'i
+    // içeride bir kez çağırıp o zaman adımını "kullanıldı" işaretlediği için, AYNI kod
+    // ikinci kez gönderildiğinde artık reddedilmesi gerekiyor.
+    [Fact]
+    public async Task VerifyCodeAsync_AyniKodIkinciKezGonderilirse_ReplayOlarakReddedilir()
+    {
+        var user = CreateUser();
+        var setup = await TwoFactorService.BeginSetupAsync(user.Id);
+        var code = new Totp(Base32Encoding.ToBytes(setup.Secret)).ComputeTotp();
+        await TwoFactorService.ConfirmSetupAsync(user.Id, code);
+
+        var replayed = await TwoFactorService.VerifyCodeAsync(await ReloadUserAsync(user.Id), code);
+
+        replayed.Should().BeFalse();
     }
 
     [Fact]
@@ -75,9 +93,14 @@ public class TwoFactorServiceTests : AuthServiceTestBase
     {
         var user = CreateUser();
         var setup = await TwoFactorService.BeginSetupAsync(user.Id);
-        var code = new Totp(Base32Encoding.ToBytes(setup.Secret)).ComputeTotp();
+        var totp = new Totp(Base32Encoding.ToBytes(setup.Secret));
+        var code = totp.ComputeTotp();
         await TwoFactorService.ConfirmSetupAsync(user.Id, code);
-        var disableCode = new Totp(Base32Encoding.ToBytes(setup.Secret)).ComputeTotp();
+
+        // Replay koruması artık ConfirmSetupAsync'in tükettiği zaman adımının aynısını
+        // reddediyor — burada kullanıcının gerçekte yaptığı gibi (30sn sonra üretilen) FARKLI
+        // bir zaman adımının kodu kullanılıyor, aynı kodun tekrarı değil.
+        var disableCode = totp.ComputeTotp(DateTime.UtcNow.AddSeconds(30));
 
         await TwoFactorService.DisableAsync(user.Id, disableCode);
 

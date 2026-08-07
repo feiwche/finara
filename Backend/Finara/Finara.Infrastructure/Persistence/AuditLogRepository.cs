@@ -34,16 +34,26 @@ public class AuditLogRepository : IAuditLogRepository
 
     public async Task<IReadOnlyList<AuditLog>> GetByCustomerIdAsync(Guid customerId, CancellationToken cancellationToken = default)
     {
+        // Denetimde bulundu: BankId filtresi eksikti — şu an bu metodu çağıran bir endpoint
+        // yok (ölü kod) ama biri ileride bağlarsa BankAdmin/Analyst başka bir bankanın
+        // müşterisinin denetim kayıtlarını customerId'yi tahmin ederek görebilirdi.
+        // GetAllAsync/GetPagedAsync'teki aynı desen: SuperAdmin için @BankId NULL geçilip
+        // koşul devre dışı kalıyor, diğer roller için kendi bankalarına sabitleniyor.
         const string sql = """
             SELECT Id, CustomerId, ActionType, Details, PerformedByUserId, OccurredAtUtc
             FROM AuditLogs
             WHERE CustomerId = @CustomerId
+              AND (@BankId IS NULL OR BankId = @BankId)
             ORDER BY OccurredAtUtc DESC;
             """;
 
         await using var connection = new SqlConnection(_connectionString);
         var rows = await connection.QueryAsync<AuditLog>(
-            new CommandDefinition(sql, new { CustomerId = customerId }, cancellationToken: cancellationToken));
+            new CommandDefinition(sql, new
+            {
+                CustomerId = customerId,
+                BankId = _currentUser.IsSuperAdmin ? (Guid?)null : _currentUser.BankId
+            }, cancellationToken: cancellationToken));
 
         return rows.ToList();
     }

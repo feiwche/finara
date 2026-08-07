@@ -1,4 +1,6 @@
+using System.Reflection;
 using AwesomeAssertions;
+using Finara.Domain.Entities;
 using Finara.Domain.Enums;
 using Xunit;
 
@@ -44,5 +46,59 @@ public class NextBestOfferServiceTests : NextBestOfferServiceTestBase
 
         var offers = await Sut.GetOffersAsync(customer.Id);
         offers!.Single().ConfidenceScore.Should().Be(86);
+    }
+
+    // Denetimde bulunan bug: CampaignOffer.Expire() yazılmıştı ama hiçbir yerden
+    // çağrılmıyordu — bekleyen bir teklif yanıtlanmadığı sürece kampanya o müşteriye
+    // sonsuza dek "zaten bekliyor" sayılıp önerilemiyordu. Bu iki test hem eski (>30 gün)
+    // bir teklifin expire edilip kampanyanın tekrar önerilebilir hale geldiğini, hem de
+    // taze (<30 gün) bir teklifin hâlâ engellemeye devam ettiğini (regresyon koruması)
+    // kanıtlıyor.
+    [Fact]
+    public async Task GenerateOffersAsync_EskiBekleyenTeklifVarsa_ExpireEdipYeniTeklifUretir()
+    {
+        var campaign = CreateActiveCampaign("Fatura Kampanyası", TransactionCategory.Utilities);
+        var customer = CreateCustomerWithSegment(
+            "test@example.com", TransactionCategory.Utilities, SpendingPropensity.HighlyResponsive,
+            recency: 4, frequency: 3, monetary: 5);
+
+        SeedPendingOfferPresentedDaysAgo(campaign, customer, daysAgo: 31);
+
+        var result = await Sut.GenerateOffersAsync(customer.Id, maxOffers: 1);
+
+        result!.OffersCreated.Should().Be(1);
+        var offers = await Sut.GetOffersAsync(customer.Id);
+        offers.Should().HaveCount(2);
+        offers!.Should().ContainSingle(o => o.Response == nameof(OfferResponse.Expired));
+        offers!.Should().ContainSingle(o => o.Response == nameof(OfferResponse.Pending));
+    }
+
+    [Fact]
+    public async Task GenerateOffersAsync_TazeBekleyenTeklifVarsa_TekrarTeklifUretmez()
+    {
+        var campaign = CreateActiveCampaign("Fatura Kampanyası", TransactionCategory.Utilities);
+        var customer = CreateCustomerWithSegment(
+            "test@example.com", TransactionCategory.Utilities, SpendingPropensity.HighlyResponsive,
+            recency: 4, frequency: 3, monetary: 5);
+
+        SeedPendingOfferPresentedDaysAgo(campaign, customer, daysAgo: 5);
+
+        var result = await Sut.GenerateOffersAsync(customer.Id, maxOffers: 1);
+
+        result!.OffersCreated.Should().Be(0);
+        var offers = await Sut.GetOffersAsync(customer.Id);
+        offers.Should().ContainSingle(o => o.Response == nameof(OfferResponse.Pending));
+    }
+
+    // AuthServiceTests.CreateDemoUser'daki aynı desen — private-set bir alanı test amaçlı
+    // geçmişe çekmek için reflection kullanılıyor (Create() bilinçli olarak sadece "şimdi"
+    // sunulmuş teklif üretebiliyor, geçmiş tarihli teklif domain API'sinde yok).
+    private void SeedPendingOfferPresentedDaysAgo(Campaign campaign, Customer customer, int daysAgo)
+    {
+        var offer = CampaignOffer.Create(BankId, campaign.Id, customer.Id, confidenceScore: 50);
+        typeof(CampaignOffer).GetProperty(nameof(CampaignOffer.PresentedAtUtc), BindingFlags.Public | BindingFlags.Instance)!
+            .SetValue(offer, DateTime.UtcNow.AddDays(-daysAgo));
+        DbContext.CampaignOffers.Add(offer);
+        DbContext.SaveChanges();
     }
 }

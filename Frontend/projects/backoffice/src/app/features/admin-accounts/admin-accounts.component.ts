@@ -285,8 +285,14 @@ export class AdminAccountsComponent implements OnInit, OnDestroy {
     return { label: this.translate.instant('adminAccounts.invitationStatus.pending'), severity: 'info' };
   }
 
+  // invitationStatus()'un çevrilmiş (translated) label'ıyla string karşılaştırma yapmak
+  // kırılgandı (denetimde bulundu) — bir çeviri anahtarı yeniden adlandırılır veya bir
+  // dilde iki durumun metni çakışırsa sessizce bozulurdu. Bunun yerine invitationStatus()
+  // ile aynı ham alanlar (acceptedAtUtc/revokedAtUtc/expiresAtUtc) doğrudan kontrol ediliyor.
   isPendingInvitation(invitation: InvitationSummary): boolean {
-    return this.invitationStatus(invitation).label === this.translate.instant('adminAccounts.invitationStatus.pending');
+    if (invitation.acceptedAtUtc || invitation.revokedAtUtc) return false;
+    if (invitation.expiresAtUtc && new Date(invitation.expiresAtUtc) <= new Date()) return false;
+    return true;
   }
 
   private async revokeInvitation(invitation: InvitationSummary): Promise<void> {

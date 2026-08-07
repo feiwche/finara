@@ -35,7 +35,7 @@
   [rows]="20"
   [paginator]="logs().length > 20"
   [globalFilterFields]="['customerName']"
-  [columns]="exportColumns"
+  [columns]="exportColumns()"
   [exportFunction]="exportFn"
   exportFilename="bildirim-kaydi"
   styleClass="p-datatable-sm"

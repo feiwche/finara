@@ -92,7 +92,17 @@ public class TwoFactorService : ITwoFactorService
 
         // ±1 adım (±30sn) tolerans — Google Authenticator'ın kendi varsayılan saat kayması
         // toleransıyla aynı, farklı bir cihaz saatinin birkaç saniye kaymasını tolere eder.
-        var isValid = totp.VerifyTotp(code, out _, new VerificationWindow(1, 1));
-        return Task.FromResult(isValid);
+        var isValid = totp.VerifyTotp(code, out var timeStepMatched, new VerificationWindow(1, 1));
+        if (!isValid)
+            return Task.FromResult(false);
+
+        // Replay koruması (denetimde bulundu, önceden yoktu): aynı zaman adımında daha önce
+        // kabul edilmiş bir kod aynı ±1 adımlık tolerans penceresi içinde tekrar gönderilirse
+        // reddedilir — ağdan yakalanmış bir kodun 30sn içinde tekrar kullanılmasını engeller.
+        if (user.LastUsedTwoFactorStep == timeStepMatched)
+            return Task.FromResult(false);
+
+        user.MarkTwoFactorStepUsed(timeStepMatched);
+        return Task.FromResult(true);
     }
 }

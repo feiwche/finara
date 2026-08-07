@@ -82,7 +82,11 @@ public class AuthServiceTests : AuthServiceTestBase
         var user = CreateUser("user@example.com", "Password123");
         var secret = await EnableTwoFactorAsync(user);
         var login = await Sut.LoginAsync(new LoginRequest("user@example.com", "Password123"));
-        var code = new Totp(Base32Encoding.ToBytes(secret)).ComputeTotp();
+        // EnableTwoFactorAsync (ConfirmSetupAsync üzerinden) o anki zaman adımını zaten
+        // tüketmişti — replay koruması (bkz. TwoFactorService.VerifyCodeAsync) aynı adımın
+        // kodunu ikinci kez reddediyor, bu yüzden burada FARKLI bir adımın (30sn sonrası)
+        // kodu kullanılıyor.
+        var code = new Totp(Base32Encoding.ToBytes(secret)).ComputeTotp(DateTime.UtcNow.AddSeconds(30));
 
         var result = await Sut.VerifyTwoFactorAsync(new VerifyTwoFactorRequest(login.ChallengeToken!, code));
 

@@ -156,13 +156,19 @@ export class AuditLogComponent implements OnInit, OnDestroy {
   protected readonly actionTypeSeverity = auditActionTypeSeverity;
 
   // p-table'ın yerleşik exportCSV()'i için — aksiyon tipi ham İngilizce yerine
-  // Türkçe etikete, tarih okunur bir formata çevriliyor.
-  protected readonly exportColumns = [
-    { field: 'occurredAtUtc', header: this.translate.instant('auditLog.table.date') },
-    { field: 'customerName', header: this.translate.instant('auditLog.table.customer') },
-    { field: 'actionType', header: this.translate.instant('auditLog.table.action') },
-    { field: 'details', header: this.translate.instant('auditLog.table.detail') }
-  ];
+  // Türkçe etikete, tarih okunur bir formata çevriliyor. customer-list.component.ts'teki
+  // (client) aynı desen: langTick() ile gated computed() — düz bir dizi olsaydı dil
+  // ayarlardan değiştirildiğinde başlıklar sayfa yenilenene kadar eski dilde donup
+  // kalırdı (denetimde bulundu — client'ta doğru yapılmış, burada unutulmuştu).
+  protected readonly exportColumns = computed(() => {
+    this.langTick();
+    return [
+      { field: 'occurredAtUtc', header: this.translate.instant('auditLog.table.date') },
+      { field: 'customerName', header: this.translate.instant('auditLog.table.customer') },
+      { field: 'actionType', header: this.translate.instant('auditLog.table.action') },
+      { field: 'details', header: this.translate.instant('auditLog.table.detail') }
+    ];
+  });
 
   protected exportFn = (event: { data: unknown; field: string }): string => {
     if (event.data == null) return '';

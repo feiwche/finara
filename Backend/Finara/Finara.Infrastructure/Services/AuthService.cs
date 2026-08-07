@@ -115,17 +115,25 @@ public class AuthService(
     public async Task<AuthResult> RefreshAsync(RefreshRequest request, CancellationToken cancellationToken = default)
     {
         var tokenHash = RefreshTokenHasher.Hash(request.RefreshToken);
-        var existing = await dbContext.RefreshTokens.FirstOrDefaultAsync(t => t.Token == tokenHash, cancellationToken);
-        if (existing is null || !existing.IsActive)
+        var now = DateTime.UtcNow;
+
+        // ResetPasswordAsync/AcceptInvitationAsync'teki TOCTOU önleyici desenin birebir
+        // aynısı — önce oku, sonra ayrı bir SaveChanges ile iptal etmek (eski hâli) aynı
+        // refresh token'la eşzamanlı gelen iki isteğin ikisinin de IsActive=true görüp
+        // ikisinin de yeni bir token çifti üretebilmesine yol açıyordu (kanıtlandı, hiçbir
+        // concurrency token yoktu). Rotasyonun "çalınmış token tekrar kullanılamaz"
+        // garantisi ancak "hâlâ aktif mi" kontrolü ile "iptal edildi" işaretlemesi tek bir
+        // atomik UPDATE'te birleşince gerçek oluyor — sadece rowsAffected=1 olan istek
+        // devam eder, diğeri 401 alır.
+        var rowsAffected = await dbContext.Database.ExecuteSqlInterpolatedAsync(
+            $"UPDATE RefreshTokens SET RevokedAtUtc = {now} WHERE Token = {tokenHash} AND RevokedAtUtc IS NULL AND ExpiresAtUtc > {now}",
+            cancellationToken);
+        if (rowsAffected == 0)
             throw new DomainException(ErrorCodes.AuthRefreshTokenInvalid, "Geçersiz veya süresi dolmuş refresh token.", 401);
 
+        var existing = await dbContext.RefreshTokens.AsNoTracking().FirstAsync(t => t.Token == tokenHash, cancellationToken);
         var user = await dbContext.Users.FirstAsync(u => u.Id == existing.UserId, cancellationToken);
 
-        // Rotasyon: eskisini iptal et, yenisini üret — çalınmış bir refresh token'ın
-        // tekrar tekrar kullanılabilmesini engeller.
-        // existing.Revoke() burada henüz kaydedilmiyor — IssueTokensAsync sonundaki
-        // SaveChangesAsync, aynı DbContext'te izlenen bu değişikliği de birlikte yazıyor.
-        existing.Revoke();
         return await IssueTokensAsync(user, cancellationToken);
     }
 

@@ -33,6 +33,12 @@ public class User : BaseEntity
 
     public DateTime? TwoFactorEnabledAtUtc { get; private set; }
 
+    // Bir TOTP kodu doğrulandığında hangi 30sn'lik zaman adımında (timeStepMatched)
+    // kabul edildiğini tutar — aynı kodun (ör. ağdan yakalanmış bir kodun) ±1 adımlık
+    // tolerans penceresi içinde tekrar tekrar gönderilip kabul edilmesini (replay) önlemek
+    // için. Denetimde bulundu: önceden hiçbir replay koruması yoktu.
+    public long? LastUsedTwoFactorStep { get; private set; }
+
     // Dil/bildirim/tarih-biçimi/tablo yoğunluğu gibi kişisel arayüz tercihleri — bkz.
     // UserPreferences'taki JSON-kolon gerekçesi. Asla null değil (Create'te varsayılanla dolduruluyor).
     public UserPreferences Preferences { get; private set; } = new();
@@ -121,6 +127,13 @@ public class User : BaseEntity
         TwoFactorSecretEncrypted = null;
         TwoFactorEnabled = false;
         TwoFactorEnabledAtUtc = null;
+        LastUsedTwoFactorStep = null;
+        MarkUpdated();
+    }
+
+    public void MarkTwoFactorStepUsed(long timeStep)
+    {
+        LastUsedTwoFactorStep = timeStep;
         MarkUpdated();
     }
 

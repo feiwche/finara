@@ -123,14 +123,19 @@ export class NotificationLogComponent implements OnInit, OnDestroy {
   // etikete, "sent" boolean'ı okunur bir duruma çevriliyor. exportFunction sadece
   // {data, field} alıyor (satırın tamamına erişim yok), bu yüzden "Durum" ve
   // "Atlanma Sebebi" tek bir birleşik metin yerine ayrı sütunlar olarak tutuldu.
-  protected readonly exportColumns = [
-    { field: 'sentAtUtc', header: this.translate.instant('notificationLog.table.date') },
-    { field: 'customerName', header: this.translate.instant('notificationLog.table.customer') },
-    { field: 'channel', header: this.translate.instant('notificationLog.table.channel') },
-    { field: 'sent', header: this.translate.instant('notificationLog.table.status') },
-    { field: 'skippedReason', header: this.translate.instant('notificationLog.table.skippedReason') },
-    { field: 'message', header: this.translate.instant('notificationLog.table.message') }
-  ];
+  // channels computed'daki aynı langTick deseni — düz dizi olsaydı dil değişince
+  // başlıklar eski dilde donup kalırdı (denetimde bulundu).
+  protected readonly exportColumns = computed(() => {
+    this.langTick();
+    return [
+      { field: 'sentAtUtc', header: this.translate.instant('notificationLog.table.date') },
+      { field: 'customerName', header: this.translate.instant('notificationLog.table.customer') },
+      { field: 'channel', header: this.translate.instant('notificationLog.table.channel') },
+      { field: 'sent', header: this.translate.instant('notificationLog.table.status') },
+      { field: 'skippedReason', header: this.translate.instant('notificationLog.table.skippedReason') },
+      { field: 'message', header: this.translate.instant('notificationLog.table.message') }
+    ];
+  });
 
   protected exportFn = (event: { data: unknown; field: string }): string => {
     switch (event.field) {

@@ -553,6 +553,9 @@ namespace Finara.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<long?>("LastUsedTwoFactorStep")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime?>("LastWeeklyDigestSentAtUtc")
                         .HasColumnType("datetime2");
 

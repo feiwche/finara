@@ -237,14 +237,19 @@ export class CampaignManagementComponent implements OnInit, OnDestroy {
 
   // p-table'ın yerleşik exportCSV()'i için — enum değerleri ham İngilizce yerine
   // Türkçe etikete çevriliyor (bkz. client/campaign-list.component.ts'teki aynı desen).
-  protected readonly exportColumns = [
-    { field: 'name', header: this.translate.instant('campaigns.table.name') },
-    { field: 'status', header: this.translate.instant('campaigns.table.status') },
-    { field: 'targetCategory', header: this.translate.instant('campaigns.table.targetCategory') },
-    { field: 'targetPropensities', header: this.translate.instant('campaigns.table.targetPropensities') },
-    { field: 'startDateUtc', header: this.translate.instant('campaigns.table.start') },
-    { field: 'endDateUtc', header: this.translate.instant('campaigns.table.end') }
-  ];
+  // categories/propensities computed'larındaki aynı langTick deseni — düz dizi olsaydı
+  // dil değişince başlıklar eski dilde donup kalırdı (denetimde bulundu).
+  protected readonly exportColumns = computed(() => {
+    this.langTick();
+    return [
+      { field: 'name', header: this.translate.instant('campaigns.table.name') },
+      { field: 'status', header: this.translate.instant('campaigns.table.status') },
+      { field: 'targetCategory', header: this.translate.instant('campaigns.table.targetCategory') },
+      { field: 'targetPropensities', header: this.translate.instant('campaigns.table.targetPropensities') },
+      { field: 'startDateUtc', header: this.translate.instant('campaigns.table.start') },
+      { field: 'endDateUtc', header: this.translate.instant('campaigns.table.end') }
+    ];
+  });
 
   protected exportFn = (event: { data: unknown; field: string }): string => {
     if (event.data == null) return '';

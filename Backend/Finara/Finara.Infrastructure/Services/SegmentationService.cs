@@ -149,9 +149,18 @@ public class SegmentationService(
 
                 customer.AssignPropensity(propensity);
 
+                // currentUser.UserId null ise bu çağrı SystemCurrentUserContext (otomasyon)
+                // üzerinden geliyor demektir — bu servise (manuel "Yeniden Hesapla" hariç)
+                // başka hiçbir null-UserId'li çağıran yok. Denetim Kaydı ekranında otomasyon
+                // ile manuel işlemleri ayırt edilebilir kılmak için [Otomasyon] etiketleniyor
+                // (SystemCurrentUserContext'teki yorum bunu vaat ediyordu ama kod hiç
+                // yapmıyordu — denetimde bulundu).
+                var details = $"{propensity} / baskın kategori: {dominantCategory}";
+                if (currentUser.UserId is null)
+                    details = $"[Otomasyon] {details}";
+
                 await auditLogRepository.InsertAsync(
-                    AuditLog.Create(customer.BankId, customerId, AuditActionType.SegmentAssigned,
-                        $"{propensity} / baskın kategori: {dominantCategory}", currentUser.UserId),
+                    AuditLog.Create(customer.BankId, customerId, AuditActionType.SegmentAssigned, details, currentUser.UserId),
                     cancellationToken);
             }
         }

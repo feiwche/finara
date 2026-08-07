@@ -11,6 +11,13 @@ namespace Finara.Infrastructure.Services;
 
 public class NextBestOfferService(FinaraDbContext dbContext, IAuditLogRepository auditLogRepository, ICurrentUserContext currentUser) : INextBestOfferService
 {
+    // CampaignOffer.Expire() yazılmıştı ama hiçbir yerden çağrılmıyordu (denetimde
+    // bulundu) — bir müşteri bir teklife hiç yanıt vermezse (accept/decline) o kampanya
+    // bu müşteriye SONSUZA DEK bir daha önerilmiyordu, çünkü aşağıdaki "zaten bekleyen
+    // teklif var" kontrolü Pending durumunu süresiz kabul ediyordu. 30 gün, kampanya
+    // tekliflerinin makul bir "yanıtsız kaldıysa artık geçerliliğini yitirir" penceresi.
+    private const int PendingOfferExpiryDays = 30;
+
     public async Task<GenerateOffersResult?> GenerateOffersAsync(Guid customerId, int maxOffers, CancellationToken cancellationToken = default)
     {
         var customer = await dbContext.Customers.FirstOrDefaultAsync(c => c.Id == customerId, cancellationToken);
@@ -70,11 +77,24 @@ public class NextBestOfferService(FinaraDbContext dbContext, IAuditLogRepository
             .ToListAsync(cancellationToken);
 
         // Aynı kampanya için zaten bekleyen bir teklif varsa tekrar üretme —
-        // arka arkaya çağrılırsa aynı teklif çoğaltılmasın diye.
-        var campaignsWithPendingOffer = await dbContext.CampaignOffers
+        // arka arkaya çağrılırsa aynı teklif çoğaltılmasın diye. Ama önce PendingOfferExpiryDays'i
+        // aşmış bekleyen teklifler expire ediliyor ki müşteri hiç yanıt vermediği bir teklif
+        // yüzünden kampanya sonsuza dek "zaten bekliyor" sayılıp bir daha önerilmesin.
+        var pendingOffers = await dbContext.CampaignOffers
             .Where(o => o.CustomerId == customer.Id && o.Response == OfferResponse.Pending)
-            .Select(o => o.CampaignId)
             .ToListAsync(cancellationToken);
+
+        var pendingExpiryThreshold = referenceUtc.AddDays(-PendingOfferExpiryDays);
+        foreach (var stale in pendingOffers.Where(o => o.PresentedAtUtc < pendingExpiryThreshold))
+            stale.Expire();
+
+        // pendingOffers üzerindeki Response artık yukarıdaki Expire() çağrılarını yansıtıyor
+        // (bellekte, henüz SaveChanges çağrılmadı) — bu yüzden DB'ye tekrar sorulmuyor, aynı
+        // liste bellekte filtreleniyor.
+        var campaignsWithPendingOffer = pendingOffers
+            .Where(o => o.Response == OfferResponse.Pending)
+            .Select(o => o.CampaignId)
+            .ToList();
 
         // Kampanyanın (bu müşteriye özel değil, TÜM müşteriler genelinde) geçmiş kabul/ret
         // geçmişi — NextBestOfferScorer'daki ret-geçmişi cezasına girdi. Sürekli reddedilen
@@ -101,8 +121,17 @@ public class NextBestOfferService(FinaraDbContext dbContext, IAuditLogRepository
         foreach (var (campaign, score) in scoredCampaigns)
         {
             dbContext.CampaignOffers.Add(CampaignOffer.Create(customer.BankId, campaign.Id, customer.Id, score));
+
+            // SegmentationService'teki aynı gerekçe: currentUser.UserId null ise bu çağrı
+            // SystemCurrentUserContext (otomasyon) üzerinden geliyor demektir — [Otomasyon]
+            // etiketi Denetim Kaydı ekranında manuel "Teklif Üret" ile otomatik üretimi
+            // ayırt edilebilir kılıyor.
+            var details = $"{campaign.Name} (güven skoru: {score})";
+            if (currentUser.UserId is null)
+                details = $"[Otomasyon] {details}";
+
             await auditLogRepository.InsertAsync(
-                AuditLog.Create(customer.BankId, customer.Id, AuditActionType.CampaignOfferPresented, $"{campaign.Name} (güven skoru: {score})", currentUser.UserId),
+                AuditLog.Create(customer.BankId, customer.Id, AuditActionType.CampaignOfferPresented, details, currentUser.UserId),
                 cancellationToken);
         }
 
