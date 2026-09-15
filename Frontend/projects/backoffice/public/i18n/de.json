@@ -406,6 +406,10 @@
     "emptyState": "Keine Prüfprotokolleinträge entsprechen den ausgewählten Filtern.",
     "toast": {
       "loadFailed": "Prüfprotokoll konnte nicht geladen werden"
+    },
+    "detail": {
+      "automated": "Automatisiert",
+      "segmentAssigned": "{{propensity}} / dominante Kategorie: {{category}}"
     }
   },
   "bankManagement": {

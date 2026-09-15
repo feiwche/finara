@@ -21,6 +21,7 @@ import {
   Client,
   auditActionTypeLabel,
   auditActionTypeSeverity,
+  auditDetailLabel,
   describeApiError,
   getAuditActionTypeOptions,
   sanitizeCsvField,
@@ -155,6 +156,11 @@ export class AuditLogComponent implements OnInit, OnDestroy {
   protected readonly actionTypeLabel = auditActionTypeLabel;
   protected readonly actionTypeSeverity = auditActionTypeSeverity;
 
+  // Detay alanındaki ham İngilizce enum'ları (Neutral, Travel, BankAdmin, Sms…) kullanıcının
+  // diline çevirir — bkz. audit-detail.util.ts'teki gerekçe. Hem tabloda hem CSV'de aynı
+  // fonksiyon kullanılıyor ki dışa aktarılan dosya ekranla tutarlı olsun.
+  protected readonly detailLabel = auditDetailLabel;
+
   // p-table'ın yerleşik exportCSV()'i için — aksiyon tipi ham İngilizce yerine
   // Türkçe etikete, tarih okunur bir formata çevriliyor. customer-list.component.ts'teki
   // (client) aynı desen: langTick() ile gated computed() — düz bir dizi olsaydı dil
@@ -177,6 +183,8 @@ export class AuditLogComponent implements OnInit, OnDestroy {
         return auditActionTypeLabel(event.data as string);
       case 'occurredAtUtc':
         return new Date(event.data as string).toLocaleString('tr-TR');
+      case 'details':
+        return sanitizeCsvField(auditDetailLabel(event.data as string));
       default:
         return sanitizeCsvField(String(event.data));
     }

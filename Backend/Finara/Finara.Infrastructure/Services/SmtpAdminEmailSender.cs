@@ -71,4 +71,23 @@ public class SmtpAdminEmailSender(IOptions<SmtpOptions> options) : IAdminEmailSe
 
         await RetryPolicy.ExecuteAsync(ct => client.SendMailAsync(mail, ct), cancellationToken);
     }
+
+    public async Task SendAutomationAlertEmailAsync(
+        string toEmail, IReadOnlyList<AutomationAlertJob> jobs, UiLanguage language, CancellationToken cancellationToken = default)
+    {
+        using var client = new SmtpClient(_options.Host, _options.Port)
+        {
+            Credentials = new NetworkCredential(_options.Username, _options.Password),
+            EnableSsl = _options.EnableSsl
+        };
+        using var mail = new MailMessage(
+            _options.FromAddress,
+            toEmail,
+            EmailTemplates.AutomationAlertSubject(language),
+            EmailTemplates.AutomationAlertPlainText(language, jobs));
+        mail.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(
+            EmailTemplates.Wrap(EmailTemplates.AutomationAlertHtmlBody(language, jobs), language), null, "text/html"));
+
+        await RetryPolicy.ExecuteAsync(ct => client.SendMailAsync(mail, ct), cancellationToken);
+    }
 }

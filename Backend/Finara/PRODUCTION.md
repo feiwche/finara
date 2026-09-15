@@ -27,11 +27,24 @@ Ortam değişkeni adlandırması, iç içe JSON anahtarlarını `__` (çift alt 
 
 Bir Key Vault/Secrets Manager entegrasyonu (Azure Key Vault, AWS Secrets Manager vb.) daha sağlam bir çözüm olurdu, ama şu an tek bir dağıtım hedefi (ve tek bir ortam) olmadan bu entegrasyonu eklemek erken bir soyutlama olurdu. Ortam değişkenleri, konteyner tabanlı her dağıtım aracında (Docker, App Service, ECS vb.) zaten yerel olarak desteklenen, ek bağımlılık gerektirmeyen bir asgari standarttır. Gerçek bir üretim hedefi netleştiğinde bu doküman güncellenip bir secrets-manager entegrasyonuna geçilebilir.
 
-## Çoklu-instance dağıtımında bilinen risk
+## Çoklu-instance dağıtımı (Redis ile — ÇÖZÜLDÜ)
 
-Proje şu an tek-instance (tek sunucu/container) varsayımıyla çalışıyor. Bir load balancer arkasına birden fazla instance konulacaksa, aşağıdaki nokta önce ele alınmalı:
+Proje varsayılan olarak tek-instance (tek sunucu/container) çalışır ve bu haliyle hiçbir ek altyapı gerektirmez. Bir load balancer arkasına **birden fazla instance** konulacaksa tek yapılması gereken Redis'i yapılandırmaktır:
 
-- **Hız sınırlama (rate limiting) bellek-içi** — `Program.cs`'teki `AddRateLimiter` yapılandırması `FixedWindowRateLimiter` kullanıyor, sayaçlar her instance'ın kendi belleğinde tutuluyor. İki instance arkasına bir load balancer konursa, gerçek limit (ör. dakikada 100) instance sayısına bölünmüş gibi davranır — kullanıcı fark etmeden daha erken 429 alabilir ya da (round-robin dağılıma göre) daha gevşek bir limitle karşılaşabilir. Gerçek bir çözüm dağıtık bir sayaç deposu (ör. Redis) gerektirir — bu, yeni bir altyapı bağımlılığı eklemek anlamına geldiği için bilinçli olarak ertelendi.
+```
+Redis__ConnectionString=redis-host:6379
+```
+
+Bu değer **boş bırakılırsa** (varsayılan) her şey eskisi gibi süreç içinde çalışır. Doldurulduğunda iki şey birden dağıtık hale gelir:
+
+- **Hız sınırlama sayaçları** — `Program.cs`'teki `AddRateLimiter`, `RedisRateLimiting` (MIT, `cristipufu/aspnetcore-redis-rate-limiting`) üzerinden `RedisFixedWindowRateLimiter` kullanır. Süreç-içi sayaçla çalışıldığında 3 instance'lık bir dağıtımda gerçek limit 3 katına çıkıyordu (her instance kendi kotasını sayıyordu); artık sayaç tüm instance'lar için ortak.
+- **SignalR yayınları** — `Microsoft.AspNetCore.SignalR.StackExchangeRedis` backplane'i devreye girer; aksi halde bir instance'ın ürettiği "kampanya güncellendi"/"teklif dağıtıldı" olayı yalnızca o instance'a bağlı tarayıcılara ulaşırdı.
+
+Bağlantı **bilerek açılışta (eagerly) kurulur**: Redis yapılandırmak bilinçli bir çoklu-instance kararıdır, erişilemiyorsa sessizce süreç-içi sayaca düşmek "dağıtık limitim var" sanılan ama olmayan sessiz bir açık yaratırdı — bu yüzden uygulama açılışta hata verir.
+
+Yerel denemek için: `docker compose --profile redis up -d` (Redis, `redis` profiline alındı — varsayılan `docker compose up` onu başlatmaz).
+
+**Doğrulama (gerçek, uçtan uca):** Redis konteyneri ayağa kaldırılıp `Redis__ConnectionString=localhost:6379` ile backend başlatıldı; `POST /api/auth/demo-login` 18 kez çağrıldı ve tam olarak beklenen davranış görüldü — ilk 15 istek `200`, sonraki 3 istek `429` (yapılandırılmış limit dakikada 15). Ardından `redis-cli KEYS '*'` ile sayacın gerçekten Redis'te tutulduğu doğrulandı (`rl:fw:{ip:::1}`). Redis'siz (varsayılan) yapılandırmayla da yeniden başlatılıp mevcut davranışın bozulmadığı kontrol edildi.
 
 **Data Protection anahtar deposu artık çoklu-instance güvenli (ÇÖZÜLDÜ).** 2FA sırlarını şifreleyen anahtar halkası önceden `%LOCALAPPDATA%/~/.aspnet` altında tek-makine bazlıydı; artık `Finara.Api/Persistence/DataProtectionKeysDbContext.cs` üzerinden veritabanında (zaten tüm instance'lar arasında paylaşılan tek kaynak — `DataProtectionKeys` tablosu, migration `AddDataProtectionKeys`) tutuluyor. Önceki oturumda bu bir CS1061 derleme hatasıyla çözülemiyordu; **kök neden basitti: `Program.cs`'te `using Microsoft.AspNetCore.DataProtection;` eksikti** — `SetApplicationName`/`PersistKeysToDbContext` gibi `IDataProtectionBuilder` üzerindeki genişletme metotları bu namespace `using` olmadan derleyici tarafından bulunamıyordu (önceki oturumda bu bir FrameworkReference/PackageReference tip çakışması sanılmıştı, değildi). Ayrıca `Microsoft.AspNetCore.DataProtection(.EntityFrameworkCore)` paketleri, kurulu SDK'daki `Microsoft.AspNetCore.App.Ref` (8.0.29) ile aynı patch sürümüne (8.0.29) hizalandı — önceki `8.0.11` pin'i gereksiz bir sürüm sapması yaratıyordu (zararsızdı ama gürültülüydü).
 

@@ -88,14 +88,25 @@
           "builder": "@angular-devkit/build-angular:extract-i18n"
         },
         "test": {
-          "builder": "@angular-devkit/build-angular:jest",
+          "builder": "@angular/build:unit-test",
           "options": {
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
+            "buildTarget": "client:build",
             "tsConfig": "projects/client/tsconfig.spec.json",
-            "include": ["projects/client/src/**/*.spec.ts"]
+            "runner": "vitest",
+            "include": [
+              "projects/client/src/**/*.spec.ts"
+            ],
+            "codeCoverage": true,
+            "codeCoverageReporters": [
+              "text-summary",
+              "lcov",
+              "json-summary"
+            ],
+            "codeCoverageExclude": [
+              "**/api/finara-client.ts",
+              "**/*.spec.ts",
+              "**/environments/**"
+            ]
           }
         }
       }
@@ -185,14 +196,25 @@
           "builder": "@angular-devkit/build-angular:extract-i18n"
         },
         "test": {
-          "builder": "@angular-devkit/build-angular:jest",
+          "builder": "@angular/build:unit-test",
           "options": {
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
+            "buildTarget": "backoffice:build",
             "tsConfig": "projects/backoffice/tsconfig.spec.json",
-            "include": ["projects/backoffice/src/**/*.spec.ts"]
+            "runner": "vitest",
+            "include": [
+              "projects/backoffice/src/**/*.spec.ts"
+            ],
+            "codeCoverage": true,
+            "codeCoverageReporters": [
+              "text-summary",
+              "lcov",
+              "json-summary"
+            ],
+            "codeCoverageExclude": [
+              "**/api/finara-client.ts",
+              "**/*.spec.ts",
+              "**/environments/**"
+            ]
           }
         }
       }
@@ -219,14 +241,25 @@
           "defaultConfiguration": "production"
         },
         "test": {
-          "builder": "@angular-devkit/build-angular:jest",
+          "builder": "@angular/build:unit-test",
           "options": {
+            "buildTarget": "client:build",
             "tsConfig": "projects/shared-ui/tsconfig.spec.json",
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
+            "runner": "vitest",
+            "include": [
+              "projects/shared-ui/src/**/*.spec.ts"
             ],
-            "include": ["projects/shared-ui/src/**/*.spec.ts"]
+            "codeCoverage": true,
+            "codeCoverageReporters": [
+              "text-summary",
+              "lcov",
+              "json-summary"
+            ],
+            "codeCoverageExclude": [
+              "**/api/finara-client.ts",
+              "**/*.spec.ts",
+              "**/environments/**"
+            ]
           }
         }
       }

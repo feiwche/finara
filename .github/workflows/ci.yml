@@ -50,7 +50,30 @@ jobs:
           cache: 'npm'
           cache-dependency-path: Frontend/package-lock.json
       - run: npm ci
-      - run: npm test
+      # Kapsam raporlaması Angular'ın ESKİ (deneysel) `:jest` builder'ıyla TEKNİK OLARAK
+      # imkânsızdı — jest'i sabit argümanlarla çağırıyor, `--coverage` bayrağı yok ve
+      # jest.config dosyasını bilerek yok sayıyordu. Angular 20'nin yeni `@angular/build:unit-test`
+      # builder'ı (runner: vitest) codeCoverage'ı destekliyor, bu yüzden üçüne de açıldı
+      # (bkz. angular.json). NSwag ile üretilen API istemcisi kapsam dışı — backend'deki
+      # EF migration dışlamasıyla aynı "yanıltıcı rakam" gerekçesi.
+      # Projeler tek tek çalıştırılıyor (npm test yerine): kapsam çıktısı hepsi için AYNI
+      # Frontend/coverage klasörüne yazıldığından, her projenin özeti bir sonraki koşu
+      # üzerine yazmadan önce okunmalı.
+      - name: Testler + kapsam özeti
+        run: |
+          echo "## Frontend test kapsamı" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          for project in shared-ui client backoffice; do
+            npx ng test "$project"
+            echo "### $project" >> "$GITHUB_STEP_SUMMARY"
+            node -e "
+              const s = require('./coverage/coverage-summary.json').total;
+              const rows = ['statements','branches','functions','lines']
+                .map(k => \`| \${k} | \${s[k].pct}% (\${s[k].covered}/\${s[k].total}) |\`);
+              console.log(['| Metrik | Kapsam |', '|---|---|', ...rows].join('\n'));
+            " >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+          done
       - run: npm run build
 
   # E2E: gerçek bir backend + MSSQL'e karşı Playwright çalıştırıyor (demo-login gerçek

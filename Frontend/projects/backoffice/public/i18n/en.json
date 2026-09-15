@@ -406,6 +406,10 @@
     "emptyState": "No audit records match the selected filters.",
     "toast": {
       "loadFailed": "Failed to load audit logs"
+    },
+    "detail": {
+      "automated": "Automated",
+      "segmentAssigned": "{{propensity}} / dominant category: {{category}}"
     }
   },
   "bankManagement": {

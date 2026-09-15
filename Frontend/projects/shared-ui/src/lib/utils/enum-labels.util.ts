@@ -21,6 +21,15 @@ function translateEnumValue(namespace: string, value: string, fallbackMap: Recor
   return fallbackMap[value] ?? value;
 }
 
+// Yukarıdaki enum deseninin serbest metin anahtarları için karşılığı — çeviri anahtarı
+// bulunamazsa (ör. anahtar sadece bir app'in i18n dosyalarında tanımlıysa) verilen Türkçe
+// yedeğe düşer. audit-detail.util.ts kullanıyor.
+export function translateOrFallback(key: string, fallback: string, params?: Record<string, unknown>): string {
+  const translated = translateServiceRef?.instant(key, params);
+  if (translated && translated !== key) return translated;
+  return fallback;
+}
+
 // Backend enum'ları (İngilizce, API sözleşmesinin parçası) ile arayüzde gösterilen
 // metin birbirinden ayrılıyor — [(ngModel)]/API çağrıları hep İngilizce değeri kullanır,
 // kullanıcı sadece bu Türkçe karşılıkları görür.

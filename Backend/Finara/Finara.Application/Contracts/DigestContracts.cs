@@ -8,3 +8,8 @@ public record WeeklyDigestStats(
     int NewCustomers,
     int OffersAccepted,
     int OffersDeclined);
+
+// AutomationWatchdogService'in gecikmiş bir otomasyon için gönderdiği alarm e-postasında
+// her bir iş satırı. LastSuccessUtc null ise o iş uygulama başladığından beri hiç başarıyla
+// tamamlanmamış demektir.
+public record AutomationAlertJob(string JobName, DateTime? LastSuccessUtc);

@@ -11,5 +11,21 @@ services:
     volumes:
       - finara-mssql-data:/var/opt/mssql
 
+  # Yalnızca ÇOKLU-INSTANCE dağıtımda gerekli: istek sınırlama sayaçlarını ve SignalR
+  # yayınlarını instance'lar arasında paylaştırır. `redis` profiliyle gelir, yani
+  # varsayılan `docker compose up` bunu BAŞLATMAZ — tek instance geliştirmede gereksiz.
+  # Başlatmak için: docker compose --profile redis up -d
+  # Ardından Finara.Api'de Redis:ConnectionString = "localhost:6379" ayarlanmalı; boş
+  # bırakılırsa uygulama süreç-içi sayaçlarla (mevcut davranış) çalışmaya devam eder.
+  redis:
+    image: redis:7-alpine
+    container_name: finara-redis
+    profiles: ["redis"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - finara-redis-data:/data
+
 volumes:
   finara-mssql-data:
+  finara-redis-data:

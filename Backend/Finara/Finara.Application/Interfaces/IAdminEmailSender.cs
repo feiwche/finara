@@ -23,4 +23,10 @@ public interface IAdminEmailSender
     Task SendWeeklyDigestEmailAsync(
         string toEmail, string bankName, WeeklyDigestStats stats, DateTime weekStartUtc, DateTime weekEndUtc, UiLanguage language,
         CancellationToken cancellationToken = default);
+
+    // Arka plan otomasyonları gecikince AutomationWatchdogService tarafından SuperAdmin'lere
+    // gönderilir. /health/automation ucu zaten vardı ama onu yoklayan bir şey yoktu —
+    // otomasyon sessizce dursa kimse fark etmiyordu (denetimde bulundu).
+    Task SendAutomationAlertEmailAsync(
+        string toEmail, IReadOnlyList<AutomationAlertJob> jobs, UiLanguage language, CancellationToken cancellationToken = default);
 }

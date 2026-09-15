@@ -151,6 +151,95 @@ internal static class EmailTemplates
             """
     };
 
+    public static string AutomationAlertSubject(UiLanguage language) => language switch
+    {
+        UiLanguage.English => "Finara — Automation Alert",
+        UiLanguage.German => "Finara — Automatisierungswarnung",
+        _ => "Finara — Otomasyon Uyarısı"
+    };
+
+    // Gecikmiş bir işin "en son ne zaman başarılı olduğu" satırı — hiç çalışmamışsa
+    // tarih yerine açık bir metin.
+    private static string LastSuccessText(UiLanguage language, DateTime? lastSuccessUtc) => lastSuccessUtc is null
+        ? language switch
+        {
+            UiLanguage.English => "has never completed successfully",
+            UiLanguage.German => "wurde noch nie erfolgreich abgeschlossen",
+            _ => "hiç başarıyla tamamlanmadı"
+        }
+        : language switch
+        {
+            UiLanguage.English => $"last success: {lastSuccessUtc:MM/dd/yyyy HH:mm} UTC",
+            UiLanguage.German => $"letzter Erfolg: {lastSuccessUtc:dd.MM.yyyy HH:mm} UTC",
+            _ => $"son başarılı tur: {lastSuccessUtc:dd.MM.yyyy HH:mm} UTC"
+        };
+
+    public static string AutomationAlertPlainText(UiLanguage language, IReadOnlyList<AutomationAlertJob> jobs)
+    {
+        var lines = string.Join("\n", jobs.Select(j => $"- {j.JobName}: {LastSuccessText(language, j.LastSuccessUtc)}"));
+        return language switch
+        {
+            UiLanguage.English => $"""
+                Hello,
+
+                The following Finara background automations are overdue:
+
+                {lines}
+
+                This means segmentation and/or offer generation may have silently stopped. Please check the API logs and the /health/automation endpoint.
+                """,
+            UiLanguage.German => $"""
+                Hallo,
+
+                Die folgenden Finara-Hintergrundautomatisierungen sind überfällig:
+
+                {lines}
+
+                Das bedeutet, dass die Segmentierung und/oder Angebotserstellung möglicherweise stillschweigend gestoppt wurde. Bitte prüfen Sie die API-Logs und den Endpunkt /health/automation.
+                """,
+            _ => $"""
+                Merhaba,
+
+                Aşağıdaki Finara arka plan otomasyonları gecikmiş durumda:
+
+                {lines}
+
+                Bu, segmentasyon ve/veya teklif üretiminin sessizce durmuş olabileceği anlamına gelir. Lütfen API loglarını ve /health/automation ucunu kontrol edin.
+                """
+        };
+    }
+
+    public static string AutomationAlertHtmlBody(UiLanguage language, IReadOnlyList<AutomationAlertJob> jobs)
+    {
+        var (greeting, intro, footer) = language switch
+        {
+            UiLanguage.English => (
+                "Hello",
+                "The following Finara background automations are <strong>overdue</strong>:",
+                "This means segmentation and/or offer generation may have silently stopped. Please check the API logs and the <code>/health/automation</code> endpoint."),
+            UiLanguage.German => (
+                "Hallo",
+                "Die folgenden Finara-Hintergrundautomatisierungen sind <strong>überfällig</strong>:",
+                "Das bedeutet, dass die Segmentierung und/oder Angebotserstellung möglicherweise stillschweigend gestoppt wurde. Bitte prüfen Sie die API-Logs und den Endpunkt <code>/health/automation</code>."),
+            _ => (
+                "Merhaba",
+                "Aşağıdaki Finara arka plan otomasyonları <strong>gecikmiş</strong> durumda:",
+                "Bu, segmentasyon ve/veya teklif üretiminin sessizce durmuş olabileceği anlamına gelir. Lütfen API loglarını ve <code>/health/automation</code> ucunu kontrol edin.")
+        };
+
+        var rowsHtml = string.Join("\n", jobs.Select(j =>
+            $"""<tr><td style="padding:8px 0;border-bottom:1px solid #DCD6C7;font-weight:600;">{j.JobName}</td><td style="padding:8px 0;border-bottom:1px solid #DCD6C7;text-align:right;color:#4A5C53;">{LastSuccessText(language, j.LastSuccessUtc)}</td></tr>"""));
+
+        return $"""
+            <p>{greeting},</p>
+            <p>{intro}</p>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0;border-collapse:collapse;">
+              {rowsHtml}
+            </table>
+            <p style="color:#4A5C53;font-size:13px;">{footer}</p>
+            """;
+    }
+
     public static string WeeklyDigestSubject(UiLanguage language, string bankName, DateTime weekStartUtc, DateTime weekEndUtc) => language switch
     {
         UiLanguage.English => $"Finara — {bankName} Weekly Summary ({weekStartUtc:MM/dd} - {weekEndUtc:MM/dd})",

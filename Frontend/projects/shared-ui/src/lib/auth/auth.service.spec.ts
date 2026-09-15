@@ -1,3 +1,4 @@
+import { Mocked, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { PLATFORM_ID } from '@angular/core';
 import { of } from 'rxjs';
@@ -22,23 +23,23 @@ function fakeJwt(claims: Record<string, unknown>): string {
 }
 
 describe('AuthService', () => {
-  let client: jest.Mocked<Pick<Client,
+  let client: Mocked<Pick<Client,
     'login' | 'demoLogin' | 'verify2fa' | 'me' | 'setup' | 'confirm' | 'disable' | 'revoke' | 'revokeAll' | 'refresh'>>;
   let service: AuthService;
 
   beforeEach(() => {
     localStorage.clear();
     client = {
-      login: jest.fn(),
-      demoLogin: jest.fn(),
-      verify2fa: jest.fn(),
-      me: jest.fn(),
-      setup: jest.fn(),
-      confirm: jest.fn(),
-      disable: jest.fn(),
-      revoke: jest.fn(),
-      revokeAll: jest.fn(),
-      refresh: jest.fn()
+      login: vi.fn(),
+      demoLogin: vi.fn(),
+      verify2fa: vi.fn(),
+      me: vi.fn(),
+      setup: vi.fn(),
+      confirm: vi.fn(),
+      disable: vi.fn(),
+      revoke: vi.fn(),
+      revokeAll: vi.fn(),
+      refresh: vi.fn()
     };
 
     TestBed.configureTestingModule({

@@ -1,3 +1,4 @@
+import { Mock, Mocked, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -8,12 +9,12 @@ import { AuthService } from './auth.service';
 describe('authInterceptor', () => {
   let httpClient: HttpClient;
   let httpMock: HttpTestingController;
-  let authService: jest.Mocked<Pick<AuthService, 'ensureFreshAccessToken'>> & { accessToken: string | null };
-  let router: { navigate: jest.Mock };
+  let authService: Mocked<Pick<AuthService, 'ensureFreshAccessToken'>> & { accessToken: string | null };
+  let router: { navigate: Mock };
 
   beforeEach(() => {
-    authService = { accessToken: null, ensureFreshAccessToken: jest.fn() };
-    router = { navigate: jest.fn() };
+    authService = { accessToken: null, ensureFreshAccessToken: vi.fn() };
+    router = { navigate: vi.fn() };
 
     TestBed.configureTestingModule({
       providers: [

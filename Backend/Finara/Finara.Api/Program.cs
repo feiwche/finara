@@ -1,5 +1,7 @@
 using System.Text;
 using System.Threading.RateLimiting;
+using RedisRateLimiting;
+using StackExchange.Redis;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
@@ -115,6 +117,11 @@ builder.Services.AddHostedService<FinaraAutomationService>();
 builder.Services.Configure<WeeklyDigestOptions>(builder.Configuration.GetSection("WeeklyDigest"));
 builder.Services.AddHostedService<WeeklyDigestService>();
 
+// /health/automation ucunu içeriden düzenli yoklayıp gecikme varsa SuperAdmin'lere alarm
+// e-postası gönderir — o uç vardı ama onu izleyen hiçbir şey yoktu (bkz. AutomationWatchdogService).
+builder.Services.Configure<AutomationWatchdogOptions>(builder.Configuration.GetSection("AutomationWatchdog"));
+builder.Services.AddHostedService<AutomationWatchdogService>();
+
 // Faz 8.2 — Bogus tabanlı mock üretici, BankDataProviderType.Mock anahtarıyla keyed
 // service olarak kayıtlı. IBankDataProviderFactory'yi tüketen kod değişmeden yeni bir
 // enum değeri + yeni bir AddKeyedScoped satırıyla genişletilebiliyor — tam da bunun
@@ -191,7 +198,15 @@ builder.Services.AddScoped<INextBestOfferService, NextBestOfferService>();
 // kaydediliyor, AiChatService ve AiInsightService bunu paylaşıyor — öncesinde
 // AiInsightService her çağrıda kendi client'ını oluşturup hiç Dispose etmiyordu
 // (denetimde bulunan kaynak sızıntısı).
-builder.Services.AddHttpClient("Ollama")
+// KRİTİK (canlı testte bulundu): burada timeout HİÇ ayarlanmamıştı, dolayısıyla
+// HttpClient'ın varsayılan 100 saniyesi geçerliydi. Function-calling akışı (model → tool →
+// model → tool → yanıt) CPU üzerinde çalışan 8B'lik bir modelde bunu rahatça aşıyor ve
+// kullanıcı 100 saniye bekledikten sonra genel bir 500 alıyordu. Timeout artık yapılandırma
+// üzerinden (Ollama:TimeoutSeconds) veriliyor. Polly handler'ları HttpClient.Timeout'un
+// İÇİNDE çalıştığı için bu değer yeniden denemeler dahil toplam bütçedir.
+builder.Services.AddHttpClient("Ollama", client =>
+        client.Timeout = TimeSpan.FromSeconds(
+            builder.Configuration.GetValue<int?>("Ollama:TimeoutSeconds") ?? 300))
     .AddPolicyHandler(BuildHttpRetryPolicy())
     .AddPolicyHandler(BuildHttpCircuitBreakerPolicy());
 
@@ -258,7 +273,29 @@ builder.Services.AddAuthorization(options =>
         policy.RequireRole(nameof(UserRole.SuperAdmin), nameof(UserRole.BankAdmin)));
 });
 
-builder.Services.AddSignalR();
+// Çoklu-instance (yatay ölçekleme) desteği — İSTEĞE BAĞLI: Redis:ConnectionString
+// yapılandırılmamışsa her şey eskisi gibi süreç içinde çalışır (tek instance için doğru
+// ve sıfır altyapı gerektiren davranış). Yapılandırılmışsa hem SignalR yayınları hem de
+// istek sınırlama sayaçları instance'lar arasında paylaşılır.
+//
+// Bağlantı BİLEREK eagerly kuruluyor: Redis'i yapılandırmak bilinçli bir çoklu-instance
+// dağıtım kararıdır, erişilemiyorsa sessizce süreç-içi sayaca düşmek "dağıtık limitim var"
+// sanılan ama gerçekte her instance'ın kendi kotasını saydığı sessiz bir güvenlik açığı
+// yaratırdı — bu yüzden uygulama açılışta hata verir.
+var redisConnectionString = builder.Configuration["Redis:ConnectionString"];
+IConnectionMultiplexer? redis = string.IsNullOrWhiteSpace(redisConnectionString)
+    ? null
+    : ConnectionMultiplexer.Connect(redisConnectionString);
+
+if (redis is not null)
+{
+    builder.Services.AddSingleton(redis);
+    builder.Services.AddSignalR().AddStackExchangeRedis(options => options.ConnectionFactory = _ => Task.FromResult(redis));
+}
+else
+{
+    builder.Services.AddSignalR();
+}
 builder.Services.AddScoped<IRealtimeNotifier, SignalRRealtimeNotifier>();
 
 // Angular dev server'ları buradan erişebilsin diye: client (4200) ve BackOffice (4300).
@@ -321,52 +358,48 @@ builder.Services.AddRateLimiter(options =>
     // (bir istemcinin limiti doldurması diğer herkesi de kilitler). Bulundu ve düzeltildi:
     // denetimde anonim bir istek, başka bir kullanıcının doldurduğu kotadan 429 almıştı.
 
-    // Genel uçlar: istemci başına dakikada 100 istek.
-    options.AddPolicy(RateLimitPolicies.Global, httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: RateLimitPolicies.GetPartitionKey(httpContext),
-            factory: _ => new FixedWindowRateLimiterOptions
+    // Dört politikanın da tek farkı limit değeri — sayaç türü (süreç-içi / Redis destekli)
+    // seçimi tek bir yerde yapılsın diye ortak bir yardımcıya alındı. Redis yapılandırılmamışsa
+    // davranış eskisiyle birebir aynı (süreç-içi FixedWindow).
+    RateLimitPartition<string> Partition(HttpContext httpContext, int permitLimit)
+    {
+        var key = RateLimitPolicies.GetPartitionKey(httpContext);
+        var window = TimeSpan.FromMinutes(1);
+
+        if (redis is null)
+        {
+            return RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 100,
-                Window = TimeSpan.FromMinutes(1),
+                PermitLimit = permitLimit,
+                Window = window,
                 QueueLimit = 0
-            }));
+            });
+        }
+
+        // Çoklu-instance: sayaç Redis'te tutulur, böylece limit TÜM instance'lar için
+        // ortaktır — aksi halde 3 instance'lık bir dağıtımda gerçek limit 3 katına çıkardı.
+        return RedisRateLimitPartition.GetFixedWindowRateLimiter(key, _ => new RedisFixedWindowRateLimiterOptions
+        {
+            PermitLimit = permitLimit,
+            Window = window,
+            ConnectionMultiplexerFactory = () => redis
+        });
+    }
+
+    // Genel uçlar: istemci başına dakikada 100 istek.
+    options.AddPolicy(RateLimitPolicies.Global, httpContext => Partition(httpContext, 100));
 
     // Toplu mock veri üretimi ağır bir işlem (çok sayıda insert) — istemci başına dakikada 5.
-    options.AddPolicy(RateLimitPolicies.MockGeneration, httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: RateLimitPolicies.GetPartitionKey(httpContext),
-            factory: _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 5,
-                Window = TimeSpan.FromMinutes(1),
-                QueueLimit = 0
-            }));
+    options.AddPolicy(RateLimitPolicies.MockGeneration, httpContext => Partition(httpContext, 5));
 
     // 6 haneli kod 1e6 kombinasyon — kaba kuvvete karşı Global'den (100/dk) çok daha sıkı
     // bir limit: istemci başına dakikada 5.
-    options.AddPolicy(RateLimitPolicies.TwoFactorVerify, httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: RateLimitPolicies.GetPartitionKey(httpContext),
-            factory: _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 5,
-                Window = TimeSpan.FromMinutes(1),
-                QueueLimit = 0
-            }));
+    options.AddPolicy(RateLimitPolicies.TwoFactorVerify, httpContext => Partition(httpContext, 5));
 
     // Anonim, herkese açık, token üreten bir uç — kaba kuvvet riski yok (kimlik bilgisi
     // istemiyor) ama paylaşılan demo hesabında gereksiz RefreshToken satırı biriktiren
     // spam'e karşı Global'den (100/dk) daha sıkı: IP başına dakikada 15.
-    options.AddPolicy(RateLimitPolicies.DemoLogin, httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: RateLimitPolicies.GetPartitionKey(httpContext),
-            factory: _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 15,
-                Window = TimeSpan.FromMinutes(1),
-                QueueLimit = 0
-            }));
+    options.AddPolicy(RateLimitPolicies.DemoLogin, httpContext => Partition(httpContext, 15));
 
     options.OnRejected = async (context, cancellationToken) =>
     {

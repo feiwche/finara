@@ -1,5 +1,6 @@
 using Finara.Application.Contracts;
 using Finara.Application.Interfaces;
+using Finara.Domain.Common;
 using Finara.Domain.Entities;
 using Finara.Infrastructure.Ai;
 using Finara.Infrastructure.Persistence;
@@ -52,7 +53,27 @@ public class AiInsightService(FinaraDbContext dbContext, CustomerContextTools to
         ];
 
         var chatOptions = new ChatOptions { Tools = customerTools };
-        var response = await chatClient.GetResponseAsync(effectiveQuestion, chatOptions, cancellationToken);
+
+        // Ollama ayakta değilse ya da yapılandırılmış süre içinde yanıt vermezse, bu ham
+        // altyapı hatası (TaskCanceledException/HttpRequestException) genel bir 500'e
+        // düşüyordu — kullanıcı "Beklenmeyen bir hata oluştu" görüyordu. Artık stabil bir
+        // hata koduyla 503'e çevriliyor, frontend errors.AI_SERVICE_UNAVAILABLE anahtarıyla
+        // kullanıcının kendi dilinde anlamlı bir mesaj gösterebiliyor. İsteğin GERÇEKTEN
+        // iptal edildiği durum (kullanıcı sayfadan ayrıldı) ayrı tutuluyor — o bir hata değil.
+        ChatResponse response;
+        try
+        {
+            response = await chatClient.GetResponseAsync(effectiveQuestion, chatOptions, cancellationToken);
+        }
+        catch (Exception ex) when (ex is TaskCanceledException or TimeoutException or HttpRequestException
+                                   && !cancellationToken.IsCancellationRequested)
+        {
+            throw new DomainException(
+                ErrorCodes.AiServiceUnavailable,
+                "Yapay zekâ servisi şu anda yanıt vermiyor. Lütfen daha sonra tekrar deneyin.",
+                503);
+        }
+
         var answer = response.Text;
 
         var interactionLog = AiInteractionLog.Create(customerId, effectiveQuestion, answer);

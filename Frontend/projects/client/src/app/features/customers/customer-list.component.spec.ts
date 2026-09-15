@@ -1,3 +1,4 @@
+import { Mocked, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { Router } from '@angular/router';
@@ -18,19 +19,19 @@ const translateStub = {
 };
 
 describe('CustomerListComponent', () => {
-  let client: jest.Mocked<Pick<Client, 'customers' | 'paged2' | 'stats' | 'import'>>;
-  let router: jest.Mocked<Pick<Router, 'navigate'>>;
+  let client: Mocked<Pick<Client, 'customers' | 'paged2' | 'stats' | 'import'>>;
+  let router: Mocked<Pick<Router, 'navigate'>>;
   let authService: Partial<AuthService>;
   let component: CustomerListComponent;
 
   beforeEach(() => {
     client = {
-      customers: jest.fn(),
-      paged2: jest.fn(),
-      stats: jest.fn(),
-      import: jest.fn()
+      customers: vi.fn(),
+      paged2: vi.fn(),
+      stats: vi.fn(),
+      import: vi.fn()
     };
-    router = { navigate: jest.fn() };
+    router = { navigate: vi.fn() };
     authService = { canWrite: signal(true), isDemoAccount: signal(false) } as unknown as Partial<AuthService>;
 
     TestBed.configureTestingModule({
@@ -86,7 +87,7 @@ describe('CustomerListComponent', () => {
   it('loadCustomers() hata durumunda toast gösterir ve loading durumunu kapatır', async () => {
     client.paged2.mockReturnValue(throwError(() => new Error('boom')));
     const messageService = TestBed.inject(MessageService);
-    const addSpy = jest.spyOn(messageService, 'add');
+    const addSpy = vi.spyOn(messageService, 'add');
 
     await component.loadCustomers();
 

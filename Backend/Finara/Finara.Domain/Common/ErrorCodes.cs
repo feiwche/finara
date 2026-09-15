@@ -34,6 +34,12 @@ public static class ErrorCodes
     public const string OfferAlreadyResponded = "OFFER_ALREADY_RESPONDED";
     public const string OfferNoActiveSegment = "OFFER_NO_ACTIVE_SEGMENT";
 
+    // Yerel dil modeli (Ollama) zamanında yanıt vermedi ya da hiç ayakta değil. Canlı
+    // testte bulundu: Ollama'nın HttpClient'ında hiç timeout ayarlanmamıştı, .NET'in
+    // varsayılan 100 saniyesine düşüyordu ve function-calling akışı CPU'da bundan uzun
+    // sürdüğü için kullanıcı 100 saniye bekleyip genel bir 500 alıyordu.
+    public const string AiServiceUnavailable = "AI_SERVICE_UNAVAILABLE";
+
     public const string CustomerEmailAlreadyExists = "CUSTOMER_EMAIL_ALREADY_EXISTS";
     public const string CustomerAlreadyErased = "CUSTOMER_ALREADY_ERASED";
     public const string CustomerCsvEmpty = "CUSTOMER_CSV_EMPTY";

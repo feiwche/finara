@@ -32,4 +32,13 @@ public class MockAdminEmailSender(ILogger<MockAdminEmailSender> logger) : IAdmin
             language, toEmail, bankName, weekStartUtc, weekEndUtc, stats.NewCustomers, stats.OffersAccepted, stats.OffersDeclined, stats.ActiveCampaigns);
         return Task.CompletedTask;
     }
+
+    public Task SendAutomationAlertEmailAsync(
+        string toEmail, IReadOnlyList<AutomationAlertJob> jobs, UiLanguage language, CancellationToken cancellationToken = default)
+    {
+        logger.LogWarning(
+            "[Mock] Otomasyon alarm e-postası ({Language}) — Alıcı: {Email}, Gecikmiş işler: {Jobs}",
+            language, toEmail, string.Join(", ", jobs.Select(j => $"{j.JobName} (son: {j.LastSuccessUtc?.ToString("dd.MM.yyyy HH:mm") ?? "hiç"})")));
+        return Task.CompletedTask;
+    }
 }

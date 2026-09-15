@@ -74,7 +74,7 @@
       <td>{{ log.occurredAtUtc | date: 'yyyy-MM-dd HH:mm' }}</td>
       <td>{{ log.customerName ?? '—' }}</td>
       <td><p-tag [value]="actionTypeLabel(log.actionType ?? '')" [severity]="actionTypeSeverity(log.actionType ?? '')" /></td>
-      <td>{{ log.details ?? '—' }}</td>
+      <td>{{ detailLabel(log.details) || '—' }}</td>
     </tr>
   </ng-template>
   <ng-template pTemplate="emptymessage">

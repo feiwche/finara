@@ -17,16 +17,25 @@ public class AutomationHealthCheck(
     // saymamak için makul bir başlangıç toleransı.
     private static readonly DateTime ProcessStartedAtUtc = DateTime.UtcNow;
 
+    // HealthReportEntry.Data içinde gecikmiş iş adlarının virgülle ayrılmış listesini taşıyan
+    // anahtar (bkz. AutomationWatchdogService).
+    public const string DegradedJobsKey = "degradedJobs";
+
     public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
         var data = new Dictionary<string, object>();
         var degraded = new List<string>();
+        var degradedJobNames = new List<string>();
 
         CheckJob("segmentation", automationOptions.Value.Enabled, automationOptions.Value.IntervalMinutes);
         CheckJob("weeklyDigest", digestOptions.Value.Enabled, digestOptions.Value.CheckIntervalMinutes);
 
         if (degraded.Count > 0)
         {
+            // Gecikmiş işlerin ADLARI ayrıca yapısal olarak da veriliyor — AutomationWatchdogService
+            // bu anahtarı okuyup alarm e-postasını kendi diline çevirebiliyor, aşağıdaki
+            // insan-okur açıklama metnini ayrıştırmak zorunda kalmadan.
+            data[DegradedJobsKey] = string.Join(",", degradedJobNames);
             return Task.FromResult(HealthCheckResult.Unhealthy(
                 $"Gecikmiş otomasyon(lar): {string.Join(", ", degraded)}.", data: data));
         }
@@ -52,14 +61,20 @@ public class AutomationHealthCheck(
                 var sinceStart = DateTime.UtcNow - ProcessStartedAtUtc;
                 data[name] = "never run yet";
                 if (sinceStart > staleThreshold)
+                {
                     degraded.Add($"{name} (uygulama başladığından beri {sinceStart.TotalMinutes:0} dk geçti, hiç başarılı tur yok)");
+                    degradedJobNames.Add(name);
+                }
                 return;
             }
 
             var sinceLastSuccess = DateTime.UtcNow - lastSuccess.Value;
             data[name] = lastSuccess.Value;
             if (sinceLastSuccess > staleThreshold)
+            {
                 degraded.Add($"{name} (son başarılı tur {sinceLastSuccess.TotalMinutes:0} dk önce)");
+                degradedJobNames.Add(name);
+            }
         }
     }
 }
