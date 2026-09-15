@@ -80,6 +80,16 @@ public class FinaraAutomationService(
     // "Hiç dağıtılmamış" ölçütü, o teklife ait HİÇ NotificationLog satırı olmaması. Rıza
     // reddi de bir satır yazdığı için (Sent=false, "Atlandı: Rıza verilmemiş") aynı teklif
     // her turda tekrar denenmez — yani rızası olmayan müşteri ileti bombardımanına tutulmaz.
+    //
+    // MÜŞTERİ BAŞINA SINIR (canlı testte bulunan hata): ilk sürüm dağıtılmamış TÜM teklifleri
+    // gönderiyordu. Bir müşterinin MaxOffersPerCustomer kadar (varsayılan 5) bekleyen teklifi
+    // olabildiği için, tek turda aynı kişiye 5 kampanya × 2 kanal = 10 ileti gitti (gerçekten
+    // oldu: 1 saniye içinde 10 kayıt). Bankacılıkta bu hem kabul edilemez bir müşteri deneyimi
+    // hem de ticari ileti mevzuatı açısından risk. İki koruma eklendi:
+    //   1) Tur başına müşteri başına EN FAZLA BİR teklif — hem de güven skoru en yüksek olanı.
+    //      Ürünün kendi "Next-Best-Offer" mantığı zaten budur: en iyi teklifi sun, hepsini değil.
+    //   2) Bekleme süresi — son iletiyi yakın zamanda almış müşteriye yeni teklif gönderilmez,
+    //      aksi halde 30 dakikada bir çalışan otomasyon aynı kişiye sürekli ileti yağdırırdı.
     private async Task DistributeNewOffersAsync(
         AutomationOptions config,
         IServiceScope scope,
@@ -92,15 +102,9 @@ public class FinaraAutomationService(
         if (channels.Length == 0)
             return;
 
-        var undistributedOfferIds = await dbContext.CampaignOffers
-            .Where(o => o.Response == OfferResponse.Pending
-                && !dbContext.NotificationLogs.Any(n => n.CampaignOfferId == o.Id))
-            .OrderBy(o => o.PresentedAtUtc)
-            .Take(Math.Max(1, config.MaxDistributionsPerCycle))
-            .Select(o => new { o.Id, o.CustomerId })
-            .ToListAsync(stoppingToken);
+        var offersToDistribute = await OfferDistributionPlanner.SelectAsync(dbContext, config, stoppingToken);
 
-        if (undistributedOfferIds.Count == 0)
+        if (offersToDistribute.Count == 0)
             return;
 
         var realtimeNotifier = scope.ServiceProvider.GetRequiredService<IRealtimeNotifier>();
@@ -109,7 +113,7 @@ public class FinaraAutomationService(
 
         var sent = 0;
         var skipped = 0;
-        foreach (var offer in undistributedOfferIds)
+        foreach (var offer in offersToDistribute)
         {
             foreach (var channel in channels)
             {
@@ -133,6 +137,6 @@ public class FinaraAutomationService(
 
         logger.LogInformation(
             "Otomatik teklif dağıtımı tamamlandı: {Offers} teklif işlendi, {Sent} gönderildi, {Skipped} atlandı.",
-            undistributedOfferIds.Count, sent, skipped);
+            offersToDistribute.Count, sent, skipped);
     }
 }

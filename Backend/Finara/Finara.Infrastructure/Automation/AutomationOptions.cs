@@ -29,6 +29,13 @@ public class AutomationOptions
 
     // Tek bir turda yapılacak dağıtım denemesi üst sınırı — ilk çalıştırmada birikmiş
     // yüzlerce teklifin aynı anda işlenip turu (ve gerçek bir SMS/e-posta sağlayıcısını)
-    // boğmasını önler; kalanlar bir sonraki turda devam eder.
+    // boğmasını önler; kalanlar bir sonraki turda devam eder. Tur başına MÜŞTERİ sayısı
+    // demektir (müşteri başına en fazla bir teklif gönderiliyor, bkz. FinaraAutomationService).
     public int MaxDistributionsPerCycle { get; set; } = 100;
+
+    // Aynı müşteriye iki ileti arasında geçmesi gereken en az süre. Otomasyon 30 dakikada bir
+    // çalıştığı için bu koruma olmadan aynı kişiye gün içinde onlarca ileti gidebilirdi
+    // (canlı testte bir müşteriye 1 saniyede 10 ileti gittiği görüldü). 0 verilirse bekleme
+    // süresi devre dışı kalır.
+    public int MinHoursBetweenCustomerMessages { get; set; } = 24;
 }
