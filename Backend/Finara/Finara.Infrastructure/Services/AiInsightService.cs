@@ -2,6 +2,7 @@ using Finara.Application.Contracts;
 using Finara.Application.Interfaces;
 using Finara.Domain.Common;
 using Finara.Domain.Entities;
+using Finara.Domain.Enums;
 using Finara.Infrastructure.Ai;
 using Finara.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -24,9 +25,30 @@ namespace Finara.Infrastructure.Services;
 public class AiInsightService(FinaraDbContext dbContext, CustomerContextTools tools, IChatClient chatClient, ICurrentUserContext currentUser)
     : IAiInsightService
 {
-    private const string DefaultQuestion =
-        "Bu müşteri hakkında kısa bir özet çıkar: harcama profili nedir, hangi kampanyayı neden önerirsin? " +
-        "Gerekli bilgileri araçları kullanarak topla, sonra Türkçe ve kısa (en fazla 4-5 cümle) bir yanıt ver.";
+    // Varsayılan soru ve modele verilen context, kullanıcının o an kullandığı arayüz diline
+    // göre üretiliyor — Almanca arayüz kullanan biri Almanca yanıt alır. Önceden soru sabit
+    // "Türkçe yanıt ver" diyordu ve context ham İngilizce enum'lar içeriyordu.
+    private static string DefaultQuestion(UiLanguage language) => language switch
+    {
+        UiLanguage.English =>
+            "Give a short summary of this customer: what is their spending profile, which campaign would you recommend and why? " +
+            "Gather what you need using the tools, then answer in English, briefly (at most 4-5 sentences).",
+        UiLanguage.German =>
+            "Fasse diesen Kunden kurz zusammen: Wie ist sein Ausgabenprofil, welche Kampagne würdest du warum empfehlen? " +
+            "Sammle die nötigen Informationen mit den Werkzeugen und antworte dann auf Deutsch, kurz (höchstens 4-5 Sätze).",
+        _ =>
+            "Bu müşteri hakkında kısa bir özet çıkar: harcama profili nedir, hangi kampanyayı neden önerirsin? " +
+            "Gerekli bilgileri araçları kullanarak topla, sonra Türkçe ve kısa (en fazla 4-5 cümle) bir yanıt ver."
+    };
+
+    // Kullanıcı kendi sorusunu yazdığında da yanıt dilini garanti altına alan ek talimat —
+    // aksi halde model, sorunun yazıldığı dile göre savrulabiliyor.
+    private static string LanguageInstruction(UiLanguage language) => language switch
+    {
+        UiLanguage.English => " Answer in English.",
+        UiLanguage.German => " Antworte auf Deutsch.",
+        _ => " Yanıtı Türkçe ver."
+    };
 
     public async Task<AiInsightResult?> GenerateInsightAsync(Guid customerId, string? question, CancellationToken cancellationToken = default)
     {
@@ -34,20 +56,32 @@ public class AiInsightService(FinaraDbContext dbContext, CustomerContextTools to
         if (customer is null || (!currentUser.IsSuperAdmin && customer.BankId != currentUser.BankId))
             return null;
 
-        var effectiveQuestion = string.IsNullOrWhiteSpace(question) ? DefaultQuestion : question;
+        // Arayüz dili kullanıcının kendi tercihinde tutuluyor (User.Preferences.Language) ve
+        // uygulama açılışta/ayar kaydında arayüzü hep buna göre ayarlıyor — yani bu, kullanıcının
+        // O AN kullandığı dil. Kimlik yoksa (olmaması beklenmez, uç auth'lu) varsayılana düşer.
+        var language = currentUser.UserId is { } userId
+            ? await dbContext.Users.AsNoTracking()
+                .Where(u => u.Id == userId)
+                .Select(u => u.Preferences.Language)
+                .FirstOrDefaultAsync(cancellationToken)
+            : UiLanguage.Turkish;
+
+        var effectiveQuestion = string.IsNullOrWhiteSpace(question)
+            ? DefaultQuestion(language)
+            : question + LanguageInstruction(language);
 
         List<AITool> customerTools =
         [
-            AIFunctionFactory.Create(() => tools.GetCustomerProfile(customerId),
+            AIFunctionFactory.Create(() => tools.GetCustomerProfile(customerId, language),
                 name: "get_customer_profile",
                 description: "Bu müşterinin profilini (yaş, yatırım/SWIFT bayrakları) ve aktif segmentini (RFM skoru, harcama eğilimi, baskın kategori) getirir."),
-            AIFunctionFactory.Create((int days) => tools.GetCustomerTransactions(customerId, days),
+            AIFunctionFactory.Create((int days) => tools.GetCustomerTransactions(customerId, days, language),
                 name: "get_customer_transactions",
                 description: "Bu müşterinin son harcama işlemlerini listeler. days: kaç gün geriye bakılacağı, varsayılan 90."),
-            AIFunctionFactory.Create(() => tools.GetCustomerOffers(customerId),
+            AIFunctionFactory.Create(() => tools.GetCustomerOffers(customerId, language),
                 name: "get_customer_offers",
                 description: "Bu müşteriye daha önce sunulmuş kampanya tekliflerini ve güven skorlarını listeler."),
-            AIFunctionFactory.Create(() => tools.GetActiveCampaigns(),
+            AIFunctionFactory.Create(() => tools.GetActiveCampaigns(language),
                 name: "get_active_campaigns",
                 description: "Şu anda aktif olan tüm kampanyaları listeler."),
         ];
