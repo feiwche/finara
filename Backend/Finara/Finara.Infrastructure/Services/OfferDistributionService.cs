@@ -33,7 +33,7 @@ public class OfferDistributionService(
             .Where(c => c.Id == customerId)
             .Select(c => c.PreferredLanguage)
             .FirstOrDefaultAsync(cancellationToken);
-        var message = CampaignMessageTemplates.OfferDistributionMessage(campaignName, offer.ConfidenceScore, preferredLanguage);
+        var message = CampaignMessageTemplates.OfferDistributionMessage(campaignName, preferredLanguage);
 
         // InAppBanking için rıza takip ediliyor ama gerçek bir dispatcher YOK (bankaya
         // veri geri gönderen bir OUTBOUND entegrasyon gerektiriyor, kapsam dışı — bkz.

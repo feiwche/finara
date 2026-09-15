@@ -9,10 +9,15 @@ namespace Finara.Infrastructure.Services;
 // PreferredLanguage yorumu).
 public static class CampaignMessageTemplates
 {
-    public static string OfferDistributionMessage(string campaignName, double confidenceScore, UiLanguage language) => language switch
+    // Güven skoru BİLEREK bu mesajda YOK: 0-100 arası skor, NextBestOfferScorer'ın bankaya
+    // özel iç metriği — personel BackOffice'te görüyor, müşteriye gitmesinin bir anlamı yok.
+    // Önceden "Güven skoru: %49" olarak müşteriye SMS/e-posta ile gönderiliyordu (denetimde
+    // bulundu); hem iç puanlama mantığını dışarı sızdırıyor hem de düşük bir sayı müşteride
+    // haklı olarak "demek ki bana uygun değil" etkisi yaratıp teklifin kendisini baltalıyordu.
+    public static string OfferDistributionMessage(string campaignName, UiLanguage language) => language switch
     {
-        UiLanguage.English => $"Your {campaignName} offer is waiting for you! Confidence score: {confidenceScore:0}%",
-        UiLanguage.German => $"Ihr {campaignName}-Angebot wartet auf Sie! Vertrauenswert: %{confidenceScore:0}",
-        _ => $"{campaignName} teklifiniz sizi bekliyor! Güven skoru: %{confidenceScore:0}"
+        UiLanguage.English => $"Your {campaignName} offer is waiting for you!",
+        UiLanguage.German => $"Ihr {campaignName}-Angebot wartet auf Sie!",
+        _ => $"{campaignName} teklifiniz sizi bekliyor!"
     };
 }
