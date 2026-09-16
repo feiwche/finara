@@ -157,6 +157,20 @@ public class CustomerServiceTests : CustomerServiceTestBase
         DbContext.CustomerConsents.Single(c => c.CustomerId == customer.Id).IsGranted.Should().BeFalse();
     }
 
+    // RecordTransactionAsync için çapraz-banka testi vardı ama AYNI deseni izleyen
+    // EraseCustomerAsync için yoktu (denetimde bulundu). KVKK silme geri döndürülemez:
+    // yanlış bankanın müşterisine uygulanabilmesi doğrudan bir veri ihlali olurdu.
+    [Fact]
+    public async Task EraseCustomerAsync_ForOtherBankCustomer_ReturnsNullAndDoesNotErase()
+    {
+        var otherBankCustomer = CreateCustomer(email: "other-erase@example.com", bankId: OtherBankId);
+
+        var result = await Sut.EraseCustomerAsync(otherBankCustomer.Id);
+
+        result.Should().BeNull();
+        DbContext.Customers.Single(c => c.Id == otherBankCustomer.Id).IsErased.Should().BeFalse();
+    }
+
     [Fact]
     public async Task ImportCustomersAsync_WithMissingRequiredColumn_Throws()
     {

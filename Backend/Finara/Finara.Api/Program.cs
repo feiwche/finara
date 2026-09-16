@@ -1,4 +1,6 @@
 using System.Text;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Threading.RateLimiting;
 using RedisRateLimiting;
 using StackExchange.Redis;
@@ -70,8 +72,20 @@ static IAsyncPolicy<HttpResponseMessage> BuildHttpCircuitBreakerPolicy() =>
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
+// Dış HTTP bağımlılıkları (Garanti/Ollama) Polly ile yeniden deneme + devre kesici alırken
+// VERİTABANI hiçbir geçici-hata koruması almıyordu (denetimde bulundu) — MSSQL konteyneri
+// kısa süreliğine yeniden başladığında (bakım, OOM, ağ dalgalanması) kullanıcı doğrudan 500
+// alıyor, arka plan otomasyonu ise turu tamamen düşürüyordu. EnableRetryOnFailure, EF Core'un
+// kendi SQL Server execution strategy'si: yalnızca GEÇİCİ olarak sınıflandırılan hataları
+// yeniden dener, mantık hatalarını (constraint ihlali vb.) denemez.
 builder.Services.AddDbContext<FinaraDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), sql =>
+    {
+        sql.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), errorNumbersToAdd: null);
+        // Varsayılan 30sn, tüm müşteri tabanını tarayan otomasyon sorgularında yetersiz
+        // kalabiliyor; raporlama/segmentasyon için daha geniş ama yine de sınırlı bir bütçe.
+        sql.CommandTimeout(60);
+    }));
 
 // Data Protection anahtar halkasının deposu — bkz. DataProtectionKeysDbContext'teki not
 // (neden ayrı bir DbContext, neden bu proje içinde tanımlı).
@@ -269,6 +283,36 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 if (!string.IsNullOrEmpty(accessToken) && context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
                     context.Token = accessToken;
                 return Task.CompletedTask;
+            },
+
+            // Hesap devre dışı bırakıldığında ya da oturumları zorla sonlandırıldığında
+            // yalnızca refresh token'lar iptal ediliyordu; JWT stateless olduğu için
+            // ELİNDEKİ access token süresi dolana kadar (varsayılan 15 dk) her yere
+            // erişmeye devam edebiliyordu (denetimde bulundu). İçeriden tehdit/ele geçirilmiş
+            // hesap senaryosunda "anında kilitleme" beklentisi karşılanmıyordu.
+            //
+            // Bu kontrol her kimliği doğrulanmış istekte bir birincil-anahtar araması yapıyor
+            // (indeksli, milisaniyenin altı). Maliyeti bilinçli kabul edildi: bankacılıkta
+            // "devre dışı bıraktım ama 15 dakika daha girebiliyor" savunulabilir değil.
+            OnTokenValidated = async context =>
+            {
+                var claim = context.Principal?.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+                    ?? context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (!Guid.TryParse(claim, out var userId))
+                {
+                    context.Fail("Token bir kullanıcı kimliği taşımıyor.");
+                    return;
+                }
+
+                var dbContext = context.HttpContext.RequestServices.GetRequiredService<FinaraDbContext>();
+                var isActive = await dbContext.Users.AsNoTracking()
+                    .Where(u => u.Id == userId)
+                    .Select(u => (bool?)u.IsActive)
+                    .FirstOrDefaultAsync(context.HttpContext.RequestAborted);
+
+                if (isActive != true)
+                    context.Fail("Hesap devre dışı bırakılmış.");
             }
         };
     });
