@@ -29,8 +29,19 @@ public class NextBestOfferService(FinaraDbContext dbContext, IAuditLogRepository
         if (segment is null)
             throw new DomainException(ErrorCodes.OfferNoActiveSegment, "Müşterinin aktif bir segmenti yok — önce POST /api/segmentation/recalculate çalıştırılmalı.");
 
-        var created = await GenerateOffersForCustomerAsync(customer, segment, maxOffers, cancellationToken);
+        // Denetim Kaydı yazımı BİLEREK SaveChangesAsync'ten SONRAYA ertelendi — AuditLogRepository
+        // kendi bağlantısını açıp anında commit ediyor (EF Core'un change tracker'ından bağımsız);
+        // önceden GenerateOffersForCustomerAsync içindeki döngüde hemen yazılıyordu, yani
+        // SaveChangesAsync sonradan başarısız olursa veritabanında hiç gerçekleşmemiş bir
+        // "CampaignOfferPresented" olayını iddia eden kalıcı bir Denetim Kaydı kalıyordu
+        // (denetimde bulundu).
+        var pendingAuditLogs = new List<AuditLog>();
+        var created = await GenerateOffersForCustomerAsync(customer, segment, maxOffers, pendingAuditLogs, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        foreach (var auditLog in pendingAuditLogs)
+            await auditLogRepository.InsertAsync(auditLog, cancellationToken);
+
         return new GenerateOffersResult(created);
     }
 
@@ -52,20 +63,29 @@ public class NextBestOfferService(FinaraDbContext dbContext, IAuditLogRepository
             .Where(c => customerIds.Contains(c.Id) && !c.IsErased)
             .ToDictionaryAsync(c => c.Id, cancellationToken);
 
+        // Denetim Kaydı yazımı BİLEREK SaveChangesAsync'ten SONRAYA ertelendi — bkz.
+        // GenerateOffersAsync'teki aynı gerekçe (AuditLogRepository ayrı bağlantıda anında
+        // commit ediyor; asıl teklifler kalıcı olmadan önce yazılan bir denetim kaydı,
+        // SaveChangesAsync başarısız olursa gerçekleşmemiş bir olayı iddia eder).
+        var pendingAuditLogs = new List<AuditLog>();
         var totalCreated = 0;
         foreach (var segment in eligibleSegments)
         {
             if (!customers.TryGetValue(segment.CustomerId, out var customer))
                 continue;
 
-            totalCreated += await GenerateOffersForCustomerAsync(customer, segment, maxOffersPerCustomer, cancellationToken);
+            totalCreated += await GenerateOffersForCustomerAsync(customer, segment, maxOffersPerCustomer, pendingAuditLogs, cancellationToken);
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        foreach (var auditLog in pendingAuditLogs)
+            await auditLogRepository.InsertAsync(auditLog, cancellationToken);
+
         return new GenerateOffersResult(totalCreated);
     }
 
-    private async Task<int> GenerateOffersForCustomerAsync(Customer customer, Segment segment, int maxOffers, CancellationToken cancellationToken)
+    private async Task<int> GenerateOffersForCustomerAsync(Customer customer, Segment segment, int maxOffers, List<AuditLog> pendingAuditLogs, CancellationToken cancellationToken)
     {
         var referenceUtc = DateTime.UtcNow;
         var activeCampaigns = await dbContext.Campaigns
@@ -137,9 +157,7 @@ public class NextBestOfferService(FinaraDbContext dbContext, IAuditLogRepository
             if (currentUser.UserId is null)
                 details = $"[Otomasyon] {details}";
 
-            await auditLogRepository.InsertAsync(
-                AuditLog.Create(customer.BankId, customer.Id, AuditActionType.CampaignOfferPresented, details, currentUser.UserId),
-                cancellationToken);
+            pendingAuditLogs.Add(AuditLog.Create(customer.BankId, customer.Id, AuditActionType.CampaignOfferPresented, details, currentUser.UserId));
         }
 
         return scoredCampaigns.Count;
@@ -179,11 +197,14 @@ public class NextBestOfferService(FinaraDbContext dbContext, IAuditLogRepository
 
         respond(offer);
 
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Denetim Kaydı, asıl yanıt (Accept/Decline) kalıcı olduktan SONRA yazılıyor — bkz.
+        // GenerateOffersAsync'teki aynı gerekçe (denetimde bulundu: önceden SaveChangesAsync'ten
+        // önce yazılıyordu).
         await auditLogRepository.InsertAsync(
             AuditLog.Create(offer.BankId, customerId, actionType, offer.Campaign?.Name ?? string.Empty, currentUser.UserId),
             cancellationToken);
-
-        await dbContext.SaveChangesAsync(cancellationToken);
 
         return new OfferSummary(offer.Id, offer.CampaignId, offer.Campaign?.Name ?? string.Empty, offer.CustomerId, offer.ConfidenceScore, offer.Response.ToString(), offer.PresentedAtUtc);
     }

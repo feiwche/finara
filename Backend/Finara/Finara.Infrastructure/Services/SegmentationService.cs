@@ -26,6 +26,14 @@ public class SegmentationService(
         var referenceUtc = DateTime.UtcNow;
         var lookbackStart = referenceUtc - LookbackWindow;
 
+        // Denetim Kaydı yazımı BİLEREK SaveChangesAsync'ten SONRAYA ertelendi (metodun sonunda)
+        // — AuditLogRepository kendi bağlantısını açıp anında commit ediyor (EF Core'un change
+        // tracker'ından bağımsız); önceden aşağıdaki döngü içinde hemen yazılıyordu, yani
+        // SaveChangesAsync döngü bittikten sonra başarısız olursa (DB kopması, eşzamanlılık
+        // çakışması vb.) veritabanında hiç gerçekleşmemiş bir "SegmentAssigned" olayını iddia
+        // eden kalıcı bir Denetim Kaydı kalıyordu (denetimde bulundu).
+        var pendingAuditLogs = new List<AuditLog>();
+
         // SuperAdmin tüm bankalar için yeniden hesaplar, BankAdmin sadece kendi bankası için.
         var transactionsQuery = dbContext.Transactions.AsQueryable();
         // KVKK unutulma hakkıyla anonimleştirilmiş (IsErased) müşteriler yeniden
@@ -185,13 +193,14 @@ public class SegmentationService(
                 if (currentUser.UserId is null)
                     details = $"[Otomasyon] {details}";
 
-                await auditLogRepository.InsertAsync(
-                    AuditLog.Create(customer.BankId, customerId, AuditActionType.SegmentAssigned, details, currentUser.UserId),
-                    cancellationToken);
+                pendingAuditLogs.Add(AuditLog.Create(customer.BankId, customerId, AuditActionType.SegmentAssigned, details, currentUser.UserId));
             }
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        foreach (var auditLog in pendingAuditLogs)
+            await auditLogRepository.InsertAsync(auditLog, cancellationToken);
 
         return new RecalculateSegmentsResult(activeCustomerIds.Count, totalCustomers - activeCustomerIds.Count);
     }

@@ -65,14 +65,17 @@ public class ConsentService(FinaraDbContext dbContext, IAuditLogRepository audit
             consent.Revoke();
         }
 
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Denetim Kaydı, rıza değişikliği kalıcı olduktan SONRA yazılıyor — bkz.
+        // NextBestOfferService/SegmentationService'teki aynı gerekçe (denetimde bulundu:
+        // önceden SaveChangesAsync'ten önce yazılıyordu).
         await auditLogRepository.InsertAsync(
             AuditLog.Create(
                 customer.BankId, customerId,
                 request.IsGranted ? AuditActionType.ConsentGranted : AuditActionType.ConsentRevoked,
                 request.Channel.ToString(), currentUser.UserId),
             cancellationToken);
-
-        await dbContext.SaveChangesAsync(cancellationToken);
 
         return new ConsentSummary(consent.Channel, consent.IsGranted, consent.GrantedAtUtc, consent.RevokedAtUtc);
     }

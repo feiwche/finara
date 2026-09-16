@@ -53,7 +53,11 @@ public class AutomationHealthCheck(
             // Bir turun ne kadar gecikirse "sorunlu" sayılacağı — kendi aralığının 3 katı
             // (ör. 30 dakikalık bir döngü 90 dakikadır hiç başarılı tamamlanmadıysa gerçekten
             // bir şey yanlış demektir, tek bir gecikmiş tur için yanlış alarm vermez).
-            var staleThreshold = TimeSpan.FromMinutes(intervalMinutes * 3);
+            // FinaraAutomationService/WeeklyDigestService gerçek döngü aralığına aynı alt sınırı
+            // uyguluyor (Math.Max(1, ...)) — burada da uygulanmazsa IntervalMinutes yanlışlıkla
+            // 0/negatif girildiğinde staleThreshold da 0/negatif olur ve bu uç HER ZAMAN
+            // "gecikmiş" raporlar (denetimde bulundu: iki yer aynı değeri farklı işliyordu).
+            var staleThreshold = TimeSpan.FromMinutes(Math.Max(1, intervalMinutes) * 3);
             var lastSuccess = tracker.GetLastSuccessUtc(name);
 
             if (lastSuccess is null)

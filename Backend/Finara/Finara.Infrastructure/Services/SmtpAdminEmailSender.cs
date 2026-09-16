@@ -14,7 +14,18 @@ namespace Finara.Infrastructure.Services;
 public class SmtpAdminEmailSender(IOptions<SmtpOptions> options) : IAdminEmailSender
 {
     private readonly SmtpOptions _options = options.Value;
-    private static readonly IAsyncPolicy RetryPolicy = Policy.Handle<SmtpException>().WaitAndRetryAsync(TransientRetry.Delays);
+
+    // YALNIZCA sunucunun mesajı KABUL ETMEDİĞİ kesin olan durumlarda yeniden deniyoruz —
+    // SmtpEmailDispatcher/TwilioSmsDispatcher'daki aynı gerekçe (denetimde bulundu: bu sınıf
+    // önceden her SmtpException'da tekrar deniyordu, yani sunucu mesajı kabul ettikten SONRA
+    // bağlantı düşerse şifre sıfırlama/davet/haftalık özet/otomasyon alarm e-postası müşteriye
+    // İKİNCİ KEZ gidebilirdi).
+    private static readonly IAsyncPolicy RetryPolicy = Policy
+        .Handle<SmtpException>(ex => ex.StatusCode is
+            SmtpStatusCode.ServiceNotAvailable or
+            SmtpStatusCode.MailboxBusy or
+            SmtpStatusCode.InsufficientStorage)
+        .WaitAndRetryAsync(TransientRetry.Delays);
 
     public async Task SendPasswordResetEmailAsync(string toEmail, string resetUrl, UiLanguage language, CancellationToken cancellationToken = default)
     {
