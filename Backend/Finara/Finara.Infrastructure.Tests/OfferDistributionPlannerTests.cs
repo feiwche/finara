@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using System.Reflection;
 using Finara.Domain.Entities;
 using Finara.Domain.Enums;
 using Finara.Infrastructure.Automation;
@@ -128,6 +129,85 @@ public class OfferDistributionPlannerTests : IDisposable
         selected.Should().BeEmpty();
     }
 
+    // Teklif üretilirken kampanyanın aktif olduğu kontrol ediliyor, ama teklif "bekliyor"
+    // durumunda beklerken kampanya durdurulabiliyor — bu bekleyen teklifleri İPTAL ETMİYOR.
+    // Denetimde bulundu: kontrol olmadan, durdurulmuş bir kampanyanın teklifi müşteriye
+    // SMS/e-posta ile gönderiliyordu.
+    [Fact]
+    public async Task Duraklatilmis_kampanyanin_teklifi_secilmez()
+    {
+        var customer = CreateCustomer("duraklatilmis@example.com");
+        var (offer, campaign) = CreateOfferWithCampaign(customer, confidenceScore: 95);
+        campaign.Pause();
+        await dbContext.SaveChangesAsync();
+
+        var selected = await OfferDistributionPlanner.SelectAsync(
+            dbContext, new AutomationOptions { MinHoursBetweenCustomerMessages = 0 });
+
+        selected.Should().BeEmpty();
+        offer.Response.Should().Be(OfferResponse.Pending);
+    }
+
+    [Fact]
+    public async Task Tamamlanmis_kampanyanin_teklifi_secilmez()
+    {
+        var customer = CreateCustomer("tamamlanmis@example.com");
+        var (_, campaign) = CreateOfferWithCampaign(customer, confidenceScore: 95);
+        campaign.Complete();
+        await dbContext.SaveChangesAsync();
+
+        var selected = await OfferDistributionPlanner.SelectAsync(
+            dbContext, new AutomationOptions { MinHoursBetweenCustomerMessages = 0 });
+
+        selected.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Bitis_tarihi_gecmis_kampanyanin_teklifi_secilmez()
+    {
+        var customer = CreateCustomer("suresidolmus@example.com");
+        // Aktifleştirme bitiş tarihi geçmiş kampanyayı reddettiği için önce aktifleştirilip
+        // sonra bitiş tarihi geçmiş gibi kurgulanıyor: gerçekte de kampanya aktifken süresi
+        // dolar, teklif ise "bekliyor" durumunda kalır.
+        var campaign = Campaign.Create(bankId, "Süresi Dolan Kampanya", "Açıklama",
+            DateTime.UtcNow.AddDays(-30), endDateUtc: DateTime.UtcNow.AddHours(1));
+        campaign.Activate();
+        typeof(Campaign).GetProperty(nameof(Campaign.EndDateUtc))!
+            .SetValue(campaign, DateTime.UtcNow.AddDays(-1));
+        dbContext.Campaigns.Add(campaign);
+        dbContext.CampaignOffers.Add(CampaignOffer.Create(bankId, campaign.Id, customer.Id, 95));
+        await dbContext.SaveChangesAsync();
+
+        var selected = await OfferDistributionPlanner.SelectAsync(
+            dbContext, new AutomationOptions { MinHoursBetweenCustomerMessages = 0 });
+
+        selected.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Aktif_kampanyanin_teklifi_secilir()
+    {
+        var customer = CreateCustomer("aktif@example.com");
+        var (offer, _) = CreateOfferWithCampaign(customer, confidenceScore: 95);
+        await dbContext.SaveChangesAsync();
+
+        var selected = await OfferDistributionPlanner.SelectAsync(
+            dbContext, new AutomationOptions { MinHoursBetweenCustomerMessages = 0 });
+
+        selected.Should().ContainSingle();
+        selected[0].Id.Should().Be(offer.Id);
+    }
+
+    private (CampaignOffer Offer, Campaign Campaign) CreateOfferWithCampaign(Customer customer, double confidenceScore)
+    {
+        var campaign = Campaign.Create(bankId, $"Kampanya {Guid.NewGuid():N}", "Açıklama", DateTime.UtcNow);
+        campaign.Activate();
+        dbContext.Campaigns.Add(campaign);
+        var offer = CampaignOffer.Create(bankId, campaign.Id, customer.Id, confidenceScore);
+        dbContext.CampaignOffers.Add(offer);
+        return (offer, campaign);
+    }
+
     private Customer CreateCustomer(string email)
     {
         var customer = Customer.Create(bankId, "Test", "Müşteri", email, new DateTime(1990, 1, 1));
@@ -135,14 +215,10 @@ public class OfferDistributionPlannerTests : IDisposable
         return customer;
     }
 
+    // Kampanya AKTİF oluşturuluyor — gerçek akışta da teklifler yalnızca aktif kampanyalar
+    // için üretiliyor (bkz. NextBestOfferService), dolayısıyla varsayılan durum bu olmalı.
     private CampaignOffer CreateCampaignOffer(Customer customer, double confidenceScore)
-    {
-        var campaign = Campaign.Create(bankId, $"Kampanya {Guid.NewGuid():N}", "Açıklama", DateTime.UtcNow);
-        dbContext.Campaigns.Add(campaign);
-        var offer = CampaignOffer.Create(bankId, campaign.Id, customer.Id, confidenceScore);
-        dbContext.CampaignOffers.Add(offer);
-        return offer;
-    }
+        => CreateOfferWithCampaign(customer, confidenceScore).Offer;
 
     public void Dispose()
     {

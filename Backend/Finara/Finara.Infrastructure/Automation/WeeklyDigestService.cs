@@ -83,25 +83,33 @@ public class WeeklyDigestService(
                 continue;
 
             var weekStart = now - digestInterval;
-            var stats = await reportService.GetWeeklyDigestStatsAsync(bankId, weekStart, stoppingToken);
 
             try
             {
+                var stats = await reportService.GetWeeklyDigestStatsAsync(bankId, weekStart, stoppingToken);
                 await emailSender.SendWeeklyDigestEmailAsync(user.Email, bankName, stats, weekStart, now, user.Preferences.Language, stoppingToken);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 // Bir kullanıcının e-postası başarısız olsa bile diğerlerini engellemesin —
                 // ForgotPasswordAsync'teki yutma deseniyle aynı gerekçe (loglanıp geçiliyor).
+                // İstatistik sorgusu da bu kapsamda: önceden try'ın DIŞINDAYDI, oradan gelen
+                // bir hata tüm turu düşürüp aşağıdaki kayıt işlemini de engelliyordu.
                 logger.LogWarning(ex, "Haftalık özet e-postası gönderilemedi (kullanıcı: {UserId})", user.Id);
                 continue;
             }
 
+            // E-POSTA GİTTİKTEN HEMEN SONRA kaydediliyor. Önceden MarkDigestSent() sadece
+            // bellekte işaretleniyor, SaveChanges ise döngü BİTİNCE tek seferde çağrılıyordu:
+            // tur ortasında bir hata (ya da süreç yeniden başlatması) olduğunda, e-postası
+            // ZATEN GİTMİŞ kullanıcılar kaydedilmemiş oluyor ve bir sonraki turda İKİNCİ kez
+            // e-posta alıyorlardı (denetimde bulundu). Dispatcher'ların her gönderimden sonra
+            // kendi SaveChanges'ini çağırmasıyla aynı desen.
             user.MarkDigestSent();
+            await dbContext.SaveChangesAsync(stoppingToken);
             sentCount++;
         }
 
-        await dbContext.SaveChangesAsync(stoppingToken);
         logger.LogInformation("Haftalık özet turu tamamlandı: {Sent} e-posta gönderildi.", sentCount);
         healthTracker.RecordSuccess("weeklyDigest");
     }

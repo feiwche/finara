@@ -401,6 +401,12 @@ builder.Services.AddRateLimiter(options =>
     // spam'e karşı Global'den (100/dk) daha sıkı: IP başına dakikada 15.
     options.AddPolicy(RateLimitPolicies.DemoLogin, httpContext => Partition(httpContext, 15));
 
+    // Parola/şifre-sıfırlama uçları (bkz. RateLimitPolicies.SensitiveAuth). DemoLogin ile
+    // aynı ölçek: IP başına dakikada 15. Daha sıkı bir değer (ör. 5) seçilmedi çünkü bu uçlar
+    // kimlik doğrulanmamış olduğundan bölüm anahtarı hep IP oluyor; NAT arkasındaki bir banka
+    // şubesinde aynı IP'yi paylaşan onlarca personel birbirinin kotasını tüketirdi.
+    options.AddPolicy(RateLimitPolicies.SensitiveAuth, httpContext => Partition(httpContext, 15));
+
     options.OnRejected = async (context, cancellationToken) =>
     {
         var correlationId = context.HttpContext.Items.TryGetValue(CorrelationIdMiddleware.HeaderName, out var id) ? id : null;

@@ -27,6 +27,19 @@ public class OfferDistributionService(
 
         var campaignName = offer.Campaign?.Name ?? "Kampanya";
 
+        // Teklif ÜRETİLİRKEN kampanyanın aktif ve süresinin geçmemiş olduğu kontrol ediliyor
+        // ama teklif "bekliyor" durumunda beklerken kampanya duraklatılmış/tamamlanmış/
+        // arşivlenmiş ya da bitiş tarihi geçmiş olabilir (bu durumlar bekleyen teklifleri
+        // iptal etmiyor). Bu kontrol olmadan personel, durdurulmuş bir kampanyayı müşteriye
+        // gönderebiliyordu (denetimde bulundu). Otomasyon tarafında aynı koruma
+        // OfferDistributionPlanner'ın sorgusunda var.
+        //
+        // Hata fırlatmak yerine "atlandı" olarak modelleniyor — rıza reddi ve InAppBanking
+        // ile aynı desen: deneme Bildirim Kaydı'na yazılıyor, personel neden gitmediğini
+        // ekranda görüyor.
+        var campaignDistributable = offer.Campaign is { Status: CampaignStatus.Active } campaign
+            && (campaign.EndDateUtc is null || campaign.EndDateUtc > DateTime.UtcNow);
+
         // Müşterinin KENDİ dil tercihi (Customer.PreferredLanguage) — bankanın personel
         // arayüz diliyle (User.Preferences.Language) karıştırılmıyor, bkz. Customer.cs.
         var preferredLanguage = await dbContext.Customers
@@ -43,16 +56,26 @@ public class OfferDistributionService(
         // denemenin de görünmesi gerekiyor, sadece AuditLog'da kalması tutarsızlık
         // yaratırdı (canlı testte bulundu: InAppBanking denemesi AuditLog'da vardı ama
         // /api/notifications listesinde hiç görünmüyordu).
-        var result = request.Channel == ConsentChannel.InAppBanking
-            ? new NotificationDispatchResult(false, "Bu kanal için henüz bir gönderim entegrasyonu yok.")
-            : await serviceProvider.GetRequiredKeyedService<INotificationDispatcher>(request.Channel)
-                .DispatchAsync(offer.BankId, customerId, message, offer.Id, cancellationToken);
+        // Gönderim hiç denenmeden atlanacaksa sebebi burada belirleniyor. Bu iki durumda
+        // dispatcher hiç çağrılmadığı için NotificationLog satırını da kendimiz yazıyoruz.
+        var skipWithoutDispatch = !campaignDistributable
+            ? "Kampanya artık aktif değil."
+            : request.Channel == ConsentChannel.InAppBanking
+                ? "Bu kanal için henüz bir gönderim entegrasyonu yok."
+                : null;
 
-        if (request.Channel == ConsentChannel.InAppBanking)
+        NotificationDispatchResult result;
+        if (skipWithoutDispatch is not null)
         {
+            result = new NotificationDispatchResult(false, skipWithoutDispatch);
             dbContext.NotificationLogs.Add(NotificationLog.Create(
                 offer.BankId, customerId, request.Channel, message, result.Sent, result.SkippedReason, offer.Id));
             await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        else
+        {
+            result = await serviceProvider.GetRequiredKeyedService<INotificationDispatcher>(request.Channel)
+                .DispatchAsync(offer.BankId, customerId, message, offer.Id, cancellationToken);
         }
 
         var detail = result.Sent ? $"{campaignName} / gönderildi" : $"{campaignName} / atlandı: {result.SkippedReason}";

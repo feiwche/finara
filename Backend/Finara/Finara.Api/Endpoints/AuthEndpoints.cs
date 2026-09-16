@@ -19,8 +19,11 @@ public static class AuthEndpoints
         })
         .Produces(StatusCodes.Status201Created);
 
+        // Parola kaba kuvvetine karşı Global'den (dk'da 100) sıkı bir limit — denetimde
+        // bulundu: 6 haneli 2FA kodu dk'da 5 ile korunurken asıl parola korumasızdı.
         auth.MapPost("/login", async (LoginRequest request, IAuthService service, CancellationToken ct) =>
             Results.Ok(await service.LoginAsync(request, ct)))
+            .RequireRateLimiting(RateLimitPolicies.SensitiveAuth)
             .Produces<LoginResult>();
 
         // Herkese açık "Demo Hesabıyla Gir" butonu — sabit, paylaşılan, salt-okunur Analyst
@@ -125,6 +128,9 @@ public static class AuthEndpoints
             // Hesap var/yok bilgisi sızdırılmıyor — sonuç ne olursa olsun aynı jenerik yanıt.
             return Results.Ok(new ForgotPasswordResult("Bu e-posta adresine kayıtlı bir hesap varsa, şifre sıfırlama bağlantısı gönderildi."));
         })
+        // Sıkı limit: aksi halde tek bir IP'den dakikada 100 sıfırlama e-postası tetiklenip
+        // mağdurun posta kutusu bombalanabilirdi.
+        .RequireRateLimiting(RateLimitPolicies.SensitiveAuth)
         .Produces<ForgotPasswordResult>();
 
         auth.MapPost("/reset-password", async (ResetPasswordRequest request, IAuthService service, CancellationToken ct) =>
@@ -132,6 +138,7 @@ public static class AuthEndpoints
             await service.ResetPasswordAsync(request, ct);
             return Results.NoContent();
         })
+        .RequireRateLimiting(RateLimitPolicies.SensitiveAuth)
         .Produces(StatusCodes.Status204NoContent);
 
         // Path parametresi DEĞİL — davet token'ı base64 (RandomNumberGenerator çıktısı)

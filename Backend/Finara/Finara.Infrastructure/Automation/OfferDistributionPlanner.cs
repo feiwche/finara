@@ -1,4 +1,5 @@
 using Finara.Domain.Entities;
+using Finara.Domain.Enums;
 using Finara.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,10 +17,20 @@ public static class OfferDistributionPlanner
     public static async Task<IReadOnlyList<PlannedOffer>> SelectAsync(
         FinaraDbContext dbContext, AutomationOptions options, CancellationToken cancellationToken = default)
     {
-        var quietPeriodStart = DateTime.UtcNow.AddHours(-Math.Max(0, options.MinHoursBetweenCustomerMessages));
+        var now = DateTime.UtcNow;
+        var quietPeriodStart = now.AddHours(-Math.Max(0, options.MinHoursBetweenCustomerMessages));
 
         var candidates = await dbContext.CampaignOffers
             .Where(o => o.Response == OfferResponse.Pending
+                // Kampanya HÂLÂ dağıtılabilir durumda olmalı. Teklif ÜRETİLİRKEN bu kontrol
+                // yapılıyor ama teklif "bekliyor" durumunda beklerken kampanya duraklatılmış,
+                // tamamlanmış, arşivlenmiş ya da bitiş tarihi geçmiş olabilir — bu durumlar
+                // bekleyen teklifleri iptal etmiyor (bkz. Campaign.Pause/Complete/Archive).
+                // Kontrol olmadan, durdurulmuş bir kampanyanın teklifi müşteriye gönderiliyordu
+                // (denetimde bulundu).
+                && dbContext.Campaigns.Any(c => c.Id == o.CampaignId
+                    && c.Status == CampaignStatus.Active
+                    && (c.EndDateUtc == null || c.EndDateUtc > now))
                 // Bu teklif daha önce hiç dağıtılmamış olmalı. Rıza reddi de bir NotificationLog
                 // satırı yazdığı için, rızası olmayan müşterinin aynı teklifi her turda yeniden
                 // denenmez.
