@@ -53,7 +53,11 @@ public static class CohortEngine
         if (microCohorts.Count > 0)
         {
             var mergedIds = microCohorts.SelectMany(c => c.CustomerIds).ToList();
-            var mergedInputs = inputs.Where(i => mergedIds.Contains(i.CustomerId)).ToList();
+            // Arama için ayrı bir HashSet — List<Guid>.Contains() O(n) olduğu için aşağıdaki
+            // Where O(toplam müşteri × mikro-kohort üyesi) karmaşıklığa düşerdi (denetimde
+            // bulundu). mergedIds'in kendisi Cohort.CustomerIds için sıralı liste olarak kalıyor.
+            var mergedIdsLookup = mergedIds.ToHashSet();
+            var mergedInputs = inputs.Where(i => mergedIdsLookup.Contains(i.CustomerId)).ToList();
 
             cohorts.Add(new Cohort(
                 AgeBracket: null,

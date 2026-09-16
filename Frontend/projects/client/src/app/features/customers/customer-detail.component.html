@@ -53,15 +53,15 @@
     @if (segment(); as s) {
       <p-card [header]="'customers.detail.profile.segmentHeader' | translate" styleClass="panel">
         <div class="rfm-row">
-          <span class="rfm-label">{{ translate.instant('customers.detail.profile.recency', { score: s.recencyScore }) }}</span>
+          <span class="rfm-label">{{ 'customers.detail.profile.recency' | translate: { score: s.recencyScore } }}</span>
           <p-progressbar [value]="(s.recencyScore! / 5) * 100" [showValue]="false" />
         </div>
         <div class="rfm-row">
-          <span class="rfm-label">{{ translate.instant('customers.detail.profile.frequency', { score: s.frequencyScore }) }}</span>
+          <span class="rfm-label">{{ 'customers.detail.profile.frequency' | translate: { score: s.frequencyScore } }}</span>
           <p-progressbar [value]="(s.frequencyScore! / 5) * 100" [showValue]="false" />
         </div>
         <div class="rfm-row">
-          <span class="rfm-label">{{ translate.instant('customers.detail.profile.monetary', { score: s.monetaryScore }) }}</span>
+          <span class="rfm-label">{{ 'customers.detail.profile.monetary' | translate: { score: s.monetaryScore } }}</span>
           <p-progressbar [value]="(s.monetaryScore! / 5) * 100" [showValue]="false" />
         </div>
         <div><strong>{{ 'customers.detail.profile.totalScore' | translate }}</strong> {{ s.totalScore }} / 15</div>

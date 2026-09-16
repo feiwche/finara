@@ -214,7 +214,7 @@
   @if (importResult(); as result) {
     <p-message
       [severity]="(result.errors?.length ?? 0) === 0 ? 'success' : 'warn'"
-      [text]="translate.instant('customers.importResultDialog.summary', { success: result.successCount, total: result.totalRows })"
+      [text]="'customers.importResultDialog.summary' | translate: { success: result.successCount, total: result.totalRows }"
     />
     @if (result.errors && result.errors.length > 0) {
       <div class="import-error-table-wrap">
