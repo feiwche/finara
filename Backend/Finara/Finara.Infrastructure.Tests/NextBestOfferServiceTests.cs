@@ -90,6 +90,28 @@ public class NextBestOfferServiceTests : NextBestOfferServiceTestBase
         offers.Should().ContainSingle(o => o.Response == nameof(OfferResponse.Pending));
     }
 
+    // Diğer servislerde (CustomerService, CampaignService, SegmentationService) bulunan çok-
+    // kiracılı izolasyon hatasının aynısına bu serviste de açık bir yüzey vardı — hiçbir test
+    // ikinci bir banka kullanmıyordu (denetimde bulundu). GenerateOffersForCustomerAsync'in
+    // kampanya sorgusu zaten `c.BankId == customer.BankId` filtresi içeriyor; bu test o
+    // filtrenin GERÇEKTEN çalıştığını kilitliyor.
+    [Fact]
+    public async Task GenerateOffersAsync_DigerBankaninKampanyasi_MusteriyeAslaOnerilmez()
+    {
+        // Diğer bankaya ait kampanya, müşterinin profiliyle MÜKEMMEL eşleşiyor (aynı kategori,
+        // hedef eğilim, yüksek RFM) — banka filtresi olmasaydı kesinlikle önerilirdi.
+        CreateActiveCampaign("Diğer Bankanın Kampanyası", TransactionCategory.Motorcycle, bankId: OtherBankId);
+        var customer = CreateCustomerWithSegment(
+            "test@example.com", TransactionCategory.Motorcycle, SpendingPropensity.HighlyResponsive,
+            recency: 5, frequency: 5, monetary: 5);
+
+        var result = await Sut.GenerateOffersAsync(customer.Id, maxOffers: 5);
+
+        result!.OffersCreated.Should().Be(0);
+        var offers = await Sut.GetOffersAsync(customer.Id);
+        offers.Should().BeEmpty();
+    }
+
     // AuthServiceTests.CreateDemoUser'daki aynı desen — private-set bir alanı test amaçlı
     // geçmişe çekmek için reflection kullanılıyor (Create() bilinçli olarak sadece "şimdi"
     // sunulmuş teklif üretebiliyor, geçmiş tarihli teklif domain API'sinde yok).

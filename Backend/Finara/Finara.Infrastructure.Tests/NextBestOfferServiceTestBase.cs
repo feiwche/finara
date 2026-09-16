@@ -18,6 +18,7 @@ public abstract class NextBestOfferServiceTestBase : IDisposable
     protected IAuditLogRepository AuditLogRepository { get; }
     protected NextBestOfferService Sut { get; }
     protected Guid BankId { get; }
+    protected Guid OtherBankId { get; }
 
     protected NextBestOfferServiceTestBase()
     {
@@ -29,9 +30,11 @@ public abstract class NextBestOfferServiceTestBase : IDisposable
         DbContext.Database.EnsureCreated();
 
         var bank = Bank.Create("Test Bankası", "TST");
-        DbContext.Banks.Add(bank);
+        var otherBank = Bank.Create("Diğer Banka", "OTH");
+        DbContext.Banks.AddRange(bank, otherBank);
         DbContext.SaveChanges();
         BankId = bank.Id;
+        OtherBankId = otherBank.Id;
 
         CurrentUser = Substitute.For<ICurrentUserContext>();
         CurrentUser.IsSuperAdmin.Returns(false);
@@ -51,9 +54,9 @@ public abstract class NextBestOfferServiceTestBase : IDisposable
         return customer;
     }
 
-    protected Campaign CreateActiveCampaign(string name, TransactionCategory targetCategory)
+    protected Campaign CreateActiveCampaign(string name, TransactionCategory targetCategory, Guid? bankId = null)
     {
-        var campaign = Campaign.Create(BankId, name, "Açıklama", DateTime.UtcNow, targetCategory: targetCategory);
+        var campaign = Campaign.Create(bankId ?? BankId, name, "Açıklama", DateTime.UtcNow, targetCategory: targetCategory);
         campaign.Activate();
         DbContext.Campaigns.Add(campaign);
         DbContext.SaveChanges();

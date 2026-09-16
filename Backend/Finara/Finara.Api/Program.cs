@@ -22,6 +22,7 @@ using Finara.Domain.Enums;
 using Finara.Infrastructure.Automation;
 using Finara.Infrastructure.MockData;
 using Finara.Infrastructure.Persistence;
+using Finara.Infrastructure.Security;
 using Finara.Infrastructure.Services;
 using Finara.Domain.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -121,6 +122,7 @@ builder.Services.AddScoped<IReportService, ReportService>();
 // framework'üne bağımlı olmamalı) ama arayüzü (ICurrentUserContext) Application'da.
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserContext, CurrentUserContext>();
+builder.Services.AddScoped<ActiveUserTokenValidator>();
 
 builder.Services.Configure<PayloadGuardOptions>(builder.Configuration.GetSection("PayloadGuard"));
 
@@ -311,13 +313,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     return;
                 }
 
-                var dbContext = context.HttpContext.RequestServices.GetRequiredService<FinaraDbContext>();
-                var isActive = await dbContext.Users.AsNoTracking()
-                    .Where(u => u.Id == userId)
-                    .Select(u => (bool?)u.IsActive)
-                    .FirstOrDefaultAsync(context.HttpContext.RequestAborted);
-
-                if (isActive != true)
+                var validator = context.HttpContext.RequestServices.GetRequiredService<ActiveUserTokenValidator>();
+                if (!await validator.IsUserActiveAsync(userId, context.HttpContext.RequestAborted))
                     context.Fail("Hesap devre dışı bırakılmış.");
             }
         };

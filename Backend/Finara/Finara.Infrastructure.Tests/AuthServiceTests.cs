@@ -12,6 +12,56 @@ namespace Finara.Infrastructure.Tests;
 
 public class AuthServiceTests : AuthServiceTestBase
 {
+    // RegisterAsync gerçek bir güvenlik açığını düzeltmişti (bkz. AuthService'teki yorum):
+    // kontrol eklenmeden önce auth'suz herkes User.Create'in varsayılan rolü (SuperAdmin)
+    // sayesinde tam yetkili bir hesap açabiliyordu. Bu testler o düzeltmeyi kilitliyor.
+    [Fact]
+    public async Task RegisterAsync_UsersTablosuBosken_HesapOlusturur()
+    {
+        await Sut.RegisterAsync(new RegisterRequest("ilk@example.com", "Password123"));
+
+        DbContext.Users.Single().Email.Should().Be("ilk@example.com");
+    }
+
+    [Fact]
+    public async Task RegisterAsync_UsersTablosuBosken_SuperAdminRoluyleOlusturur()
+    {
+        await Sut.RegisterAsync(new RegisterRequest("ilk@example.com", "Password123"));
+
+        DbContext.Users.Single().Role.Should().Be(UserRole.SuperAdmin);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_HerhangiBirKullaniciVarsa_KayitKapaliHatasiFirlatir()
+    {
+        CreateUser("mevcut@example.com");
+
+        var act = () => Sut.RegisterAsync(new RegisterRequest("yeni@example.com", "Password123"));
+
+        var exception = await act.Should().ThrowAsync<DomainException>();
+        exception.Which.Code.Should().Be(ErrorCodes.AuthRegistrationClosed);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_HerhangiBirKullaniciVarsa_IkinciKullaniciEklenmez()
+    {
+        CreateUser("mevcut@example.com");
+
+        var act = () => Sut.RegisterAsync(new RegisterRequest("yeni@example.com", "Password123"));
+
+        await act.Should().ThrowAsync<DomainException>();
+        DbContext.Users.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task RegisterAsync_ZayifSifre_ArgumentExceptionFirlatirVeKullaniciEklenmez()
+    {
+        var act = () => Sut.RegisterAsync(new RegisterRequest("ilk@example.com", "kisa1"));
+
+        await act.Should().ThrowAsync<ArgumentException>();
+        DbContext.Users.Should().BeEmpty();
+    }
+
     [Fact]
     public async Task LoginAsync_GecerliBilgilerle_TokenDoner()
     {
