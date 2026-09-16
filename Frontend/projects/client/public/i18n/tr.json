@@ -160,6 +160,11 @@
       "propensity": "Teşvik Gerekli",
       "campaign": "\"E-Ticaret Puan Kampanyası\" önerilmez (eşik: %30)",
       "why": "Ne kategori ne eğilim eşleşiyor — kural motoru yanlış müşteriye teklif göndermek yerine sessiz kalmayı tercih ediyor."
+    },
+    "rfm": {
+      "recency": "Recency ({{score}}/5)",
+      "frequency": "Frequency ({{score}}/5)",
+      "monetary": "Monetary ({{score}}/5)"
     }
   },
   "securityPage": {

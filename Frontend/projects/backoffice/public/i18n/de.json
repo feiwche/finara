@@ -182,6 +182,11 @@
       "propensity": "Braucht Ansprache",
       "campaign": "Kampagne \"E-Commerce-Punkte\" wird NICHT empfohlen (Schwelle: 30 %)",
       "why": "Weder Kategorie noch Neigung stimmen überein — die Regel-Engine entscheidet sich für Zurückhaltung, statt dem falschen Kunden ein Angebot zu senden."
+    },
+    "rfm": {
+      "recency": "Recency ({{score}}/5)",
+      "frequency": "Frequency ({{score}}/5)",
+      "monetary": "Monetary ({{score}}/5)"
     }
   },
   "securityPage": {

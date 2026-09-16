@@ -160,6 +160,11 @@
       "propensity": "Needs Engagement",
       "campaign": "\"E-Commerce Points Campaign\" is NOT recommended (threshold: 30%)",
       "why": "Neither the category nor the propensity matches — the rule engine chooses to stay silent rather than send an offer to the wrong customer."
+    },
+    "rfm": {
+      "recency": "Recency ({{score}}/5)",
+      "frequency": "Frequency ({{score}}/5)",
+      "monetary": "Monetary ({{score}}/5)"
     }
   },
   "securityPage": {
