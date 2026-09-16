@@ -51,6 +51,10 @@
       "invalidToken": "Geçersiz sıfırlama bağlantısı — e-postanızdaki bağlantıyı tekrar kullanın.",
       "newPasswordRequired": "Yeni şifre zorunlu (en az 8 karakter, harf ve rakam içermeli).",
       "passwordMismatch": "Şifreler eşleşmiyor."
+    },
+    "password": {
+      "tooShort": "Şifre en az 8 karakter olmalı.",
+      "needsLetterAndDigit": "Şifre en az bir harf ve bir rakam içermeli."
     }
   },
   "account": {

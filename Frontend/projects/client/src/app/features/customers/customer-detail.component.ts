@@ -201,8 +201,9 @@ export class CustomerDetailComponent implements OnInit, OnDestroy {
 
   private async loadCustomer(): Promise<void> {
     try {
-      const all = await firstValueFrom(this.client.customersAll());
-      const found = all.find(c => c.id === this.customerId) ?? null;
+      // Önceden TÜM müşteri tablosu çekilip istemcide .find() ile aranıyordu (denetimde
+      // bulundu) — her detay açılışında bütün tablo indiriliyordu. Artık tekil uç var.
+      const found = await firstValueFrom(this.client.customersGET(this.customerId));
       this.customer.set(found);
       if (found) this.titleService.setTitle(`Finara — ${found.firstName} ${found.lastName}`);
     } catch (err) {

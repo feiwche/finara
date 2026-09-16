@@ -133,6 +133,12 @@ builder.Services.AddHostedService<FinaraAutomationService>();
 builder.Services.Configure<WeeklyDigestOptions>(builder.Configuration.GetSection("WeeklyDigest"));
 builder.Services.AddHostedService<WeeklyDigestService>();
 
+// Append-only log tablolarını (AuditLogs/NotificationLogs/AiInteractionLogs) saklama
+// süresine göre budar — bu tablolar hiç temizlenmiyordu ve sınırsız büyüyordu
+// (bkz. LogRetentionService).
+builder.Services.Configure<LogRetentionOptions>(builder.Configuration.GetSection("LogRetention"));
+builder.Services.AddHostedService<LogRetentionService>();
+
 // /health/automation ucunu içeriden düzenli yoklayıp gecikme varsa SuperAdmin'lere alarm
 // e-postası gönderir — o uç vardı ama onu izleyen hiçbir şey yoktu (bkz. AutomationWatchdogService).
 builder.Services.Configure<AutomationWatchdogOptions>(builder.Configuration.GetSection("AutomationWatchdog"));

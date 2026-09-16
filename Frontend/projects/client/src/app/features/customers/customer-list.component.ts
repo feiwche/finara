@@ -255,7 +255,7 @@ export class CustomerListComponent implements OnInit, OnDestroy {
     this.createBusy.set(true);
     try {
       await firstValueFrom(
-        this.client.customers(
+        this.client.customersPOST(
           new CreateCustomerRequest({
             firstName: this.newCustomer.firstName,
             lastName: this.newCustomer.lastName,

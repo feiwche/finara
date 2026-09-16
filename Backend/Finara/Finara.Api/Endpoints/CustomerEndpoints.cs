@@ -24,6 +24,18 @@ public static class CustomerEndpoints
             Results.Ok(await service.GetCustomersAsync(ct)))
             .Produces<IReadOnlyList<CustomerSummary>>();
 
+        // Tekil müşteri — detay ekranı önceden tüm listeyi çekip istemcide filtreliyordu.
+        customers.MapGet("/{customerId:guid}", async (Guid customerId, ICustomerService service, CancellationToken ct) =>
+        {
+            var customer = await service.GetCustomerByIdAsync(customerId, ct);
+            return customer is null
+                ? Results.Problem(statusCode: StatusCodes.Status404NotFound, title: "Müşteri bulunamadı",
+                    detail: $"'{customerId}' kimlikli müşteri bulunamadı.")
+                : Results.Ok(customer);
+        })
+        .Produces<CustomerSummary>()
+        .ProducesProblem(StatusCodes.Status404NotFound);
+
         // Dashboard/segment/teklif hedefleme gibi "tüm müşteriler" gerektiren tüketiciler
         // hâlâ yukarıdaki "/" ucunu kullanıyor (bilinçli olarak dokunulmadı) — bu, Müşteriler
         // ekranının kendi liste tablosu için ayrı, sunucu taraflı sayfalanan bir uç.

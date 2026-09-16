@@ -117,8 +117,15 @@ export class SettingsPageComponent implements OnInit, OnDestroy {
       this.loading.set(false);
     }
 
-    const me = await this.authService.fetchCurrentUser();
-    this.twoFactorEnabled.set(me.twoFactorEnabled ?? false);
+    // Bu çağrı try/catch DIŞINDAYDI (denetimde bulundu): başarısız olursa kullanıcı hiçbir
+    // hata görmüyor, 2FA durumu sessizce güncellenmeden kalıyor ve konsola yakalanmamış bir
+    // promise reddi düşüyordu.
+    try {
+      const me = await this.authService.fetchCurrentUser();
+      this.twoFactorEnabled.set(me.twoFactorEnabled ?? false);
+    } catch (err) {
+      this.messageService.add({ severity: 'error', summary: this.translate.instant('common.error'), detail: describeApiError(err) });
+    }
   }
 
   ngOnDestroy(): void {

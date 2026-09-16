@@ -75,6 +75,10 @@
       "passwordMismatch": "Passwords do not match.",
       "submit": "Create Account",
       "backToLogin": "Back to login"
+    },
+    "password": {
+      "tooShort": "Password must be at least 8 characters.",
+      "needsLetterAndDigit": "Password must contain at least one letter and one digit."
     }
   },
   "account": {

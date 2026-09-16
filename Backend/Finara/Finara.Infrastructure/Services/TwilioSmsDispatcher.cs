@@ -21,8 +21,16 @@ public class TwilioSmsDispatcher(FinaraDbContext dbContext, IConsentGate consent
 {
     private readonly TwilioOptions _options = options.Value;
 
+    // YALNIZCA bağlantı hiç kurulamadığında yeniden deniyoruz. Önceden "namespace'i Twilio ile
+    // başlayan HER hata" yeniden deneniyordu (denetimde bulundu): Twilio mesajı KABUL ETTİKTEN
+    // sonra yanıt gecikirse/5xx dönerse, yeniden deneme aynı SMS'i müşteriye İKİNCİ KEZ
+    // gönderirdi. İdempotency anahtarı olmadığı için bunu ayırt etmenin başka yolu yok.
+    //
+    // Tercih bilinçli: bankacılıkta müşteriye aynı ticari iletiyi iki kez göndermek, bir
+    // iletinin gitmemesinden daha kötü (ticari ileti mevzuatı + müşteri deneyimi). Gönderilmemiş
+    // olan zaten Bildirim Kaydı'na "atlandı" olarak yazılıyor, yani kayıp sessiz değil.
     private static readonly IAsyncPolicy RetryPolicy = Policy
-        .Handle<Exception>(ex => ex.GetType().Namespace?.StartsWith("Twilio") == true)
+        .Handle<Twilio.Exceptions.ApiConnectionException>()
         .WaitAndRetryAsync(TransientRetry.Delays);
 
     public ConsentChannel Channel => ConsentChannel.Sms;

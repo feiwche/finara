@@ -60,7 +60,18 @@ public class SmtpEmailDispatcher(FinaraDbContext dbContext, IConsentGate consent
             mail.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(
                 EmailTemplates.Wrap($"<p>{System.Net.WebUtility.HtmlEncode(message)}</p>"), null, "text/html"));
 
-            var retryPolicy = Policy.Handle<SmtpException>().WaitAndRetryAsync(TransientRetry.Delays);
+            // YALNIZCA sunucunun mesajı KABUL ETMEDİĞİ kesin olan durumlarda yeniden deniyoruz.
+            // Önceden her SmtpException yeniden deneniyordu (denetimde bulundu): sunucu mesajı
+            // kabul ettikten SONRA bağlantı düşerse/zaman aşımına uğrarsa, yeniden deneme aynı
+            // e-postayı müşteriye İKİNCİ KEZ gönderirdi. Aşağıdaki durum kodları (421/450/452)
+            // mesajın işlenmediğini açıkça bildiriyor; GeneralFailure gibi belirsiz olanlar
+            // bilinçli olarak DIŞARIDA — bkz. TwilioSmsDispatcher'daki aynı gerekçe.
+            var retryPolicy = Policy
+                .Handle<SmtpException>(ex => ex.StatusCode is
+                    SmtpStatusCode.ServiceNotAvailable or
+                    SmtpStatusCode.MailboxBusy or
+                    SmtpStatusCode.InsufficientStorage)
+                .WaitAndRetryAsync(TransientRetry.Delays);
             await retryPolicy.ExecuteAsync(ct => client.SendMailAsync(mail, ct), cancellationToken);
             return new NotificationDispatchResult(true, null);
         }

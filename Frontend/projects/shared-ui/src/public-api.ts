@@ -9,6 +9,7 @@ export * from './lib/utils/enum-labels.util';
 export * from './lib/utils/date.util';
 export * from './lib/utils/api-error.util';
 export * from './lib/utils/audit-detail.util';
+export * from './lib/utils/password-policy.util';
 export * from './lib/utils/csv-export.util';
 
 export * from './lib/auth/auth.service';

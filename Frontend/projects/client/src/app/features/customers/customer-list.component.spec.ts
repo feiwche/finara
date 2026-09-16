@@ -19,14 +19,14 @@ const translateStub = {
 };
 
 describe('CustomerListComponent', () => {
-  let client: Mocked<Pick<Client, 'customers' | 'paged2' | 'stats' | 'import'>>;
+  let client: Mocked<Pick<Client, 'customersPOST' | 'paged2' | 'stats' | 'import'>>;
   let router: Mocked<Pick<Router, 'navigate'>>;
   let authService: Partial<AuthService>;
   let component: CustomerListComponent;
 
   beforeEach(() => {
     client = {
-      customers: vi.fn(),
+      customersPOST: vi.fn(),
       paged2: vi.fn(),
       stats: vi.fn(),
       import: vi.fn()
@@ -98,7 +98,7 @@ describe('CustomerListComponent', () => {
   it('createCustomer() zorunlu alanlar eksikken API çağırmadan geri döner', async () => {
     await component.createCustomer();
 
-    expect(client.customers).not.toHaveBeenCalled();
+    expect(client.customersPOST).not.toHaveBeenCalled();
     expect(component['createSubmitted']).toBe(true);
   });
 
@@ -114,13 +114,13 @@ describe('CustomerListComponent', () => {
       educationLevel: null,
       preferredLanguage: UiLanguage.Turkish
     };
-    client.customers.mockReturnValue(of({} as any));
+    client.customersPOST.mockReturnValue(of({} as any));
     client.paged2.mockReturnValue(of(new CustomerSummaryPagedResult({ items: [], totalCount: 0 })));
     client.stats.mockReturnValue(of({} as any));
 
     await component.createCustomer();
 
-    expect(client.customers).toHaveBeenCalled();
+    expect(client.customersPOST).toHaveBeenCalled();
     expect(component['dialogVisible']()).toBe(false);
   });
 

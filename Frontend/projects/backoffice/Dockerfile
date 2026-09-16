@@ -19,4 +19,9 @@ ENV PORT=4000
 EXPOSE 4000
 
 COPY --from=build /app/dist/backoffice ./dist/backoffice
+
+# Konteyner ROOT olarak çalışıyordu (denetimde bulundu). node imajı hazır gelen
+# ayrıcalıksız "node" kullanıcısını içeriyor; 4000 ayrıcalıklı olmayan bir port olduğu
+# için root gerekmiyor.
+USER node
 CMD ["node", "dist/backoffice/server/server.mjs"]

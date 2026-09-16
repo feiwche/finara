@@ -8,6 +8,10 @@ public interface ICustomerService
 
     Task<IReadOnlyList<CustomerSummary>> GetCustomersAsync(CancellationToken cancellationToken = default);
 
+    // Banka scope dışındaysa ya da bulunamazsa null (404 deseni). Müşteri detay ekranı
+    // önceden TÜM müşteri listesini çekip istemcide filtreliyordu (denetimde bulundu).
+    Task<CustomerSummary?> GetCustomerByIdAsync(Guid customerId, CancellationToken cancellationToken = default);
+
     Task<TransactionSummary?> RecordTransactionAsync(Guid customerId, RecordTransactionRequest request, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<TransactionSummary>?> GetTransactionsAsync(Guid customerId, CancellationToken cancellationToken = default);

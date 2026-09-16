@@ -10,7 +10,7 @@ import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
-import { AcceptInvitationRequest, Client, describeApiError, userRoleLabel } from '@finara/shared-ui';
+import { AcceptInvitationRequest, Client, describeApiError, passwordPolicyError, userRoleLabel } from '@finara/shared-ui';
 
 @Component({
     selector: 'app-accept-invitation',
@@ -80,6 +80,14 @@ export class AcceptInvitationComponent implements OnInit, OnDestroy {
   async submit(): Promise<void> {
     this.formSubmitted = true;
     if (!this.token || !this.newPassword || this.newPassword !== this.confirmPassword) return;
+
+    // Şifre kuralı istemcide HİÇ kontrol edilmiyordu (denetimde bulundu): kullanıcı "12" gibi
+    // bir şifre gönderip, bekledikten sonra backend'den anlaşılması güç genel bir hata alıyordu.
+    const policyError = passwordPolicyError(this.newPassword);
+    if (policyError) {
+      this.error.set(this.translate.instant(policyError));
+      return;
+    }
 
     this.error.set(null);
     this.busy.set(true);

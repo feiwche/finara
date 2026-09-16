@@ -75,6 +75,10 @@
       "passwordMismatch": "Şifreler eşleşmiyor.",
       "submit": "Hesabı Oluştur",
       "backToLogin": "Girişe dön"
+    },
+    "password": {
+      "tooShort": "Şifre en az 8 karakter olmalı.",
+      "needsLetterAndDigit": "Şifre en az bir harf ve bir rakam içermeli."
     }
   },
   "account": {

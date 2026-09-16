@@ -51,6 +51,10 @@
       "invalidToken": "Invalid reset link — please use the link from your email again.",
       "newPasswordRequired": "New password is required (at least 8 characters, including a letter and a number).",
       "passwordMismatch": "Passwords do not match."
+    },
+    "password": {
+      "tooShort": "Password must be at least 8 characters.",
+      "needsLetterAndDigit": "Password must contain at least one letter and one digit."
     }
   },
   "account": {

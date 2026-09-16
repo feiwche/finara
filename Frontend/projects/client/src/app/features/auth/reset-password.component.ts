@@ -9,7 +9,7 @@ import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
-import { Client, LanguageSwitcherComponent, ResetPasswordRequest, describeApiError } from '@finara/shared-ui';
+import { Client, LanguageSwitcherComponent, ResetPasswordRequest, describeApiError, passwordPolicyError } from '@finara/shared-ui';
 
 @Component({
     selector: 'app-reset-password',
@@ -47,6 +47,14 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
   async submit(): Promise<void> {
     this.formSubmitted = true;
     if (!this.token || !this.newPassword || this.newPassword !== this.confirmPassword) return;
+
+    // Şifre kuralı istemcide HİÇ kontrol edilmiyordu (denetimde bulundu): kullanıcı "12" gibi
+    // bir şifre gönderip, bekledikten sonra backend'den anlaşılması güç genel bir hata alıyordu.
+    const policyError = passwordPolicyError(this.newPassword);
+    if (policyError) {
+      this.error.set(this.translate.instant(policyError));
+      return;
+    }
 
     this.error.set(null);
     this.busy.set(true);

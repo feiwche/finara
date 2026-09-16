@@ -17,6 +17,12 @@ public class CustomerService(
     ICurrentUserContext currentUser)
     : ICustomerService
 {
+    // Demo/geliştirme verisi üretimi için makul üst sınırlar — gerçek bir ihtiyaçtan değil,
+    // kaynak tüketimini sınırlamaktan geliyor (bkz. GenerateMockDataAsync'teki gerekçe).
+    // Daha büyük bir veri kümesi gerekirse uç birkaç kez çağrılır.
+    private const int MaxMockCustomers = 1_000;
+    private const int MaxMockTransactionsPerCustomer = 500;
+
     public async Task<CustomerSummary> CreateCustomerAsync(CreateCustomerRequest request, CancellationToken cancellationToken = default)
     {
         var bankId = currentUser.ResolveBankIdForWrite();
@@ -57,6 +63,20 @@ public class CustomerService(
 
         var customers = await query.ToListAsync(cancellationToken);
         return customers.Select(ToSummary).ToList();
+    }
+
+    // Müşteri detay ekranı önceden TÜM müşteri tablosunu çekip istemci tarafında .find()
+    // ile arıyordu (denetimde bulundu) — müşteri sayısı büyüdükçe her detay açılışı bütün
+    // tabloyu indiriyordu. Banka scope kontrolü diğer tekil erişimlerle aynı desende.
+    public async Task<CustomerSummary?> GetCustomerByIdAsync(Guid customerId, CancellationToken cancellationToken = default)
+    {
+        var customer = await dbContext.Customers.AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == customerId, cancellationToken);
+
+        if (customer is null || (!currentUser.IsSuperAdmin && customer.BankId != currentUser.BankId))
+            return null;
+
+        return ToSummary(customer);
     }
 
     public async Task<PagedResult<CustomerSummary>> GetCustomersPagedAsync(int page, int pageSize, string? search, CancellationToken cancellationToken = default)
@@ -153,6 +173,21 @@ public class CustomerService(
     {
         if (request.CustomerCount <= 0 || request.TransactionsPerCustomer < 0)
             throw new ArgumentException("customerCount pozitif, transactionsPerCustomer negatif olmayan bir sayı olmalı.");
+
+        // ÜST SINIR (denetimde bulundu): önceden yalnızca "pozitif mi" kontrolü vardı.
+        // CustomerCount=5.000.000 gibi bir istek, tek SaveChanges öncesinde change tracker'ı
+        // ve belleği şişirip PAYLAŞILAN veritabanı sürecini tüketebilirdi — tüm bankaları
+        // etkileyen bir hizmet kesintisi. Rate limit isteğin SIKLIĞINI sınırlıyor ama
+        // MALİYETİNİ sınırlamıyordu; bu kontrol tam olarak onu yapıyor.
+        if (request.CustomerCount > MaxMockCustomers || request.TransactionsPerCustomer > MaxMockTransactionsPerCustomer)
+            throw new DomainException(
+                ErrorCodes.MockGenerationLimitExceeded,
+                $"Tek seferde en fazla {MaxMockCustomers} müşteri ve müşteri başına {MaxMockTransactionsPerCustomer} işlem üretilebilir.",
+                parameters: new Dictionary<string, object?>
+                {
+                    ["maxCustomers"] = MaxMockCustomers,
+                    ["maxTransactions"] = MaxMockTransactionsPerCustomer
+                });
 
         var bankId = currentUser.ResolveBankIdForWrite();
         var bankDataProvider = await bankDataProviderFactory.GetProviderAsync(bankId, cancellationToken);

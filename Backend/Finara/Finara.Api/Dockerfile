@@ -30,6 +30,14 @@ ENV ASPNETCORE_ENVIRONMENT=Production
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 
+# Konteyner ROOT olarak çalışıyordu (denetimde bulundu) — konteynerden kaçış içeren bir
+# açıkta saldırganın doğrudan host üzerinde root yetkisi elde etmesi anlamına gelir.
+# aspnet imajı hazır gelen ayrıcalıksız "app" kullanıcısını içeriyor; 8080 ayrıcalıklı
+# olmayan bir port olduğu için root'a ihtiyaç yok. Serilog'un yazdığı logs/ klasörü de
+# bu kullanıcıya devrediliyor, aksi halde uygulama log dosyasını açamazdı.
+RUN mkdir -p /app/logs && chown -R app:app /app
+USER app
+
 # Migration'lar burada OTOMATIK uygulanmıyor (bilinçli) — dağıtım script'i/CD adımı
 # `dotnet ef database update` ile ayrı bir adım olarak çalıştırmalı, container her
 # yeniden başladığında migration denemesin diye.

@@ -45,4 +45,7 @@ public static class ErrorCodes
     public const string CustomerCsvEmpty = "CUSTOMER_CSV_EMPTY";
     public const string CustomerCsvMissingColumns = "CUSTOMER_CSV_MISSING_COLUMNS";
     public const string CustomerCsvTooManyRows = "CUSTOMER_CSV_TOO_MANY_ROWS";
+
+    // Demo veri üretiminde istenen hacim üst sınırı aşıldı (bkz. CustomerService).
+    public const string MockGenerationLimitExceeded = "MOCK_GENERATION_LIMIT_EXCEEDED";
 }
