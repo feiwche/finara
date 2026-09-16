@@ -21,8 +21,10 @@ using Finara.Infrastructure.Automation;
 using Finara.Infrastructure.MockData;
 using Finara.Infrastructure.Persistence;
 using Finara.Infrastructure.Services;
+using Finara.Domain.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -146,6 +148,15 @@ builder.Services.AddScoped<ITwoFactorService, TwoFactorService>();
 builder.Services.AddScoped<IAdminUserService, AdminUserService>();
 builder.Services.AddScoped<IBankService, BankService>();
 builder.Services.AddScoped<ICampaignService, CampaignService>();
+// Farklı para birimlerindeki tutarları karşılaştırılabilir kılar (bkz. CurrencyConverter).
+// Kurlar sabit ve yapılandırmadan okunuyor — canlı bir kur servisi yok, bu bilinçli bir sınır.
+builder.Services.Configure<ExchangeRateOptions>(builder.Configuration.GetSection("ExchangeRates"));
+builder.Services.AddSingleton(sp =>
+{
+    var options = sp.GetRequiredService<IOptions<ExchangeRateOptions>>().Value;
+    return new CurrencyConverter(options.BaseCurrency, options.RatesToBase);
+});
+
 builder.Services.AddScoped<ISegmentationService, SegmentationService>();
 builder.Services.AddScoped<ICohortService, CohortService>();
 

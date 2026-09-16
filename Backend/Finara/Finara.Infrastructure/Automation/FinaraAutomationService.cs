@@ -1,6 +1,7 @@
 using Finara.Application.Contracts;
 using Finara.Application.Interfaces;
 using Finara.Domain.Entities;
+using Finara.Domain.Services;
 using Finara.Infrastructure.Persistence;
 using Finara.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
@@ -55,7 +56,8 @@ public class FinaraAutomationService(
         var systemUser = new SystemCurrentUserContext();
         var chatClient = scope.ServiceProvider.GetRequiredService<IChatClient>();
 
-        var segmentationService = new SegmentationService(dbContext, auditLogRepository, systemUser, chatClient);
+        var currencyConverter = scope.ServiceProvider.GetRequiredService<CurrencyConverter>();
+        var segmentationService = new SegmentationService(dbContext, auditLogRepository, systemUser, chatClient, currencyConverter);
         var segmentationResult = await segmentationService.RecalculateAllAsync(stoppingToken);
         logger.LogInformation(
             "Otomatik segmentasyon tamamlandı: {Processed} müşteri işlendi, {Skipped} müşteri atlandı.",

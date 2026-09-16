@@ -13,7 +13,8 @@ public class SegmentationService(
     FinaraDbContext dbContext,
     IAuditLogRepository auditLogRepository,
     ICurrentUserContext currentUser,
-    IChatClient chatClient)
+    IChatClient chatClient,
+    CurrencyConverter currencyConverter)
     : ISegmentationService
 {
     // RFM ve baskın kategori hesaplaması bu pencereyle sınırlı — çok eski işlemler
@@ -42,18 +43,34 @@ public class SegmentationService(
 
         // BankId de gruplamaya dahil — RFM quintile skorlaması (aşağıda banka bazlı ayrı ayrı
         // hesaplanıyor, bkz. o bölümdeki yorum) hangi bankaya ait olduğunu bilmek zorunda.
-        var activitySummaries = await transactionsQuery
+        // Currency de gruplamaya dahil — farklı para birimlerindeki tutarlar VERİTABANINDA
+        // toplanamaz (1 USD = 1 TRY olurdu, denetimde bulundu). Her para birimi ayrı toplanıp
+        // aşağıda temel para birimine çevrilerek birleştiriliyor.
+        var currencyTotals = await transactionsQuery
             .Where(t => t.OccurredAtUtc >= lookbackStart)
-            .GroupBy(t => new { t.CustomerId, t.BankId })
+            .GroupBy(t => new { t.CustomerId, t.BankId, t.Currency })
             .Select(g => new
             {
                 g.Key.CustomerId,
                 g.Key.BankId,
+                g.Key.Currency,
                 LastTransactionUtc = g.Max(t => t.OccurredAtUtc),
                 Count = g.Count(),
                 Total = g.Sum(t => t.Amount)
             })
             .ToListAsync(cancellationToken);
+
+        var activitySummaries = currencyTotals
+            .GroupBy(x => new { x.CustomerId, x.BankId })
+            .Select(g => new
+            {
+                g.Key.CustomerId,
+                g.Key.BankId,
+                LastTransactionUtc = g.Max(x => x.LastTransactionUtc),
+                Count = g.Sum(x => x.Count),
+                Total = g.Sum(x => currencyConverter.ToBase(x.Total, x.Currency))
+            })
+            .ToList();
 
         var totalCustomers = await customersQuery.CountAsync(cancellationToken);
         var activeCustomerIds = activitySummaries.Select(a => a.CustomerId).ToHashSet();
@@ -103,13 +120,22 @@ public class SegmentationService(
             }
 
             // Baskın kategori: pencere içinde en çok harcanan kategori (tutar bazlı).
+            // Burada da Currency gruplamaya dahil — aksi halde USD'li bir kategori, TRY'li bir
+            // kategoriyle haksız biçimde karşılaştırılıp yanlış "baskın" kategori seçilirdi.
             var categoryTotals = await transactionsQuery
                 .Where(t => t.OccurredAtUtc >= lookbackStart)
-                .GroupBy(t => new { t.CustomerId, t.Category })
-                .Select(g => new { g.Key.CustomerId, g.Key.Category, Total = g.Sum(t => t.Amount) })
+                .GroupBy(t => new { t.CustomerId, t.Category, t.Currency })
+                .Select(g => new { g.Key.CustomerId, g.Key.Category, g.Key.Currency, Total = g.Sum(t => t.Amount) })
                 .ToListAsync(cancellationToken);
 
             var dominantCategories = categoryTotals
+                .GroupBy(x => new { x.CustomerId, x.Category })
+                .Select(g => new
+                {
+                    g.Key.CustomerId,
+                    g.Key.Category,
+                    Total = g.Sum(x => currencyConverter.ToBase(x.Total, x.Currency))
+                })
                 .GroupBy(x => x.CustomerId)
                 .ToDictionary(g => g.Key, g => g.OrderByDescending(x => x.Total).First().Category);
 

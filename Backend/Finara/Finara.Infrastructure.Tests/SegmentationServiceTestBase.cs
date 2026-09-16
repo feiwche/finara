@@ -1,6 +1,7 @@
 using Finara.Application.Interfaces;
 using Finara.Domain.Entities;
 using Finara.Domain.Enums;
+using Finara.Domain.Services;
 using Finara.Infrastructure.Persistence;
 using Finara.Infrastructure.Services;
 using Microsoft.Data.Sqlite;
@@ -21,6 +22,7 @@ public abstract class SegmentationServiceTestBase : IDisposable
     protected ICurrentUserContext CurrentUser { get; }
     protected IAuditLogRepository AuditLogRepository { get; }
     protected SegmentationService Sut { get; }
+    protected CurrencyConverter CurrencyConverter { get; }
     protected Guid BankAId { get; }
     protected Guid BankBId { get; }
 
@@ -50,7 +52,11 @@ public abstract class SegmentationServiceTestBase : IDisposable
         AuditLogRepository = Substitute.For<IAuditLogRepository>();
         var chatClient = Substitute.For<IChatClient>();
 
-        Sut = new SegmentationService(DbContext, AuditLogRepository, CurrentUser, chatClient);
+        // Testlerdeki tutarlar tek para birimindeyse (TRY) çevirici etkisiz kalır; USD'li
+        // senaryolarda 1 USD = 35 TRY kabul edilir (appsettings'teki varsayılanla aynı).
+        CurrencyConverter = new CurrencyConverter("TRY", new Dictionary<string, decimal> { ["USD"] = 35m });
+
+        Sut = new SegmentationService(DbContext, AuditLogRepository, CurrentUser, chatClient, CurrencyConverter);
     }
 
     protected Customer CreateCustomer(Guid bankId, string email)
@@ -61,8 +67,8 @@ public abstract class SegmentationServiceTestBase : IDisposable
         return customer;
     }
 
-    protected void AddTransaction(Customer customer, Guid bankId, decimal amount, DateTime occurredAtUtc) =>
-        DbContext.Transactions.Add(Transaction.Create(bankId, customer.Id, amount, TransactionCategory.Groceries, "Test Merchant", occurredAtUtc));
+    protected void AddTransaction(Customer customer, Guid bankId, decimal amount, DateTime occurredAtUtc, string currency = "TRY") =>
+        DbContext.Transactions.Add(Transaction.Create(bankId, customer.Id, amount, TransactionCategory.Groceries, "Test Merchant", occurredAtUtc, currency));
 
     public void Dispose()
     {

@@ -32,7 +32,12 @@ public static class AiEndpoints
         // Ollama isteği saniyeler sürebiliyor — genel limitten daha sıkı bir politika mantıklı olurdu
         // ama Faz 5 kapsamını dar tutmak için şimdilik genel limiti kullanıyoruz.
         .RequireRateLimiting(RateLimitPolicies.Global)
-        .RequireAuthorization("WriteAccess")
+        // WriteAccess DEĞİL: bu uç kavramsal olarak bir OKUMA işlemi — müşteri verisini okuyup
+        // yorum üretiyor, hiçbir iş verisini değiştirmiyor (yalnızca AiInteractionLog izi
+        // yazıyor, o da bu okumanın kaydı). WriteAccess iken salt-okunur Analyst rolü 403
+        // alıyordu ve DEMO HESABI Analyst olduğu için, herkese açık demoyu deneyen kişi
+        // ürünün amiral gemisi özelliğini hiç kullanamıyordu (canlı testte 403 ile doğrulandı).
+        .RequireAuthorization()
         .Produces<AiInsightResult>()
         .ProducesProblem(StatusCodes.Status404NotFound);
     }

@@ -99,9 +99,16 @@ public class NextBestOfferService(FinaraDbContext dbContext, IAuditLogRepository
         // Kampanyanın (bu müşteriye özel değil, TÜM müşteriler genelinde) geçmiş kabul/ret
         // geçmişi — NextBestOfferScorer'daki ret-geçmişi cezasına girdi. Sürekli reddedilen
         // bir kampanya artık aynı skoru almaya devam etmiyor (bkz. o dosyadaki gerekçe).
+        // "Yanıt" YALNIZCA gerçek bir karardır: kabul ya da ret. Expired (müşteri hiç yanıt
+        // vermeden süresi doldu) bilinçli olarak DIŞARIDA — önceden `Response != Pending`
+        // filtresi Expired'ları da paydaya katıyordu ve bu ret oranını sulandırıyordu
+        // (denetimde bulundu): 3 ret + 10 expired, gerçekte %100 ret olması gerekirken
+        // %23 olarak hesaplanıyordu. Dahası, hiç yanıtlanmamış bir kampanya yalnızca expire
+        // olmuş teklifleriyle MinRespondedSampleSize eşiğini geçip "temiz geçmişli" görünüyordu.
         var campaignIds = activeCampaigns.Select(c => c.Id).ToList();
         var responseHistory = await dbContext.CampaignOffers
-            .Where(o => campaignIds.Contains(o.CampaignId) && o.Response != OfferResponse.Pending)
+            .Where(o => campaignIds.Contains(o.CampaignId)
+                && (o.Response == OfferResponse.Accepted || o.Response == OfferResponse.Declined))
             .GroupBy(o => o.CampaignId)
             .Select(g => new { CampaignId = g.Key, Responded = g.Count(), Declined = g.Count(o => o.Response == OfferResponse.Declined) })
             .ToDictionaryAsync(x => x.CampaignId, x => (x.Responded, x.Declined), cancellationToken);
