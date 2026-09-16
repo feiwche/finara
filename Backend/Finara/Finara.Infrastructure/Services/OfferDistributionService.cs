@@ -1,3 +1,4 @@
+using Finara.Domain.Common;
 using Finara.Application.Contracts;
 using Finara.Application.Interfaces;
 using Finara.Domain.Entities;
@@ -59,9 +60,9 @@ public class OfferDistributionService(
         // Gönderim hiç denenmeden atlanacaksa sebebi burada belirleniyor. Bu iki durumda
         // dispatcher hiç çağrılmadığı için NotificationLog satırını da kendimiz yazıyoruz.
         var skipWithoutDispatch = !campaignDistributable
-            ? "Kampanya artık aktif değil."
+            ? NotificationSkipReasons.CampaignNotActive
             : request.Channel == ConsentChannel.InAppBanking
-                ? "Bu kanal için henüz bir gönderim entegrasyonu yok."
+                ? NotificationSkipReasons.ChannelNotIntegrated
                 : null;
 
         NotificationDispatchResult result;
@@ -78,7 +79,13 @@ public class OfferDistributionService(
                 .DispatchAsync(offer.BankId, customerId, message, offer.Id, cancellationToken);
         }
 
-        var detail = result.Sent ? $"{campaignName} / gönderildi" : $"{campaignName} / atlandı: {result.SkippedReason}";
+        // Denetim kaydı detayı da dilden BAĞIMSIZ, ayrıştırılabilir bir biçimde yazılıyor
+        // (SkippedReason kodlarıyla aynı gerekçe): önceden "gönderildi"/"atlandı: ..." sabit
+        // Türkçe metindi ve EN/DE personel Denetim Kaydı ekranında ham Türkçe görüyordu.
+        // Frontend bu deseni tanıyıp kullanıcının diline çeviriyor (bkz. audit-detail.util.ts).
+        var detail = result.Sent
+            ? $"{campaignName} / SENT"
+            : $"{campaignName} / SKIPPED: {result.SkippedReason}";
         await auditLogRepository.InsertAsync(
             AuditLog.Create(offer.BankId, offer.CustomerId, AuditActionType.OfferDistributed, detail, currentUser.UserId),
             cancellationToken);

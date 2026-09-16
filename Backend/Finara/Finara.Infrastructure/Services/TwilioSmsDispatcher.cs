@@ -1,3 +1,4 @@
+using Finara.Domain.Common;
 using Finara.Application.Contracts;
 using Finara.Application.Interfaces;
 using Finara.Domain.Entities;
@@ -32,7 +33,7 @@ public class TwilioSmsDispatcher(FinaraDbContext dbContext, IConsentGate consent
         var granted = await consentGate.IsConsentGrantedAsync(customerId, Channel, cancellationToken);
         var result = granted
             ? await SendAsync(customerId, message, cancellationToken)
-            : new NotificationDispatchResult(false, "Rıza verilmemiş");
+            : new NotificationDispatchResult(false, NotificationSkipReasons.ConsentNotGranted);
 
         dbContext.NotificationLogs.Add(NotificationLog.Create(
             bankId, customerId, Channel, message, result.Sent, result.SkippedReason, campaignOfferId));
@@ -50,7 +51,7 @@ public class TwilioSmsDispatcher(FinaraDbContext dbContext, IConsentGate consent
             .FirstOrDefaultAsync(cancellationToken);
 
         if (string.IsNullOrWhiteSpace(phoneNumber))
-            return new NotificationDispatchResult(false, "Müşterinin telefon numarası yok.");
+            return new NotificationDispatchResult(false, NotificationSkipReasons.CustomerHasNoPhone);
 
         try
         {

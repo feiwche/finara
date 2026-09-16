@@ -1,4 +1,4 @@
-import { auditDetailLabel } from './audit-detail.util';
+import { auditDetailLabel, notificationSkipReasonLabel } from './audit-detail.util';
 
 // TranslateService kaydedilmediği için translateOrFallback/translateEnumValue Türkçe
 // yedeklere düşüyor — bu testler tam olarak o yedek davranışı ve ayrıştırma mantığını
@@ -37,6 +37,24 @@ describe('audit-detail.util', () => {
   it('tanınmayan serbest metni olduğu gibi döner', () => {
     expect(auditDetailLabel('12 müşteri CSV ile içe aktarıldı (0 satır hatalı).'))
       .toBe('12 müşteri CSV ile içe aktarıldı (0 satır hatalı).');
+  });
+
+  // Backend artık dilden bağımsız kod/işaret gönderiyor (NotificationSkipReasons,
+  // "<kampanya> / SENT|SKIPPED: <kod>") — önceden sabit Türkçe metindi ve EN/DE personel
+  // Bildirim/Denetim Kaydı ekranlarında ham Türkçe görüyordu.
+  it('teklif dağıtımı detayını çevirir (gönderildi)', () => {
+    expect(auditDetailLabel('Yaz Kampanyası / SENT')).toBe('Yaz Kampanyası / gönderildi');
+  });
+
+  it('teklif dağıtımı detayını çevirir (atlandı + sebep kodu)', () => {
+    expect(auditDetailLabel('Yaz Kampanyası / SKIPPED: CONSENT_NOT_GRANTED'))
+      .toBe('Yaz Kampanyası / atlandı: Rıza verilmemiş');
+  });
+
+  it('tanınmayan sebep kodunu olduğu gibi gösterir (eski kayıtlar ve teknik hatalar)', () => {
+    expect(notificationSkipReasonLabel('SMTP hatası: bağlantı reddedildi'))
+      .toBe('SMTP hatası: bağlantı reddedildi');
+    expect(notificationSkipReasonLabel(null)).toBe('');
   });
 
   it('boş/null detay için boş metin döner', () => {

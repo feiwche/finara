@@ -23,6 +23,7 @@ import {
   auditActionTypeSeverity,
   auditDetailLabel,
   describeApiError,
+  formatDateTimeForExport,
   getAuditActionTypeOptions,
   sanitizeCsvField,
   toUtcDateOnlyIso
@@ -182,7 +183,7 @@ export class AuditLogComponent implements OnInit, OnDestroy {
       case 'actionType':
         return auditActionTypeLabel(event.data as string);
       case 'occurredAtUtc':
-        return new Date(event.data as string).toLocaleString('tr-TR');
+        return formatDateTimeForExport(event.data as string, this.translate.currentLang());
       case 'details':
         return sanitizeCsvField(auditDetailLabel(event.data as string));
       default:

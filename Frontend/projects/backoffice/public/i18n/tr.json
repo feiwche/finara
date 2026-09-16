@@ -409,7 +409,9 @@
     },
     "detail": {
       "automated": "Otomasyon",
-      "segmentAssigned": "{{propensity}} / baskın kategori: {{category}}"
+      "segmentAssigned": "{{propensity}} / baskın kategori: {{category}}",
+      "offerSent": "{{campaign}} / gönderildi",
+      "offerSkipped": "{{campaign}} / atlandı: {{reason}}"
     }
   },
   "bankManagement": {
@@ -503,6 +505,13 @@
     "toast": {
       "loadFailed": "Bildirim kayıtları yüklenemedi",
       "newNotification": "Yeni bildirim"
+    },
+    "skipReason": {
+      "CONSENT_NOT_GRANTED": "Rıza verilmemiş",
+      "CUSTOMER_HAS_NO_EMAIL": "Müşterinin e-posta adresi yok",
+      "CUSTOMER_HAS_NO_PHONE": "Müşterinin telefon numarası yok",
+      "CAMPAIGN_NOT_ACTIVE": "Kampanya artık aktif değil",
+      "CHANNEL_NOT_INTEGRATED": "Bu kanal için henüz gönderim entegrasyonu yok"
     }
   },
   "enums": {

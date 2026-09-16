@@ -409,7 +409,9 @@
     },
     "detail": {
       "automated": "Automatisiert",
-      "segmentAssigned": "{{propensity}} / dominante Kategorie: {{category}}"
+      "segmentAssigned": "{{propensity}} / dominante Kategorie: {{category}}",
+      "offerSent": "{{campaign}} / gesendet",
+      "offerSkipped": "{{campaign}} / übersprungen: {{reason}}"
     }
   },
   "bankManagement": {
@@ -503,6 +505,13 @@
     "toast": {
       "loadFailed": "Benachrichtigungsprotokoll konnte nicht geladen werden",
       "newNotification": "Neue Benachrichtigung"
+    },
+    "skipReason": {
+      "CONSENT_NOT_GRANTED": "Keine Einwilligung erteilt",
+      "CUSTOMER_HAS_NO_EMAIL": "Kunde hat keine E-Mail-Adresse",
+      "CUSTOMER_HAS_NO_PHONE": "Kunde hat keine Telefonnummer",
+      "CAMPAIGN_NOT_ACTIVE": "Kampagne ist nicht mehr aktiv",
+      "CHANNEL_NOT_INTEGRATED": "Für diesen Kanal gibt es noch keine Zustellintegration"
     }
   },
   "enums": {

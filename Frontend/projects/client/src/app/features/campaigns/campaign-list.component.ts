@@ -29,6 +29,7 @@ import {
   campaignStatusLabel,
   campaignStatusSeverity,
   describeApiError,
+  formatDateForExport,
   getSpendingPropensityOptions,
   getTransactionCategoryOptions,
   sanitizeCsvField,
@@ -225,7 +226,7 @@ export class CampaignListComponent implements OnInit, OnDestroy {
         return (event.data as string[]).map(spendingPropensityLabel).join(' / ');
       case 'startDateUtc':
       case 'endDateUtc':
-        return new Date(event.data as string).toLocaleDateString('tr-TR');
+        return formatDateForExport(event.data as string, this.translate.currentLang());
       default:
         return sanitizeCsvField(String(event.data));
     }

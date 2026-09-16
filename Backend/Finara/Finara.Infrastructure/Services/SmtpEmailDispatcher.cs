@@ -1,3 +1,4 @@
+using Finara.Domain.Common;
 using System.Net;
 using System.Net.Mail;
 using Finara.Application.Contracts;
@@ -28,7 +29,7 @@ public class SmtpEmailDispatcher(FinaraDbContext dbContext, IConsentGate consent
         var granted = await consentGate.IsConsentGrantedAsync(customerId, Channel, cancellationToken);
         var result = granted
             ? await SendAsync(customerId, message, cancellationToken)
-            : new NotificationDispatchResult(false, "Rıza verilmemiş");
+            : new NotificationDispatchResult(false, NotificationSkipReasons.ConsentNotGranted);
 
         dbContext.NotificationLogs.Add(NotificationLog.Create(
             bankId, customerId, Channel, message, result.Sent, result.SkippedReason, campaignOfferId));
@@ -46,7 +47,7 @@ public class SmtpEmailDispatcher(FinaraDbContext dbContext, IConsentGate consent
             .FirstOrDefaultAsync(cancellationToken);
 
         if (string.IsNullOrWhiteSpace(email))
-            return new NotificationDispatchResult(false, "Müşterinin e-posta adresi yok.");
+            return new NotificationDispatchResult(false, NotificationSkipReasons.CustomerHasNoEmail);
 
         try
         {

@@ -22,7 +22,9 @@ import {
   RealtimeService,
   consentChannelLabel,
   describeApiError,
+  formatDateTimeForExport,
   getConsentChannelOptions,
+  notificationSkipReasonLabel,
   sanitizeCsvField,
   toUtcDateOnlyIso
 } from '@finara/shared-ui';
@@ -137,14 +139,20 @@ export class NotificationLogComponent implements OnInit, OnDestroy {
     ];
   });
 
+  // Backend stabil kod gönderiyor (NotificationSkipReasons); tanınmayan/teknik metinler
+  // olduğu gibi gösterilir — bkz. audit-detail.util.ts.
+  protected readonly skipReasonLabel = notificationSkipReasonLabel;
+
   protected exportFn = (event: { data: unknown; field: string }): string => {
     switch (event.field) {
       case 'channel':
         return event.data == null ? '' : consentChannelLabel(event.data as string);
       case 'sentAtUtc':
-        return event.data == null ? '' : new Date(event.data as string).toLocaleString('tr-TR');
+        return event.data == null ? '' : formatDateTimeForExport(event.data as string, this.translate.currentLang());
       case 'sent':
         return event.data ? this.translate.instant('notificationLog.status.sent') : this.translate.instant('notificationLog.status.skipped');
+      case 'skippedReason':
+        return event.data == null ? '' : sanitizeCsvField(notificationSkipReasonLabel(event.data as string));
       default:
         return event.data == null ? '' : sanitizeCsvField(String(event.data));
     }

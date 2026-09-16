@@ -68,7 +68,7 @@
         @if (log.sent) {
           <p-tag [value]="'notificationLog.status.sent' | translate" severity="success" />
         } @else {
-          <p-tag [value]="('notificationLog.status.skipped' | translate) + ': ' + (log.skippedReason ?? '—')" severity="warn" />
+          <p-tag [value]="('notificationLog.status.skipped' | translate) + ': ' + (skipReasonLabel(log.skippedReason) || '—')" severity="warn" />
         }
       </td>
       <td>{{ log.message }}</td>
