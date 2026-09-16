@@ -73,4 +73,37 @@ public class RfmCalculatorTests
     {
         RfmCalculator.DeterminePropensity(totalScore).Should().Be(expected);
     }
+
+    // Denetimde tespit edilen, ÜRÜN KARARIYLA korunan davranış: 5'ten az müşterili
+    // popülasyonlarda quintile formülü gerçek NTILE(5)'ten sapıyor (bkz. RfmCalculator'daki
+    // ayrıntılı gerekçe). Bu testler o sapmayı KİLİTLİYOR — biri formülü "düzeltirse" test
+    // kırılır ve kararın bilinçli olduğu görülür; sessizce değişmez.
+    [Fact]
+    public void ScoreByQuintile_IkiMusteriliPopulasyon_Skorlari1ve3Olarak_Ayirir()
+    {
+        var a = Guid.NewGuid();
+        var b = Guid.NewGuid();
+        var scores = RfmCalculator.CalculateScores(
+        [
+            new RfmCalculator.CustomerActivity(a, Reference.AddDays(-1), 10, 100m),
+            new RfmCalculator.CustomerActivity(b, Reference.AddDays(-1), 10, 900m)
+        ], Reference);
+
+        // Gerçek NTILE(5) 1 ve 2 verirdi; mevcut formül müşterileri 1-5 aralığına yayıyor.
+        scores.Single(s => s.CustomerId == a).MonetaryScore.Should().Be(1);
+        scores.Single(s => s.CustomerId == b).MonetaryScore.Should().Be(3);
+    }
+
+    [Fact]
+    public void ScoreByQuintile_DortMusteriliPopulasyon_TavanSkor4Olur()
+    {
+        var customers = Enumerable.Range(0, 4).Select(_ => Guid.NewGuid()).ToList();
+        var scores = RfmCalculator.CalculateScores(
+            customers.Select((id, i) => new RfmCalculator.CustomerActivity(id, Reference.AddDays(-1), 10, 100m * (i + 1))).ToList(),
+            Reference);
+
+        // 5 müşteriden azında en yüksek skor 5'e ULAŞMIYOR — bilinçli, belgelenmiş sapma.
+        scores.Max(s => s.MonetaryScore).Should().Be(4);
+        scores.Single(s => s.CustomerId == customers[0]).MonetaryScore.Should().Be(1);
+    }
 }

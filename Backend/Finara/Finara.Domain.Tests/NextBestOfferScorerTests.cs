@@ -139,4 +139,41 @@ public class NextBestOfferScorerTests
 
         score.Should().Be(86);
     }
+
+    // Denetimde sorgulanan, ÜRÜN KARARIYLA korunan davranış: kampanyanın hedef kategorisi
+    // müşterinin baskın kategorisiyle hiç tutmasa bile diğer bileşenler eşiği aşmaya
+    // yetebiliyor. Gerekçe NextBestOfferScorer'da; bu test kararı kilitliyor — biri
+    // kategoriyi sert engele çevirirse test kırılır, sessizce davranış değişmez.
+    [Fact]
+    public void KategoriHicTutmasaBile_DigerBilesenlerEsigiAsabilir()
+    {
+        var customer = CreateCustomer(hasInvestment: true);
+        // Müşterinin baskın kategorisi Market, kampanya ise Motosiklet hedefliyor.
+        var segment = CreateSegment(5, 5, 5, SpendingPropensity.HighlyResponsive, TransactionCategory.Groceries);
+        var alakasizKampanya = Campaign.Create(
+            ValidBankId, "Motosiklet Kaskosu", "Açıklama", DateTime.UtcNow,
+            targetCategory: TransactionCategory.Motorcycle,
+            targetsInvestmentAccountHolders: true);
+
+        var score = NextBestOfferScorer.Score(segment, customer, alakasizKampanya);
+
+        // Kategori 0 + eğilim 25 + RFM 20 + yatırım bayrağı 10 = 55.
+        score.Should().Be(55);
+        NextBestOfferScorer.MeetsThreshold(score).Should().BeTrue();
+    }
+
+    [Fact]
+    public void KategoriTutanKampanya_TutmayandanHerZamanYuksekSkorAlir()
+    {
+        var customer = CreateCustomer();
+        var segment = CreateSegment(5, 5, 5, SpendingPropensity.HighlyResponsive, TransactionCategory.Motorcycle);
+
+        var eslesen = Campaign.Create(ValidBankId, "Motosiklet", "Açıklama", DateTime.UtcNow, targetCategory: TransactionCategory.Motorcycle);
+        var eslesmeyen = Campaign.Create(ValidBankId, "Market", "Açıklama", DateTime.UtcNow, targetCategory: TransactionCategory.Groceries);
+
+        // Kategori en yüksek ağırlığı (45) taşıdığı için eşleşen kampanya daima önde olmalı —
+        // "sert engel değil" kararı, kategoriyi önemsizleştirmek anlamına GELMİYOR.
+        NextBestOfferScorer.Score(segment, customer, eslesen)
+            .Should().BeGreaterThan(NextBestOfferScorer.Score(segment, customer, eslesmeyen));
+    }
 }

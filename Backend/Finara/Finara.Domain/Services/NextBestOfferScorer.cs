@@ -32,6 +32,13 @@ public static class NextBestOfferScorer
     {
         var score = 0;
 
+        // Kategori uyuşmazlığı SERT BİR ENGEL DEĞİL — bilinçli ürün kararı (denetimde
+        // sorgulandı, böyle bırakıldı): kategori tutmasa bile eğilim (25) + RFM (20) +
+        // özel bayrak (10) ile eşik aşılabilir. Gerekçe: baskın harcama kategorisi tek
+        // başına belirleyici değildir — yatırım hesabı olan, yüksek RFM'li bir müşteriye
+        // yatırım kampanyası önermek, o ay en çok markete harcamış olsa da doğrudur.
+        // Kategori en yüksek ağırlığı (45) almaya devam ediyor, yani eşleşenler her zaman
+        // önde. Bu davranış NextBestOfferScorerTests'te kilitli.
         if (campaign.TargetCategory is not null)
         {
             if (campaign.TargetCategory == segment.DominantCategory)

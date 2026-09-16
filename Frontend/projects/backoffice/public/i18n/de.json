@@ -580,8 +580,8 @@
       "InAppBanking": "In-App-Banking"
     },
     "educationLevel": {
-      "Ilkogretim": "Grundschule",
-      "Lise": "Gymnasium",
+      "Ilkogretim": "Primar- und Sekundarstufe I",
+      "Lise": "Sekundarstufe II",
       "Onlisans": "Kurzstudium",
       "Lisans": "Bachelorabschluss",
       "Lisansustu": "Postgraduiert"

@@ -48,6 +48,18 @@ public static class RfmCalculator
 
     // SQL'deki NTILE(5) ile aynı mantık: popülasyon değere göre sıralanır, 5 eşit
     // parçaya bölünür, her parçaya 1-5 arası bir skor verilir.
+    //
+    // BİLİNÇLİ SAPMA (denetimde tespit edildi, ürün kararıyla böyle bırakıldı): 5'ten AZ
+    // müşterili popülasyonlarda `i * 5 / n` formülü gerçek NTILE(5) davranışından ayrılır —
+    // n=2'de skorlar 1 ve 3 (2 hiç kullanılmaz), n=4'te tavan 5 değil 4 olur. Gerçek NTILE
+    // bu durumda herkesi en düşük gruplara yığardı.
+    //
+    // Neden düzeltilmedi: 2-4 müşterilik bir popülasyonda quintile zaten istatistiksel olarak
+    // anlamsız; hangi davranışın "doğru" olduğu tanım gereği tartışmalı. Mevcut formül en
+    // azından müşterileri birbirinden AYIRT ediyor, ki segmentasyonun amacı bu. Gerçek
+    // bankalarda popülasyon her zaman n>>5 olacağı için pratik etkisi yok — bu yalnızca
+    // yeni/küçük bir pilot bankanın ilk günlerinde görülür.
+    // Davranış RfmCalculatorTests'te kilitli: değişirse test kırılır, sessizce kaymaz.
     private static Dictionary<Guid, int> ScoreByQuintile(IEnumerable<(Guid CustomerId, decimal Value)> values, bool higherIsBetter)
     {
         var ordered = values.OrderBy(v => v.Value).ToList();
