@@ -510,8 +510,6 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.MapGet("/", () => "Hello World!");
-
 // Predicate = _ => false: hiçbir kayıtlı kontrolü çalıştırmaz, sadece HTTP host'un
 // isteklere yanıt verebildiğini doğrular (klasik liveness probe).
 app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
