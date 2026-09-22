@@ -1,24 +1,34 @@
-# SharedUi
+# shared-ui
 
-This library was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.2.0.
+`client` ve `backoffice` uygulamaları arasında paylaşılan ortak kütüphane — npm'e publish
+edilmez, monorepo içi TypeScript path mapping (`tsconfig.json`) ile doğrudan tüketilir.
 
-## Code scaffolding
+İçerdikleri:
+- **API istemcisi** (`lib/api/finara-client.ts`) — backend'in Swagger şemasından NSwag ile
+  otomatik üretilir (`npm run generate:api-client`), elle düzenlenmez.
+- **Kimlik doğrulama** — `AuthService`, `authGuard`, `superAdminGuard`, `authInterceptor`.
+- **i18n yardımcıları** — enum/hata kodu çevirisi, tarih/CSV biçimlendirme (`lib/utils/`).
+- **Tema** — `ThemeService`, PrimeNG preset'i.
+- **Gerçek zamanlı bildirimler** — `RealtimeService` (SignalR).
+- **Ortak bileşenler** — dil değiştirici, sayfa başlığı stratejisi.
 
-Run `ng generate component component-name --project shared-ui` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module --project shared-ui`.
-> Note: Don't forget to add `--project shared-ui` or else it will be added to the default project in your `angular.json` file. 
+## Kod üretimi
+
+```bash
+ng generate component component-name --project shared-ui
+```
+`--project shared-ui` eklenmezse bileşen yanlışlıkla varsayılan projeye eklenir.
 
 ## Build
 
-Run `ng build shared-ui` to build the project. The build artifacts will be stored in the `dist/` directory.
+```bash
+ng build shared-ui
+```
 
-## Publishing
+## Test
 
-After building your library with `ng build shared-ui`, go to the dist folder `cd dist/shared-ui` and run `npm publish`.
-
-## Running unit tests
-
-Run `ng test shared-ui` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+```bash
+ng test shared-ui
+```
+Test çalıştırıcısı **Vitest**'tir (Angular 20'nin `@angular/build:unit-test` builder'ı üzerinden;
+Karma değil).
