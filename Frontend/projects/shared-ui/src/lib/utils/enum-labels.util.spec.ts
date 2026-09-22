@@ -5,7 +5,6 @@ import {
   campaignStatusLabel,
   consentChannelLabel,
   educationLevelLabel,
-  getAgeBracketOptions,
   getTransactionCategoryOptions,
   getUserRoleOptions,
   offerResponseLabel,
@@ -70,9 +69,5 @@ describe('enum-labels.util', () => {
   it('getUserRoleOptions() her rol için doğru label üretir', () => {
     const analyst = getUserRoleOptions().find(o => o.value === UserRole.Analyst);
     expect(analyst?.label).toBe('Analist (Salt Okunur)');
-  });
-
-  it('getAgeBracketOptions() enum değerleriyle birebir aynı sayıda üretilir', () => {
-    expect(getAgeBracketOptions().length).toBeGreaterThan(0);
   });
 });

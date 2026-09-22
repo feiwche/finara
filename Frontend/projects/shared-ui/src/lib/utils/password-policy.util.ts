@@ -6,10 +6,7 @@
 //
 // Kural değişirse İKİ tarafın da güncellenmesi gerekir; bu ikilik AiContextLabels'taki
 // C#/TypeScript paylaşım sorununun aynısı.
-export function isPasswordValid(password: string | null | undefined): boolean {
-  return passwordPolicyError(password) === null;
-}
-
+//
 // Geçerliyse null, değilse i18n anahtarı döner.
 export function passwordPolicyError(password: string | null | undefined): string | null {
   if (!password || password.length < 8) return 'auth.password.tooShort';

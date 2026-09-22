@@ -1,4 +1,4 @@
-import { AgeBracket, AuditActionType, BankDataProviderType, ConsentChannel, EducationLevel, SpendingPropensity, TransactionCategory, UiLanguage, UserRole } from '../api/finara-client';
+import { AuditActionType, BankDataProviderType, ConsentChannel, EducationLevel, SpendingPropensity, TransactionCategory, UiLanguage, UserRole } from '../api/finara-client';
 import { TranslateService } from '@ngx-translate/core';
 
 // Bu modüldeki label fonksiyonları çoğu bileşende doğrudan şablonda ({{ xLabel(value) }})
@@ -200,10 +200,6 @@ export function getUserRoleOptions() {
 
 export function getEducationLevelOptions() {
   return Object.values(EducationLevel).map(value => ({ label: educationLevelLabel(value), value }));
-}
-
-export function getAgeBracketOptions() {
-  return Object.values(AgeBracket).map(value => ({ label: ageBracketLabel(value), value }));
 }
 
 export function getConsentChannelOptions() {
