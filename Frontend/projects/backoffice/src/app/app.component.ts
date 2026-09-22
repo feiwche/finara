@@ -6,8 +6,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 @Component({
     selector: 'app-root',
     imports: [RouterOutlet, ToastModule, ConfirmDialogModule],
-    templateUrl: './app.component.html',
-    styleUrl: './app.component.scss'
+    templateUrl: './app.component.html'
 })
 export class AppComponent {
   title = 'backoffice';
