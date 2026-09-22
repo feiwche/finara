@@ -26,6 +26,9 @@ Backend/Finara/coverage-report/
 .idea/
 *.swp
 
+# ---- Yerel AI gelistirme araci yapilandirmasi (proje koduyla ilgisi yok, makineye ozel yol icerir) ----
+.claude/
+
 # ---- Env / Secrets ----
 .env
 .env.*
