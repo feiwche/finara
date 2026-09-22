@@ -1,9 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using Finara.Domain.Common;
 using Finara.Domain.Enums;
 
@@ -52,7 +46,7 @@ public class Customer : BaseEntity
         if (string.IsNullOrWhiteSpace(lastName))
             throw new ArgumentException("Soyad boş olamaz.", nameof(lastName));
 
-        if (!IsValidEmail(email))
+        if (!EmailValidator.IsValid(email))
             throw new ArgumentException("Geçersiz e-posta formatı.", nameof(email));
 
         if (dateOfBirth > DateTime.UtcNow.AddYears(-18))
@@ -137,17 +131,4 @@ public class Customer : BaseEntity
     private static bool IsValidPhoneNumber(string phoneNumber) =>
         System.Text.RegularExpressions.Regex.IsMatch(phoneNumber.Trim(), @"^\+[1-9]\d{7,14}$");
 
-    private static bool IsValidEmail(string email)
-    {
-        if (string.IsNullOrWhiteSpace(email)) return false;
-        try
-        {
-            var addr = new System.Net.Mail.MailAddress(email);
-            return addr.Address == email.Trim();
-        }
-        catch
-        {
-            return false;
-        }
-    }
 }

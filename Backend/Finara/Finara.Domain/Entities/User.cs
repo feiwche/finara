@@ -47,7 +47,7 @@ public class User : BaseEntity
 
     public static User Create(string email, string passwordHash, UserRole role = UserRole.SuperAdmin, Guid? bankId = null)
     {
-        if (!IsValidEmail(email))
+        if (!EmailValidator.IsValid(email))
             throw new ArgumentException("Geçersiz e-posta formatı.", nameof(email));
 
         if (string.IsNullOrWhiteSpace(passwordHash))
@@ -149,17 +149,4 @@ public class User : BaseEntity
         MarkUpdated();
     }
 
-    private static bool IsValidEmail(string email)
-    {
-        if (string.IsNullOrWhiteSpace(email)) return false;
-        try
-        {
-            var addr = new System.Net.Mail.MailAddress(email);
-            return addr.Address == email.Trim();
-        }
-        catch
-        {
-            return false;
-        }
-    }
 }
