@@ -319,9 +319,7 @@ export class CustomerListComponent implements OnInit, OnDestroy {
     // this.translate.instant(...) ile başlıkları çeviriyordu — yani İngilizce/Almanca arayüzde
     // indirilen şablon ("First Name,Last Name,...") geri yüklendiğinde backend "zorunlu sütun
     // eksik" hatası verirdi (bulundu, örnek veri de İngilizce/Almanca'ya çevrilmiş ama sütun
-    // ADLARI çevrilmemiş olsaydı bile aynı sorun oluşurdu). Kullanıcıya gösterilen sütun
-    // AÇIKLAMALARI (customers.importTemplate.* — dosya adı hariç) hâlâ çevrili, sadece CSV'nin
-    // kendi başlık satırı sabit Türkçe.
+    // ADLARI çevrilmemiş olsaydı bile aynı sorun oluşurdu).
     const header = 'Ad,Soyad,E-posta,Doğum Tarihi,Telefon,Eğitim Durumu,Yatırım Hesabı Var,Yurtdışı Transfer Var,Dil';
     // ParseBool de aynı şekilde sadece "evet/var/true/1" kabul ediyor (backend) — "Yes"/"No"
     // gibi çevrilmiş bir örnek değer de aynı sınıftan bir hataya yol açardı, o yüzden bu da sabit.

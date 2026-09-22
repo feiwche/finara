@@ -759,35 +759,6 @@ h1, h2, h3 {
   white-space: nowrap;
 }
 
-// İsim/soyisim baş harflerinden oluşan yuvarlak rozet — tablo satırlarında ve
-// detay başlıklarında "gerçek bir insan" hissini güçlendiriyor.
-.avatar-circle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: var(--p-primary-100, #D7ECE5);
-  color: var(--p-primary-700, #175243);
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 0.8rem;
-}
-
-.avatar-circle--lg {
-  width: 48px;
-  height: 48px;
-  font-size: 1.1rem;
-}
-
-.detail-header {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
 // Dashboard'ın "vitrin" karşılama şeridi — koyu pine gradyanı + iki soluk ambient
 // leke, sayfanın geri kalanındaki düz-açık zeminle güçlü bir kontrast oluşturuyor.
 // Nav çubuğuyla aynı koyu aile, ama ayrı bir gradyan açısıyla tekrarı önlüyor.

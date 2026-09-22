@@ -127,11 +127,7 @@
     "saved": "Settings saved."
   },
   "common": {
-    "cancel": "Cancel",
-    "save": "Save",
-    "error": "An error occurred",
-    "yes": "Yes",
-    "no": "No"
+    "error": "An error occurred"
   },
   "scenarios": {
     "badge": "How It Works",
@@ -251,16 +247,6 @@
       "summary": "{{success}} / {{total}} rows imported successfully.",
       "row": "Row",
       "error": "Error"
-    },
-    "importTemplate": {
-      "firstName": "First Name",
-      "lastName": "Last Name",
-      "email": "Email",
-      "dob": "Date of Birth",
-      "phone": "Phone",
-      "education": "Education Level",
-      "hasInvestment": "Has Investment Account",
-      "hasSwift": "Has International Transfers"
     },
     "export": {
       "firstName": "First Name",
@@ -522,25 +508,6 @@
       "BankAdmin": "Bank Admin",
       "Analyst": "Analyst (Read-Only)"
     },
-    "auditActionType": {
-      "SegmentAssigned": "Segment Assigned",
-      "CampaignOfferPresented": "Offer Presented",
-      "CampaignOfferAccepted": "Offer Accepted",
-      "CampaignOfferDeclined": "Offer Declined",
-      "CustomerCreated": "Customer Created",
-      "TransactionRecorded": "Transaction Recorded",
-      "OfferDistributed": "Offer Distributed",
-      "ConsentGranted": "Consent Granted",
-      "ConsentRevoked": "Consent Revoked",
-      "AdminCreated": "Admin Created",
-      "AdminDeactivated": "Admin Deactivated",
-      "CustomerBulkImported": "Customers Bulk Imported",
-      "CustomerErased": "Customer Data Anonymized (GDPR)",
-      "AdminInvited": "Admin Invitation Sent",
-      "AdminInvitationAccepted": "Admin Invitation Accepted",
-      "AdminInvitationRevoked": "Admin Invitation Revoked",
-      "AdminSessionsRevoked": "Admin Sessions Revoked"
-    },
     "consentChannel": {
       "Sms": "SMS",
       "Email": "Email",
@@ -556,13 +523,6 @@
     "bankDataProviderType": {
       "Mock": "Simulated Data (Mock)",
       "GarantiSandbox": "Garanti BBVA Sandbox"
-    },
-    "ageBracket": {
-      "Age18To25": "18-25",
-      "Age26To35": "26-35",
-      "Age36To45": "36-45",
-      "Age46To55": "46-55",
-      "Age56Plus": "56+"
     },
     "uiLanguage": {
       "Turkish": "Turkish",

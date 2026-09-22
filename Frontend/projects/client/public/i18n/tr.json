@@ -127,11 +127,7 @@
     "saved": "Ayarlar kaydedildi."
   },
   "common": {
-    "cancel": "Vazgeç",
-    "save": "Kaydet",
-    "error": "Bir hata oluştu",
-    "yes": "Evet",
-    "no": "Hayır"
+    "error": "Bir hata oluştu"
   },
   "scenarios": {
     "badge": "Nasıl Çalışır",
@@ -251,16 +247,6 @@
       "summary": "{{success}} / {{total}} satır başarıyla içe aktarıldı.",
       "row": "Satır",
       "error": "Hata"
-    },
-    "importTemplate": {
-      "firstName": "Ad",
-      "lastName": "Soyad",
-      "email": "E-posta",
-      "dob": "Doğum Tarihi",
-      "phone": "Telefon",
-      "education": "Eğitim Durumu",
-      "hasInvestment": "Yatırım Hesabı Var",
-      "hasSwift": "Yurtdışı Transfer Var"
     },
     "export": {
       "firstName": "Ad",
@@ -522,25 +508,6 @@
       "BankAdmin": "Banka Yöneticisi",
       "Analyst": "Analist (Salt Okunur)"
     },
-    "auditActionType": {
-      "SegmentAssigned": "Segment Atandı",
-      "CampaignOfferPresented": "Teklif Sunuldu",
-      "CampaignOfferAccepted": "Teklif Kabul Edildi",
-      "CampaignOfferDeclined": "Teklif Reddedildi",
-      "CustomerCreated": "Müşteri Oluşturuldu",
-      "TransactionRecorded": "İşlem Kaydedildi",
-      "OfferDistributed": "Teklif Dağıtıldı",
-      "ConsentGranted": "Rıza Verildi",
-      "ConsentRevoked": "Rıza Kaldırıldı",
-      "AdminCreated": "Yönetici Oluşturuldu",
-      "AdminDeactivated": "Yönetici Pasifleştirildi",
-      "CustomerBulkImported": "Müşteri Toplu İçe Aktarıldı",
-      "CustomerErased": "Müşteri Verisi Anonimleştirildi (KVKK)",
-      "AdminInvited": "Yönetici Daveti Gönderildi",
-      "AdminInvitationAccepted": "Yönetici Daveti Kabul Edildi",
-      "AdminInvitationRevoked": "Yönetici Daveti İptal Edildi",
-      "AdminSessionsRevoked": "Yönetici Oturumları Sonlandırıldı"
-    },
     "consentChannel": {
       "Sms": "SMS",
       "Email": "E-posta",
@@ -556,13 +523,6 @@
     "bankDataProviderType": {
       "Mock": "Simüle Veri (Mock)",
       "GarantiSandbox": "Garanti BBVA Sandbox"
-    },
-    "ageBracket": {
-      "Age18To25": "18-25",
-      "Age26To35": "26-35",
-      "Age36To45": "36-45",
-      "Age46To55": "46-55",
-      "Age56Plus": "56+"
     },
     "uiLanguage": {
       "Turkish": "Türkçe",

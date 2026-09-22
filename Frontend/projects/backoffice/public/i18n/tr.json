@@ -20,7 +20,6 @@
       "email": "E-posta",
       "password": "Şifre",
       "submit": "Giriş yap",
-      "demoLogin": "Demo Hesabıyla Gir",
       "forgotPassword": "Şifremi unuttum",
       "twoFactorHeader": "İki Faktörlü Doğrulama",
       "twoFactorHint": "Authenticator uygulamanızdaki 6 haneli kodu girin.",
@@ -152,7 +151,6 @@
   },
   "common": {
     "cancel": "Vazgeç",
-    "save": "Kaydet",
     "error": "Bir hata oluştu"
   },
   "scenarios": {

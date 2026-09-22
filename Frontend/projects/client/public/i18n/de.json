@@ -127,11 +127,7 @@
     "saved": "Einstellungen gespeichert."
   },
   "common": {
-    "cancel": "Abbrechen",
-    "save": "Speichern",
-    "error": "Ein Fehler ist aufgetreten",
-    "yes": "Ja",
-    "no": "Nein"
+    "error": "Ein Fehler ist aufgetreten"
   },
   "scenarios": {
     "badge": "So funktioniert's",
@@ -251,16 +247,6 @@
       "summary": "{{success}} / {{total}} Zeilen erfolgreich importiert.",
       "row": "Zeile",
       "error": "Fehler"
-    },
-    "importTemplate": {
-      "firstName": "Vorname",
-      "lastName": "Nachname",
-      "email": "E-Mail",
-      "dob": "Geburtsdatum",
-      "phone": "Telefon",
-      "education": "Bildungsstand",
-      "hasInvestment": "Hat Anlagekonto",
-      "hasSwift": "Hat internationale Überweisungen"
     },
     "export": {
       "firstName": "Vorname",
@@ -522,25 +508,6 @@
       "BankAdmin": "Bankadministrator",
       "Analyst": "Analyst (Nur Lesen)"
     },
-    "auditActionType": {
-      "SegmentAssigned": "Segment Zugewiesen",
-      "CampaignOfferPresented": "Angebot Vorgestellt",
-      "CampaignOfferAccepted": "Angebot Angenommen",
-      "CampaignOfferDeclined": "Angebot Abgelehnt",
-      "CustomerCreated": "Kunde Erstellt",
-      "TransactionRecorded": "Transaktion Erfasst",
-      "OfferDistributed": "Angebot Verteilt",
-      "ConsentGranted": "Einwilligung Erteilt",
-      "ConsentRevoked": "Einwilligung Widerrufen",
-      "AdminCreated": "Administrator Erstellt",
-      "AdminDeactivated": "Administrator Deaktiviert",
-      "CustomerBulkImported": "Kunden Massenimport",
-      "CustomerErased": "Kundendaten Anonymisiert (DSGVO)",
-      "AdminInvited": "Administratoreinladung Gesendet",
-      "AdminInvitationAccepted": "Administratoreinladung Angenommen",
-      "AdminInvitationRevoked": "Administratoreinladung Widerrufen",
-      "AdminSessionsRevoked": "Administratorsitzungen Beendet"
-    },
     "consentChannel": {
       "Sms": "SMS",
       "Email": "E-Mail",
@@ -556,13 +523,6 @@
     "bankDataProviderType": {
       "Mock": "Simulierte Daten (Mock)",
       "GarantiSandbox": "Garanti BBVA Sandbox"
-    },
-    "ageBracket": {
-      "Age18To25": "18-25",
-      "Age26To35": "26-35",
-      "Age36To45": "36-45",
-      "Age46To55": "46-55",
-      "Age56Plus": "56+"
     },
     "uiLanguage": {
       "Turkish": "Türkisch",

@@ -20,7 +20,6 @@
       "email": "E-Mail",
       "password": "Passwort",
       "submit": "Anmelden",
-      "demoLogin": "Mit Demo-Konto fortfahren",
       "forgotPassword": "Passwort vergessen",
       "twoFactorHeader": "Zwei-Faktor-Authentifizierung",
       "twoFactorHint": "Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein.",
@@ -152,7 +151,6 @@
   },
   "common": {
     "cancel": "Abbrechen",
-    "save": "Speichern",
     "error": "Ein Fehler ist aufgetreten"
   },
   "scenarios": {

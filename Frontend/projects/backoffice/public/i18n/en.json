@@ -20,7 +20,6 @@
       "email": "Email",
       "password": "Password",
       "submit": "Log in",
-      "demoLogin": "Continue with Demo Account",
       "forgotPassword": "Forgot my password",
       "twoFactorHeader": "Two-Factor Authentication",
       "twoFactorHint": "Enter the 6-digit code from your authenticator app.",
@@ -152,7 +151,6 @@
   },
   "common": {
     "cancel": "Cancel",
-    "save": "Save",
     "error": "An error occurred"
   },
   "scenarios": {
