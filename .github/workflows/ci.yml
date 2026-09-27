@@ -38,7 +38,7 @@ jobs:
         working-directory: Frontend
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           # 24.x — hem yerel geliştirme ortamıyla (Node 24) hem Dockerfile'ların build
           # aşamasıyla (node:24-slim) aynı npm sürüm ailesinde (11.x) kalmak için. Daha
@@ -107,7 +107,7 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '24.x'
           cache: 'npm'
