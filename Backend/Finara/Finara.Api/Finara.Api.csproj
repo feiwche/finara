@@ -26,7 +26,7 @@
          MessagePack 2.5.108, birden fazla Yüksek/Orta önem dereceli CVE taşıyor (denetimde
          bulundu). SignalR paketi henüz güncellenmemiş olsa da NuGet'in "en yakın kazanır"
          kuralı sayesinde burada doğrudan referans verilen sürüm geçişli olanın üzerine yazar. -->
-    <PackageReference Include="MessagePack" Version="2.5.302" />
+    <PackageReference Include="MessagePack" Version="3.1.10" />
     <PackageReference Include="ModelContextProtocol.AspNetCore" Version="1.4.1" />
     <PackageReference Include="RedisRateLimiting.AspNetCore" Version="1.2.1" />
     <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
