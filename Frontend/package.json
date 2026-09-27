@@ -50,6 +50,6 @@
     "ng-packagr": "^20.3.2",
     "nswag": "^14.7.1",
     "typescript": "~5.9.3",
-    "vitest": "^3.2.7"
+    "vitest": "^5.0.1"
   }
 }
