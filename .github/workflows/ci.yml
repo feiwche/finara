@@ -13,7 +13,7 @@ jobs:
       run:
         working-directory: Backend/Finara
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
@@ -37,7 +37,7 @@ jobs:
       run:
         working-directory: Frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           # 24.x — hem yerel geliştirme ortamıyla (Node 24) hem Dockerfile'ların build
@@ -103,7 +103,7 @@ jobs:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: "http://localhost:5068"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
@@ -183,7 +183,7 @@ jobs:
             dockerfile: Frontend/projects/backoffice/Dockerfile
             context: Frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
