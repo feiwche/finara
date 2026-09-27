@@ -226,7 +226,7 @@ builder.Services.AddScoped<IOfferDistributionService, OfferDistributionService>(
 builder.Services.AddScoped<INotificationLogService, NotificationLogService>();
 builder.Services.AddScoped<INextBestOfferService, NextBestOfferService>();
 
-// Bulut LLM API'si (ChatGPT/Claude) değil, kullanıcının kendi makinesinde
+// Bulut LLM API'si değil, kullanıcının kendi makinesinde
 // çalışan Ollama (llama3.1:8b) — Faz 5. Tek bir IChatClient Singleton olarak
 // kaydediliyor, AiChatService ve AiInsightService bunu paylaşıyor — öncesinde
 // AiInsightService her çağrıda kendi client'ını oluşturup hiç Dispose etmiyordu

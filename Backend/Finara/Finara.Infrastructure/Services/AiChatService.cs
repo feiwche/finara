@@ -4,8 +4,8 @@ using Microsoft.Extensions.AI;
 namespace Finara.Infrastructure.Services;
 
 // Yerel makinede çalışan Ollama'ya (llama3.1:8b) bağlanır — bulut tabanlı bir
-// LLM API'sine (ChatGPT/Claude vb.) bilerek bağlanılmıyor, kullanıcının kendi
-// donanımında barındırılan bir model kullanılıyor.
+// LLM API'sine bilerek bağlanılmıyor, kullanıcının kendi donanımında
+// barındırılan bir model kullanılıyor.
 //
 // IChatClient DI'dan Singleton olarak enjekte ediliyor (bkz. Program.cs) —
 // AiInsightService ile PAYLAŞILAN tek bir bağlantı. Öncesinde AiInsightService

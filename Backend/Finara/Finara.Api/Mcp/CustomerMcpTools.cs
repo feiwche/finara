@@ -4,7 +4,7 @@ using ModelContextProtocol.Server;
 
 namespace Finara.Api.Mcp;
 
-// Dış MCP istemcilerine (Claude Desktop, başka bir AI aracı vb.) açılan gerçek
+// Dış MCP istemcilerine açılan gerçek
 // MCP tool'ları — CustomerContextTools'un ince bir sarmalayıcısı. Parametreler
 // arasındaki CustomerContextTools, MCP SDK tarafından DI'dan otomatik çözülüyor;
 // yalnızca customerId/days gibi ilkel tipler LLM'in doldurduğu gerçek argümanlar.
